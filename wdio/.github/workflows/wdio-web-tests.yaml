@@ -1,0 +1,129 @@
+name: WDIO Web Tests
+run-name: 🧪 WDIO Web Tests
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to run the tests against'
+        required: true
+        default: 'stage'
+        type: choice
+        options:
+          - stage
+          - prod
+      appName:
+        description: 'Name of the app to test (e.g. testApp)'
+        required: true
+        default: 'testApp'
+        type: string
+      suiteName:
+        description: 'Test suite name (e.g. all, e2e)'
+        required: true
+        default: 'all'
+        type: string
+      max_instances:
+        description: 'Number of parallel instances to run tests (e.g. 1, 2, 3)'
+        required: true
+        default: '1'
+        type: string
+
+env:
+  SLACK_CHANNEL: ${{vars.SLACK_CHANNEL}}
+  SLACK_WEBHOOK: ${{vars.SLACK_WEBHOOK}}
+  SLACK_USER: ${{vars.SLACK_USER}}
+  CI_PIPELINE_URL: "https://github.com/alexzavg/wdio_showcase/actions/runs/${{github.run_id}}"
+  TZ: ${{vars.TZ}}
+  NODE_VERSION: 20.x
+
+jobs:
+  web_tests:
+    runs-on: ubuntu-22.04
+    env:
+      REPORT_URL: https://alexzavg.github.io/wdio_showcase/${{ github.event.inputs.appName }}_${{ github.event.inputs.suiteName }}_${{ github.event.inputs.environment }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Chrome
+        uses: browser-actions/setup-chrome@latest
+        with:
+          chrome-version: stable
+          chrome-args: >
+            --no-sandbox
+            --disable-dev-shm-usage
+            --headless
+            --disable-gpu
+            --window-size=1920,1080
+
+      - name: Use node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Create .env file
+        run: |
+          if [ "${{ github.event.inputs.environment }}" = "stage" ]; then
+            echo "${{ secrets.CONFIG_STAGE }}" > .env.stage
+            echo "Created .env.stage"
+          elif [ "${{ github.event.inputs.environment }}" = "prod" ]; then
+            echo "${{ secrets.CONFIG_PROD }}" > .env.prod
+            echo "Created .env.prod"
+          fi
+
+      - name: Run Web tests
+        run: |
+          export DISPLAY=:99
+          ENV=${{ github.event.inputs.environment }} npx wdio run wdio.web.conf.ts \
+            --appName=${{ github.event.inputs.appName }} \
+            --suiteName=${{ github.event.inputs.suiteName }} \
+            --maxInstances=${{ github.event.inputs.max_instances }}
+
+      - name: Publish Allure report with history
+        uses: simple-elf/allure-report-action@master
+        if: always()
+        with:
+          allure_results: html-report/allure-results
+          allure_report: html-report/allure-report
+          gh_pages: true
+          keep_reports: 7
+          subfolder: ${{ github.event.inputs.appName }}_${{ github.event.inputs.suiteName }}_${{ github.event.inputs.environment }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+      - name: Notify Slack
+        if: always()
+        run: |
+          STATUS="${{ job.status }}"
+          COLOR="#2EB67D"
+          EMOJI=":white_check_mark:"
+          SLACK_TAG=""
+          if [ "$STATUS" == "failure" ]; then
+            COLOR="#E01E5A"
+            EMOJI=":x:"
+            SLACK_TAG="<${{ env.SLACK_USER }}>"
+          elif [ "$STATUS" == "cancelled" ]; then
+            COLOR="#808080"
+            EMOJI=":black_square_for_stop:"
+          fi
+
+          REPORT_URL="https://alexzavg.github.io/wdio_showcase/${{ github.event.inputs.appName }}_${{ github.event.inputs.suiteName }}_${{ github.event.inputs.environment }}"
+          echo ""
+          echo "🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥"
+          echo "🟩 REPORT URL FOR ${STATUS^^}: ${REPORT_URL}"
+          echo "🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥"
+          echo ""
+
+          curl -X POST -H 'Content-type: application/json' --data "{
+            \"channel\":\"$SLACK_CHANNEL\",
+            \"username\":\"Github\",
+            \"attachments\":[{
+              \"color\":\"$COLOR\",
+              \"text\":\"$EMOJI Test suite *${{ github.event.inputs.suiteName }}* for app *${{ github.event.inputs.appName }}* and environment *${{ github.event.inputs.environment }}* finished with status *$STATUS*. :book: <${{ env.CI_PIPELINE_URL }}|LOGS>, :bar_chart: <$REPORT_URL|REPORT> $SLACK_TAG\",
+              \"footer\":\"Time: $(TZ=$TZ date)\"
+            }]
+          }" $SLACK_WEBHOOK

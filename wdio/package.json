@@ -1,0 +1,41 @@
+{
+  "name": "wdio",
+  "type": "module",
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^22.15.18",
+    "@wdio/allure-reporter": "^9.13.0",
+    "@wdio/appium-service": "^9.13.0",
+    "@wdio/cli": "^9.13.0",
+    "@wdio/local-runner": "^9.13.0",
+    "@wdio/mocha-framework": "^9.13.0",
+    "@wdio/spec-reporter": "^9.13.0",
+    "@wdio/types": "^9.14.0",
+    "allure-commandline": "^2.34.0",
+    "appium": "^2.18.0",
+    "appium-uiautomator2-driver": "^3.10.0",
+    "dotenv": "^16.5.0",
+    "fs-extra": "^11.3.0",
+    "shelljs": "^0.8.5",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3",
+    "wdio-video-reporter": "^6.1.1",
+    "wdio-wait-for": "^3.1.0"
+  },
+  "scripts": {
+    "testApp:web:all:stage": "ENV=stage npx wdio run wdio.web.conf.ts --appName=testApp --suiteName=all --maxInstances=1",
+    "testApp:web:all:prod": "ENV=prod npx wdio run wdio.web.conf.ts --appName=testApp --suiteName=all --maxInstances=1",
+    "testApp:web:e2e:stage": "ENV=stage npx wdio run wdio.web.conf.ts --appName=testApp --suiteName=e2e --maxInstances=1",
+    "testApp:web:e2e:prod": "ENV=prod npx wdio run wdio.web.conf.ts --appName=testApp --suiteName=e2e --maxInstances=1",
+    "testApp:mobile:android:all:stage": "ENV=stage npx wdio run wdio.android.conf.ts --appName=testApp --suiteName=all",
+    "testApp:mobile:android:all:prod": "ENV=prod npx wdio run wdio.android.conf.ts --appName=testApp --suiteName=all",
+    "testApp:mobile:android:e2e:stage": "ENV=stage npx wdio run wdio.android.conf.ts --appName=testApp --suiteName=e2e",
+    "testApp:mobile:android:e2e:prod": "ENV=prod npx wdio run wdio.android.conf.ts --appName=testApp --suiteName=e2e",
+    "appium:start": "tsx ./utils/appium.ts --start",
+    "appium:stop": "tsx ./utils/appium.ts --stop",
+    "android:emulator:start": "tsx ./utils/androidEmulator.ts start",
+    "android:emulator:stop": "tsx ./utils/androidEmulator.ts stop",
+    "allure:open": "allure open ./html-report/allure-report"
+  }
+}

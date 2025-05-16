@@ -1,0 +1,8 @@
+{
+  "name": "qa_automation_monorepo",
+  "private": true,
+  "scripts": {
+    "kill:processes": "./_scripts/kill_processes.sh",
+    "kill:ports": "./_scripts/kill_ports.sh"
+  }
+}

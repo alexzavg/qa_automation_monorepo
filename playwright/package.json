@@ -1,0 +1,51 @@
+{
+  "name": "playwright",
+  "version": "1.0.0",
+  "description": "Playwright Retreats tests",
+  "main": "index.js",
+  "scripts": {
+    "setup": "npm i && npm i -g ts-node && npx playwright install --with-deps",
+    "ui:mode:prod": "cross-env test_env=prod npx playwright test --ui --project=phptravels:e2e",
+    "template:prod": "node run-playwright.js chrome template prod",
+    "pretify": "npx prettier --write './APIs' './Pages' './TestData' './tests'",
+    "chat:e2e:tests:stage": "node run-playwright.js chrome chat:e2e stage",
+    "chat:e2e:tests:prod": "node run-playwright.js chrome chat:e2e prod",
+    "softserve:bullies:tests:stage": "node run-playwright.js chrome softserve:bullies stage",
+    "softserve:bullies:tests:prod": "node run-playwright.js chrome softserve:bullies prod",
+    "bookretreats:e2e:tests:stage": "node run-playwright.js chrome bookretreats:e2e stage",
+    "bookretreats:e2e:tests:prod": "node run-playwright.js chrome bookretreats:e2e prod",
+    "blockchain:tests:stage": "node run-playwright.js chrome blockchain stage",
+    "blockchain:tests:prod": "node run-playwright.js chrome blockchain prod",
+    "gmail:tests:stage": "node run-playwright.js chrome gmail stage",
+    "gmail:tests:prod": "node run-playwright.js chrome gmail prod",
+    "authentication:tests:stage": "node run-playwright.js chrome authentication stage",
+    "authentication:tests:prod": "node run-playwright.js chrome authentication prod",
+    "all:tests:stage": "node run-playwright.js chrome all stage",
+    "all:tests:prod": "node run-playwright.js chrome all prod",
+    "show:report": "npx playwright show-report html_report"
+  },
+  "types": "./global.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/alexzavg/playwright_retreat"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "@aws-crypto/crc32": "^5.2.0",
+    "@playwright/test": "^1.52.0",
+    "@types/speakeasy": "^2.0.10",
+    "@types/xml2js": "^0.4.14",
+    "aws-sdk": "^2.1692.0",
+    "chalk": "^4.1.2",
+    "cross-env": "^7.0.3",
+    "dotenv": "^16.3.1",
+    "fs": "^0.0.1-security",
+    "ganache": "^7.9.2",
+    "googleapis": "^148.0.0",
+    "nodemailer": "^6.10.1",
+    "path": "^0.12.7",
+    "playwright": "^1.52.0",
+    "speakeasy": "^2.0.0",
+    "web3": "^4.16.0"
+  }
+}

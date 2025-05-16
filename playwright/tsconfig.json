@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "target": "es2019",
+    "strict": false,
+    "module": "commonjs",
+    "sourceMap": true,
+    "noImplicitAny": false,
+    "strictNullChecks": false,
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+    "rootDir": "./",
+    "resolveJsonModule": true,
+  },
+  "include": ["**/*.ts", "./**/*.json", "tests/**/**/*.spec.ts", "utils/generate-html-report.ts"]
+}
