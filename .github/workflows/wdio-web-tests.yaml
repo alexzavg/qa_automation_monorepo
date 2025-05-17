@@ -29,10 +29,10 @@ on:
         type: string
 
 env:
-  SLACK_CHANNEL: ${{vars.SLACK_CHANNEL}}
-  SLACK_WEBHOOK: ${{vars.SLACK_WEBHOOK}}
+  SLACK_CHANNEL: ${{vars.WDIO_SLACK_CHANNEL}}
+  SLACK_WEBHOOK: ${{vars.WDIO_SLACK_WEBHOOK}}
   SLACK_USER: ${{vars.SLACK_USER}}
-  CI_PIPELINE_URL: "https://github.com/alexzavg/wdio_showcase/actions/runs/${{github.run_id}}"
+  CI_PIPELINE_URL: "https://github.com/alexzavg/qa_automation_monorepo/actions/runs/${{github.run_id}}"
   TZ: ${{vars.TZ}}
   NODE_VERSION: 20.x
 
@@ -40,7 +40,7 @@ jobs:
   web_tests:
     runs-on: ubuntu-22.04
     env:
-      REPORT_URL: https://alexzavg.github.io/wdio_showcase/${{ github.event.inputs.appName }}_${{ github.event.inputs.suiteName }}_${{ github.event.inputs.environment }}
+      REPORT_URL: https://alexzavg.github.io/qa_automation_monorepo/${{ github.event.inputs.appName }}_${{ github.event.inputs.suiteName }}_${{ github.event.inputs.environment }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -67,6 +67,7 @@ jobs:
 
       - name: Create .env file
         run: |
+          cd wdio
           if [ "${{ github.event.inputs.environment }}" = "stage" ]; then
             echo "${{ secrets.CONFIG_STAGE }}" > .env.stage
             echo "Created .env.stage"
@@ -77,6 +78,7 @@ jobs:
 
       - name: Run Web tests
         run: |
+          cd wdio
           export DISPLAY=:99
           ENV=${{ github.event.inputs.environment }} npx wdio run wdio.web.conf.ts \
             --appName=${{ github.event.inputs.appName }} \
@@ -87,8 +89,8 @@ jobs:
         uses: simple-elf/allure-report-action@master
         if: always()
         with:
-          allure_results: html-report/allure-results
-          allure_report: html-report/allure-report
+          allure_results: wdio/html-report/allure-results
+          allure_report: wdio/html-report/allure-report
           gh_pages: true
           keep_reports: 7
           subfolder: ${{ github.event.inputs.appName }}_${{ github.event.inputs.suiteName }}_${{ github.event.inputs.environment }}
@@ -111,7 +113,7 @@ jobs:
             EMOJI=":black_square_for_stop:"
           fi
 
-          REPORT_URL="https://alexzavg.github.io/wdio_showcase/${{ github.event.inputs.appName }}_${{ github.event.inputs.suiteName }}_${{ github.event.inputs.environment }}"
+          REPORT_URL="https://alexzavg.github.io/qa_automation_monorepo/${{ github.event.inputs.appName }}_${{ github.event.inputs.suiteName }}_${{ github.event.inputs.environment }}"
           echo ""
           echo "🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥"
           echo "🟩 REPORT URL FOR ${STATUS^^}: ${REPORT_URL}"
