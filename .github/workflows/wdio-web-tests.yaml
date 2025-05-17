@@ -64,7 +64,7 @@ jobs:
       - name: Install dependencies
         run: |
           cd wdio
-          npm ci
+          npm install
 
       - name: Create .env file
         run: |
