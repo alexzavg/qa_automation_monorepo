@@ -92,17 +92,31 @@ jobs:
         run: |
           SLUG="${{ github.event.inputs.appName }}_${{ github.event.inputs.suiteName }}_${{ github.event.inputs.environment }}"
           # Get the latest build number for this slug
-          LATEST_BUILD=$(curl -s "https://api.github.com/repos/${{ github.repository }}/contents/${SLUG}" \
-            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            | jq -r '.[] | select(.name | test("^[0-9]+$") | length > 0) | .name' \
-            | sort -nr \
-            | head -n 1)
+          echo "Checking for existing builds in ${SLUG}"
           
-          # If no builds exist yet, start with 1
-          if [ -z "$LATEST_BUILD" ]; then
+          # First, get the directory contents
+          DIR_CONTENTS=$(curl -s "https://api.github.com/repos/${{ github.repository }}/contents/${SLUG}" \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}")
+          
+          # Check if the directory exists
+          if [ -z "$DIR_CONTENTS" ]; then
+            echo "No builds found yet, starting with 1"
             BUILD_NUMBER="1"
           else
-            BUILD_NUMBER=$(($LATEST_BUILD + 1))
+            # Get the latest build number
+            LATEST_BUILD=$(echo "$DIR_CONTENTS" \
+              | jq -r '.[] | select(.name | test("^[0-9]+$") | length > 0) | .name' \
+              | sort -nr \
+              | head -n 1)
+            
+            if [ -z "$LATEST_BUILD" ]; then
+              echo "No builds found yet, starting with 1"
+              BUILD_NUMBER="1"
+            else
+              echo "Latest build found: $LATEST_BUILD"
+              BUILD_NUMBER=$(($LATEST_BUILD + 1))
+              echo "New build number: $BUILD_NUMBER"
+            fi
           fi
           
           echo "SLUG=$SLUG" >> $GITHUB_OUTPUT
