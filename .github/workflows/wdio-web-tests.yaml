@@ -77,6 +77,26 @@ jobs:
             echo "Created .env.prod"
           fi
 
+      - name: Get latest build number
+        id: get_build_number
+        run: |
+          SLUG="${{ github.event.inputs.appName }}_${{ github.event.inputs.suiteName }}_${{ github.event.inputs.environment }}"
+          # Get the latest build number for this slug
+          LATEST_BUILD=$(curl -s "https://api.github.com/repos/${{ github.repository }}/contents/${{ github.event.inputs.appName }}_${{ github.event.inputs.suiteName }}_${{ github.event.inputs.environment }}" \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            | jq -r '.[] | select(.name | test("^[0-9]+$") | length > 0) | .name' \
+            | sort -nr \
+            | head -n 1)
+          
+          # If no builds exist yet, start with 1
+          if [ -z "$LATEST_BUILD" ]; then
+            BUILD_NUMBER="1"
+          else
+            BUILD_NUMBER=$(($LATEST_BUILD + 1))
+          fi
+          
+          echo "BUILD_NUMBER=$BUILD_NUMBER" >> $GITHUB_OUTPUT
+
       - name: Run Web tests
         run: |
           cd wdio
@@ -86,21 +106,12 @@ jobs:
             --suiteName=${{ github.event.inputs.suiteName }} \
             --maxInstances=${{ github.event.inputs.max_instances }}
 
-      - name: 🧼 Clean previous report folder
-        if: always()
-        run: |
-          cd wdio
-          rm -rf ${{ github.event.inputs.appName }}_${{ github.event.inputs.suiteName }}_${{ github.event.inputs.environment }}/${{github.run_number}}
-          mkdir -p ${{ github.event.inputs.appName }}_${{ github.event.inputs.suiteName }}_${{ github.event.inputs.environment }}/${{github.run_number}}
-          cp -r html-report/allure-report/* ${{ github.event.inputs.appName }}_${{ github.event.inputs.suiteName }}_${{ github.event.inputs.environment }}/${{github.run_number}}/ || echo "No report found to copy"
-
-      - name: 🛁 Deploy suite report to GitHub Pages
-        if: always()
+      - name: Deploy suite report to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: wdio/${{ github.event.inputs.appName }}_${{ github.event.inputs.suiteName }}_${{ github.event.inputs.environment }}/${{github.run_number}}
-          destination_dir: ${{ github.event.inputs.appName }}_${{ github.event.inputs.suiteName }}_${{ github.event.inputs.environment }}/${{github.run_number}}
+          publish_dir: wdio/${SLUG}/${{ steps.get_build_number.outputs.BUILD_NUMBER }}
+          destination_dir: ${SLUG}/${{ steps.get_build_number.outputs.BUILD_NUMBER }}
 
       - name: Notify Slack
         if: always()
@@ -118,7 +129,9 @@ jobs:
             EMOJI=":black_square_for_stop:"
           fi
 
-          REPORT_URL="https://alexzavg.github.io/qa_automation_monorepo/${{ github.event.inputs.appName }}_${{ github.event.inputs.suiteName }}_${{ github.event.inputs.environment }}/${{github.run_number}}"
+          BUILD_NUMBER=${{ steps.get_build_number.outputs.BUILD_NUMBER }}
+          REPORT_URL="https://alexzavg.github.io/qa_automation_monorepo/${SLUG}/${BUILD_NUMBER}"
+
           echo ""
           echo "🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥"
           echo "🟩 REPORT URL FOR ${STATUS^^}: ${REPORT_URL}"
