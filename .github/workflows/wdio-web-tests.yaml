@@ -31,7 +31,7 @@ on:
 env:
   SLACK_CHANNEL: ${{vars.WDIO_SLACK_CHANNEL}}
   SLACK_WEBHOOK: ${{vars.WDIO_SLACK_WEBHOOK}}
-  SLACK_USER: ${{vars.SLACK_USER}}
+  SLACK_USER:    ${{vars.SLACK_USER}}
   CI_PIPELINE_URL: "https://github.com/alexzavg/qa_automation_monorepo/actions/runs/${{github.run_id}}"
   TZ: ${{vars.TZ}}
   NODE_VERSION: 20.x
@@ -63,7 +63,9 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        run: |
+          cd wdio
+          npm ci
 
       - name: Create .env file
         run: |
@@ -125,7 +127,7 @@ jobs:
             \"username\":\"Github\",
             \"attachments\":[{
               \"color\":\"$COLOR\",
-              \"text\":\"$EMOJI Test suite *${{ github.event.inputs.suiteName }}* for app *${{ github.event.inputs.appName }}* and environment *${{ github.event.inputs.environment }}* finished with status *$STATUS*. :book: <${{ env.CI_PIPELINE_URL }}|LOGS>, :bar_chart: <$REPORT_URL|REPORT> $SLACK_TAG\",
+              \"text\":\"$EMOJI Test suite *${{ github.event.inputs.suiteName }}* for app *${{ github.event.inputs.appName }}* on environment *${{ github.event.inputs.environment }}* finished with status *$STATUS*. :book: <${{ env.CI_PIPELINE_URL }}|LOGS>, :bar_chart: <$REPORT_URL|REPORT> $SLACK_TAG\",
               \"footer\":\"Time: $(TZ=$TZ date)\"
             }]
           }" $SLACK_WEBHOOK
