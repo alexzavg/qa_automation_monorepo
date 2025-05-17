@@ -94,10 +94,10 @@ jobs:
           echo 'Contents of wdio/html-report/allure-report:'
           ls -la wdio/html-report/allure-report || echo 'No allure-report directory found.'
 
-      - name: Ensure Allure history directory exists
+      - name: Ensure Allure history root exists
         if: always()
         run: |
-          mkdir -p allure-history/${{ github.event.inputs.appName }}_${{ github.event.inputs.suiteName }}_${{ github.event.inputs.environment }}
+          mkdir -p allure-history
 
       - name: Publish Allure report with history
         uses: simple-elf/allure-report-action@master
@@ -108,7 +108,7 @@ jobs:
           gh_pages: true
           keep_reports: 7
           subfolder: ${{ github.event.inputs.appName }}_${{ github.event.inputs.suiteName }}_${{ github.event.inputs.environment }}
-          allure_history: allure-history/${{ github.event.inputs.appName }}_${{ github.event.inputs.suiteName }}_${{ github.event.inputs.environment }}
+          allure_history: allure-history
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
