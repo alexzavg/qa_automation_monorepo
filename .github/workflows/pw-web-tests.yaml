@@ -95,7 +95,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-browsers-
 
-  e2e_tests:
+  run_tests:
     needs: [set-matrix, cache-deps]
     runs-on: ubuntu-22.04
     strategy:
@@ -143,11 +143,12 @@ jobs:
             echo "${{ secrets[format('PW_CONFIG_{0}', github.event.inputs.environment)] }}" > ".env.${{ github.event.inputs.environment }}"
           fi
 
-      - name: Run E2E tests
+      - name: Run tests
         run: |
           cd playwright
           export PATH=$PWD/node_modules/.bin:$PATH
-          xvfb-run node run-playwright.js ${{ github.event.inputs.browser }} ${{ matrix.suite }} ${{ github.event.inputs.environment }}
+          suite_value=$(eval echo \${${{ matrix.suite }}})
+          xvfb-run node run-playwright.js ${{ github.event.inputs.browser }} "$suite_value" ${{ github.event.inputs.environment }}
 
       - name: 🧼 Clean previous report folder
         if: always()
