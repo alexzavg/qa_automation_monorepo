@@ -105,14 +105,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: List Allure history after publish
-        if: always()
-        run: |
-          echo 'Contents of allure-history:'
-          ls -la allure-history || echo 'No allure-history directory found.'
-          echo 'Contents of allure-history/${{ github.event.inputs.appName }}_${{ github.event.inputs.suiteName }}_${{ github.event.inputs.environment }}:'
-          ls -la allure-history/${{ github.event.inputs.appName }}_${{ github.event.inputs.suiteName }}_${{ github.event.inputs.environment }} || echo 'No subfolder found.'
-
       - name: Notify Slack
         if: always()
         run: |
