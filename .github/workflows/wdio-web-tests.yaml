@@ -86,24 +86,21 @@ jobs:
             --suiteName=${{ github.event.inputs.suiteName }} \
             --maxInstances=${{ github.event.inputs.max_instances }}
 
-      - name: List Allure results and report before publish
+      - name: 🧼 Clean previous report folder
         if: always()
         run: |
-          echo 'Contents of wdio/html-report/allure-results:'
-          ls -la wdio/html-report/allure-results || echo 'No allure-results directory found.'
-          echo 'Contents of wdio/html-report/allure-report:'
-          ls -la wdio/html-report/allure-report || echo 'No allure-report directory found.'
+          cd wdio
+          rm -rf ${{ github.event.inputs.appName }}_${{ github.event.inputs.suiteName }}_${{ github.event.inputs.environment }}
+          mkdir -p ${{ github.event.inputs.appName }}_${{ github.event.inputs.suiteName }}_${{ github.event.inputs.environment }}
+          cp -r html-report/allure-report/* ${{ github.event.inputs.appName }}_${{ github.event.inputs.suiteName }}_${{ github.event.inputs.environment }}/ || echo "No report found to copy"
 
-      - name: Publish Allure report (no history)
-        uses: simple-elf/allure-report-action@master
+      - name: 🛰 Deploy suite report to GitHub Pages
         if: always()
+        uses: peaceiris/actions-gh-pages@v3
         with:
-          allure_results: wdio/html-report/allure-results
-          allure_report: wdio/html-report/allure-report
-          gh_pages: true
-          subfolder: ${{ github.event.inputs.appName }}_${{ github.event.inputs.suiteName }}_${{ github.event.inputs.environment }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: wdio/${{ github.event.inputs.appName }}_${{ github.event.inputs.suiteName }}_${{ github.event.inputs.environment }}
+          destination_dir: ${{ github.event.inputs.appName }}_${{ github.event.inputs.suiteName }}_${{ github.event.inputs.environment }}
 
       - name: Notify Slack
         if: always()
