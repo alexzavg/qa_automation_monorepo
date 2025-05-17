@@ -89,9 +89,11 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            node_modules
+            playwright/node_modules
             ~/.cache/ms-playwright
-          key: ${{ runner.os }}-node-browsers-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-node-browsers-${{ hashFiles('playwright/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-browsers-
 
   e2e_tests:
     needs: [set-matrix, cache-deps]
@@ -116,7 +118,7 @@ jobs:
         with:
           path: |
             playwright/node_modules
-            playwright/.cache/ms-playwright
+            ~/.cache/ms-playwright
           key: ${{ runner.os }}-node-browsers-${{ hashFiles('playwright/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-browsers-
@@ -124,13 +126,15 @@ jobs:
       - name: Install dependencies
         run: |
           cd playwright
-          npm install
+          if [ ! -d node_modules ] || [ -z "$(ls -A node_modules)" ]; then
+            npm install
+          fi
           npm install -g ts-node
           npx playwright install chrome
 
       - name: Create .env file
         run: |
-          cd playwright && \
+          cd playwright
           if [[ "${{ github.event.inputs.environment }}" == "prod" ]]; then
             echo "${{ secrets.PW_CONFIG_PROD }}" > .env.prod
           elif [[ "${{ github.event.inputs.environment }}" == "stage" ]]; then
@@ -141,13 +145,14 @@ jobs:
 
       - name: Run E2E tests
         run: |
-          cd playwright && \
+          cd playwright
+          export PATH=$PWD/node_modules/.bin:$PATH
           xvfb-run node run-playwright.js ${{ github.event.inputs.browser }} ${{ matrix.suite }} ${{ github.event.inputs.environment }}
 
       - name: 🧼 Clean previous report folder
         if: always()
         run: |
-          cd playwright && \
+          cd playwright
           rm -rf ${{ matrix.suite }}_${{ github.event.inputs.browser }}_${{ github.event.inputs.environment }}
           mkdir -p ${{ matrix.suite }}_${{ github.event.inputs.browser }}_${{ github.event.inputs.environment }}
           cp -r html_report/* ${{ matrix.suite }}_${{ github.event.inputs.browser }}_${{ github.event.inputs.environment }}/ || echo "No report found to copy"

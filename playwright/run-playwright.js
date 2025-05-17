@@ -12,5 +12,5 @@ if (!configName || !projectName) {
 
 const configPath = path.join(__dirname, `${configName}.playwright.config.ts`)
 
-const command = `cross-env test_env=${testEnv} npx playwright test --config=${configPath} --project=${projectName}`
+const command = `npx cross-env test_env=${testEnv} npx playwright test --config=${configPath} --project=${projectName}`
 execSync(command, { stdio: 'inherit' })
