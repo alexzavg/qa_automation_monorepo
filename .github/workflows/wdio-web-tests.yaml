@@ -104,7 +104,6 @@ jobs:
           # Add debug output
           echo "Raw API response: $DIR_CONTENTS"
           
-          # Check if the directory exists
           if [ -z "$DIR_CONTENTS" ]; then
             echo "No builds found yet, starting with 1"
             BUILD_NUMBER="1"
@@ -114,7 +113,7 @@ jobs:
               echo "Directory exists, checking for builds..."
               # Get the latest build number
               LATEST_BUILD=$(echo "$DIR_CONTENTS" \
-                | jq -r '.[] | select(.name | test("^[0-9]+$") | length > 0) | .name' \
+                | jq -r '.[] | select(.name | test("^[0-9]+$")) | .name' \
                 | sort -nr \
                 | head -n 1)
               
