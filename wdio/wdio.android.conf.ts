@@ -5,7 +5,7 @@ const appName = process.argv.find(arg => arg.includes('--appName='))?.split('=')
 // suite selection for specific spec scope (e.g. e2e, api, smoke, uat)
 const suiteName = process.argv.find(arg => arg.includes('--suiteName='))?.split('=')[1]
 // suite path selection for specific spec scope (e.g. e2e, api, smoke, uat or ALL)
-let suitePath
+let suitePath: string
 if(suiteName === 'all') {
     suitePath = `./tests/mobile/${appName}/android/**/*.test.ts`
 } else {
