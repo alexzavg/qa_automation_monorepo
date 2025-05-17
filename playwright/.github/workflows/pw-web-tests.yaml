@@ -101,7 +101,7 @@ jobs:
         suite: ${{ fromJson(needs.set-matrix.outputs.suite-matrix) }}
       fail-fast: false
     env:
-      REPORT_URL: https://alexzavg.github.io/playwright_retreat/${{ matrix.suite }}
+      REPORT_URL: https://alexzavg.github.io/qa_automation_monorepo/${{ matrix.suite }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
