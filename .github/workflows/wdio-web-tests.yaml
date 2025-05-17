@@ -103,19 +103,26 @@ jobs:
             echo "No builds found yet, starting with 1"
             BUILD_NUMBER="1"
           else
-            # Get the latest build number
-            LATEST_BUILD=$(echo "$DIR_CONTENTS" \
-              | jq -r '.[] | select(.name | test("^[0-9]+$") | length > 0) | .name' \
-              | sort -nr \
-              | head -n 1)
-            
-            if [ -z "$LATEST_BUILD" ]; then
-              echo "No builds found yet, starting with 1"
-              BUILD_NUMBER="1"
+            # Check if the response is an array (directory exists)
+            if echo "$DIR_CONTENTS" | grep -q '"name"'; then
+              # Get the latest build number
+              LATEST_BUILD=$(echo "$DIR_CONTENTS" \
+                | jq -r '.[] | select(.name | test("^[0-9]+$") | length > 0) | .name' \
+                | sort -nr \
+                | head -n 1)
+              
+              if [ -z "$LATEST_BUILD" ]; then
+                echo "No builds found yet, starting with 1"
+                BUILD_NUMBER="1"
+              else
+                echo "Latest build found: $LATEST_BUILD"
+                BUILD_NUMBER=$(($LATEST_BUILD + 1))
+                echo "New build number: $BUILD_NUMBER"
+              fi
             else
-              echo "Latest build found: $LATEST_BUILD"
-              BUILD_NUMBER=$(($LATEST_BUILD + 1))
-              echo "New build number: $BUILD_NUMBER"
+              # If it's not an array, it means the directory exists but is empty
+              echo "Directory exists but is empty, starting with 1"
+              BUILD_NUMBER="1"
             fi
           fi
           
