@@ -158,13 +158,49 @@ jobs:
           mkdir -p ${{ matrix.suite }}_${{ github.event.inputs.browser }}_${{ github.event.inputs.environment }}
           cp -r html_report/* ${{ matrix.suite }}_${{ github.event.inputs.browser }}_${{ github.event.inputs.environment }}/ || echo "No report found to copy"
 
-      - name: 🛰 Deploy suite report to GitHub Pages
+      - name: Get latest build number
+        id: get_build_number
+        run: |
+          SLUG="${{ matrix.suite }}_${{ github.event.inputs.browser }}_${{ github.event.inputs.environment }}"
+          echo "Checking for existing builds in ${SLUG}"
+          
+          curl_url="https://api.github.com/repos/${{ github.repository }}/contents/${SLUG}?ref=gh-pages"
+          echo "URL: $curl_url"
+          DIR_CONTENTS=$(curl -s "$curl_url" \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}")
+          
+          echo "Raw API response: $DIR_CONTENTS"
+          
+          if echo "$DIR_CONTENTS" | grep -q '"name"'; then
+            echo "Directory exists, checking for builds..."
+            LATEST_BUILD=$(echo "$DIR_CONTENTS" \
+              | jq -r '.[] | select(.name | test("^[0-9]+$")) | .name' \
+              | sort -nr \
+              | head -n 1)
+            
+            if [ -z "$LATEST_BUILD" ]; then
+              echo "No builds found yet, starting with 1"
+              BUILD_NUMBER="1"
+            else
+              echo "Latest build found: $LATEST_BUILD"
+              BUILD_NUMBER=$(($LATEST_BUILD + 1))
+              echo "New build number: $BUILD_NUMBER"
+            fi
+          else
+            echo "Directory exists but is empty, starting with 1"
+            BUILD_NUMBER="1"
+          fi
+          
+          echo "SLUG=$SLUG" >> $GITHUB_OUTPUT
+          echo "BUILD_NUMBER=$BUILD_NUMBER" >> $GITHUB_OUTPUT
+
+      - name: 🛁 Deploy suite report to GitHub Pages
         if: always()
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: playwright/${{ matrix.suite }}_${{ github.event.inputs.browser }}_${{ github.event.inputs.environment }}
-          destination_dir: ${{ matrix.suite }}_${{ github.event.inputs.browser }}_${{ github.event.inputs.environment }}
+          publish_dir: playwright/html_report
+          destination_dir: ${{ steps.get_build_number.outputs.SLUG }}/${{ steps.get_build_number.outputs.BUILD_NUMBER }}
 
       - name: Notify Slack
         if: always()
