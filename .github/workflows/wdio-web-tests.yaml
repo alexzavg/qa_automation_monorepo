@@ -100,7 +100,7 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: wdio/${{ github.event.inputs.appName }}_${{ github.event.inputs.suiteName }}_${{ github.event.inputs.environment }}/${{github.run_number}}
-          destination_dir: ${{ github.event.inputs.appName }}_${{ github.event.inputs.suiteName }}_${{ github.event.inputs.suiteName }}/${{github.run_number}}
+          destination_dir: ${{ github.event.inputs.appName }}_${{ github.event.inputs.suiteName }}_${{ github.event.inputs.environment }}/${{github.run_number}}
 
       - name: Notify Slack
         if: always()
@@ -118,7 +118,7 @@ jobs:
             EMOJI=":black_square_for_stop:"
           fi
 
-          REPORT_URL="https://alexzavg.github.io/qa_automation_monorepo/${{ github.event.inputs.appName }}_${{ github.event.inputs.suiteName }}_${{ github.event.inputs.environment }}"
+          REPORT_URL="https://alexzavg.github.io/qa_automation_monorepo/${{ github.event.inputs.appName }}_${{ github.event.inputs.suiteName }}_${{ github.event.inputs.environment }}/${{github.run_number}}"
           echo ""
           echo "🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥"
           echo "🟩 REPORT URL FOR ${STATUS^^}: ${REPORT_URL}"
