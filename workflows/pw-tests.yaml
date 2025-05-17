@@ -140,7 +140,7 @@ jobs:
           fi
 
       - name: Run E2E tests
-        run: xvfb-run node run-playwright.js ${{ github.event.inputs.browser }} ${{ matrix.suite }} ${{ github.event.inputs.environment }}
+        run: cd playwright && xvfb-run node run-playwright.js ${{ github.event.inputs.browser }} ${{ matrix.suite }} ${{ github.event.inputs.environment }}
 
       - name: 🧼 Clean previous report folder
         if: always()
