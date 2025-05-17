@@ -77,12 +77,22 @@ jobs:
             echo "Created .env.prod"
           fi
 
+      - name: Run Web tests
+        run: |
+          cd wdio
+          export DISPLAY=:99
+          ENV=${{ github.event.inputs.environment }} npx wdio run wdio.web.conf.ts \
+            --appName=${{ github.event.inputs.appName }} \
+            --suiteName=${{ github.event.inputs.suiteName }} \
+            --maxInstances=${{ github.event.inputs.max_instances }}
+
       - name: Get latest build number
+        if: always()
         id: get_build_number
         run: |
           SLUG="${{ github.event.inputs.appName }}_${{ github.event.inputs.suiteName }}_${{ github.event.inputs.environment }}"
           # Get the latest build number for this slug
-          LATEST_BUILD=$(curl -s "https://api.github.com/repos/${{ github.repository }}/contents/${{ github.event.inputs.appName }}_${{ github.event.inputs.suiteName }}_${{ github.event.inputs.environment }}" \
+          LATEST_BUILD=$(curl -s "https://api.github.com/repos/${{ github.repository }}/contents/${SLUG}" \
             -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             | jq -r '.[] | select(.name | test("^[0-9]+$") | length > 0) | .name' \
             | sort -nr \
@@ -95,22 +105,15 @@ jobs:
             BUILD_NUMBER=$(($LATEST_BUILD + 1))
           fi
           
+          echo "SLUG=$SLUG" >> $GITHUB_OUTPUT
           echo "BUILD_NUMBER=$BUILD_NUMBER" >> $GITHUB_OUTPUT
 
-      - name: Run Web tests
-        run: |
-          cd wdio
-          export DISPLAY=:99
-          ENV=${{ github.event.inputs.environment }} npx wdio run wdio.web.conf.ts \
-            --appName=${{ github.event.inputs.appName }} \
-            --suiteName=${{ github.event.inputs.suiteName }} \
-            --maxInstances=${{ github.event.inputs.max_instances }}
-
       - name: Deploy suite report to GitHub Pages
+        if: always()
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: wdio/${SLUG}/${{ steps.get_build_number.outputs.BUILD_NUMBER }}
+          publish_dir: wdio/html-report/allure-report
           destination_dir: ${SLUG}/${{ steps.get_build_number.outputs.BUILD_NUMBER }}
 
       - name: Notify Slack
@@ -130,6 +133,7 @@ jobs:
           fi
 
           BUILD_NUMBER=${{ steps.get_build_number.outputs.BUILD_NUMBER }}
+          SLUG=${{ steps.get_build_number.outputs.SLUG }}
           REPORT_URL="https://alexzavg.github.io/qa_automation_monorepo/${SLUG}/${BUILD_NUMBER}"
 
           echo ""
