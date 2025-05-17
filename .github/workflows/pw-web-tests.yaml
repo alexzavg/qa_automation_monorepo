@@ -115,9 +115,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            node_modules
-            ~/.cache/ms-playwright
-          key: ${{ runner.os }}-node-browsers-${{ hashFiles('**/package-lock.json') }}
+            playwright/node_modules
+            playwright/.cache/ms-playwright
+          key: ${{ runner.os }}-node-browsers-${{ hashFiles('playwright/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-browsers-
 
@@ -159,7 +159,7 @@ jobs:
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ${{ matrix.suite }}_${{ github.event.inputs.browser }}_${{ github.event.inputs.environment }}
+          publish_dir: playwright/${{ matrix.suite }}_${{ github.event.inputs.browser }}_${{ github.event.inputs.environment }}
           destination_dir: ${{ matrix.suite }}_${{ github.event.inputs.browser }}_${{ github.event.inputs.environment }}
 
       - name: Notify Slack
