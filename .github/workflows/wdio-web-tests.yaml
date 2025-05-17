@@ -94,8 +94,8 @@ jobs:
           # Get the latest build number for this slug
           echo "Checking for existing builds in ${SLUG}"
           
-          # First, get the directory contents
-          DIR_CONTENTS=$(curl -s "https://api.github.com/repos/${{ github.repository }}/contents/${SLUG}" \
+          # First, get the directory contents from gh-pages branch
+          DIR_CONTENTS=$(curl -s "https://api.github.com/repos/${{ github.repository }}/contents/${SLUG}?ref=gh-pages" \
             -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}")
           
           # Check if the directory exists
