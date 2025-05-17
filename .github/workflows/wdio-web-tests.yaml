@@ -96,7 +96,7 @@ jobs:
           keep_reports: 7
           subfolder: ${{ github.event.inputs.appName }}_${{ github.event.inputs.suiteName }}_${{ github.event.inputs.environment }}
         env:
-          GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Notify Slack
         if: always()
