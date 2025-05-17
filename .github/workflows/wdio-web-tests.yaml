@@ -86,6 +86,17 @@ jobs:
             --suiteName=${{ github.event.inputs.suiteName }} \
             --maxInstances=${{ github.event.inputs.max_instances }}
 
+      - name: List Allure results and report before publish
+        run: |
+          echo 'Contents of wdio/html-report/allure-results:'
+          ls -la wdio/html-report/allure-results || echo 'No allure-results directory found.'
+          echo 'Contents of wdio/html-report/allure-report:'
+          ls -la wdio/html-report/allure-report || echo 'No allure-report directory found.'
+
+      - name: Ensure Allure history directory exists
+        run: |
+          mkdir -p allure-history/${{ github.event.inputs.appName }}_${{ github.event.inputs.suiteName }}_${{ github.event.inputs.environment }}
+
       - name: Publish Allure report with history
         uses: simple-elf/allure-report-action@master
         if: always()
@@ -95,8 +106,16 @@ jobs:
           gh_pages: true
           keep_reports: 7
           subfolder: ${{ github.event.inputs.appName }}_${{ github.event.inputs.suiteName }}_${{ github.event.inputs.environment }}
+          allure_history: allure-history/${{ github.event.inputs.appName }}_${{ github.event.inputs.suiteName }}_${{ github.event.inputs.environment }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: List Allure history after publish
+        run: |
+          echo 'Contents of allure-history:'
+          ls -la allure-history || echo 'No allure-history directory found.'
+          echo 'Contents of allure-history/${{ github.event.inputs.appName }}_${{ github.event.inputs.suiteName }}_${{ github.event.inputs.environment }}:'
+          ls -la allure-history/${{ github.event.inputs.appName }}_${{ github.event.inputs.suiteName }}_${{ github.event.inputs.environment }} || echo 'No subfolder found.'
 
       - name: Notify Slack
         if: always()
