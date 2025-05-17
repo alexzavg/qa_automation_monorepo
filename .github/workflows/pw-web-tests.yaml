@@ -1,5 +1,5 @@
-name: Playwright Tests
-run-name: 🧪 Playwright Tests
+name: Playwright Web Tests
+run-name: 🧪 Playwright Web Tests
 
 on:
   #schedule:
@@ -123,6 +123,7 @@ jobs:
 
       - name: Install dependencies (if needed)
         run: |
+          cd playwright && \
           if [ ! -d node_modules ] || [ -z "$(ls -A node_modules)" ]; then
             npm install
             npm install -g ts-node
@@ -131,6 +132,7 @@ jobs:
 
       - name: Create .env file
         run: |
+          cd playwright && \
           if [[ "${{ github.event.inputs.environment }}" == "prod" ]]; then
             echo "${{ secrets.PW_CONFIG_PROD }}" > .env.prod
           elif [[ "${{ github.event.inputs.environment }}" == "stage" ]]; then
@@ -140,11 +142,14 @@ jobs:
           fi
 
       - name: Run E2E tests
-        run: cd playwright && xvfb-run node run-playwright.js ${{ github.event.inputs.browser }} ${{ matrix.suite }} ${{ github.event.inputs.environment }}
+        run: |
+          cd playwright && \
+          xvfb-run node run-playwright.js ${{ github.event.inputs.browser }} ${{ matrix.suite }} ${{ github.event.inputs.environment }}
 
       - name: 🧼 Clean previous report folder
         if: always()
         run: |
+          cd playwright && \
           rm -rf ${{ matrix.suite }}_${{ github.event.inputs.browser }}_${{ github.event.inputs.environment }}
           mkdir -p ${{ matrix.suite }}_${{ github.event.inputs.browser }}_${{ github.event.inputs.environment }}
           cp -r html_report/* ${{ matrix.suite }}_${{ github.event.inputs.browser }}_${{ github.event.inputs.environment }}/ || echo "No report found to copy"
