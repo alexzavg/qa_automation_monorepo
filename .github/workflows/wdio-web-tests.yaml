@@ -114,7 +114,7 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: wdio/html-report/allure-report
-          destination_dir: ${SLUG}/${{ steps.get_build_number.outputs.BUILD_NUMBER }}
+          destination_dir: ${{ steps.get_build_number.outputs.SLUG }}/${{ steps.get_build_number.outputs.BUILD_NUMBER }}
 
       - name: Notify Slack
         if: always()
