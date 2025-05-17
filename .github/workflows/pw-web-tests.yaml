@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
     inputs:
       test_suite:
-        description: 'Test suite(s) to run (comma-separated, e.g. CHAT_TESTS, SOFTSERVE_TESTS, BOOKRETREATS_TESTS, or PW_ALL). Available suites: CHAT_TESTS, SOFTSERVE_TESTS, BOOKRETREATS_TESTS, BLOCKCHAIN_TESTS, GMAIL_TESTS, AUTHENTICATION_TESTS'
+        description: 'Test suite(s) to run (comma-separated, e.g. CHAT_TESTS, SOFTSERVE_TESTS, BOOKRETREATS_TESTS, or ALL). Available suites: CHAT_TESTS, SOFTSERVE_TESTS, BOOKRETREATS_TESTS, BLOCKCHAIN_TESTS, GMAIL_TESTS, AUTHENTICATION_TESTS'
         required: true
         default: 'ALL'
         type: string
