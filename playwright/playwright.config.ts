@@ -15,17 +15,17 @@ const config: PlaywrightTestConfig = {
       testIgnore: [],
     },
     {
-      name: 'chat:e2e',
+      name: 'chat',
       testMatch: ['/tests/chat/e2e/*.spec.ts'],
       testIgnore: [],
     },
     {
-      name: 'softserve:bullies',
+      name: 'softserve',
       testMatch: ['/tests/softserve/e2e/*.spec.ts'],
       testIgnore: [],
     },
     {
-      name: 'bookretreats:e2e',
+      name: 'bookretreats',
       testMatch: ['/tests/bookretreats/e2e/*.spec.ts'],
       testIgnore: [],
     },

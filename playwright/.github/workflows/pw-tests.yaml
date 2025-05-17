@@ -1,41 +1,49 @@
-name: Playwright Tests Prod
-run-name: 🧪 Playwright Tests Prod
+name: Playwright Tests
+run-name: 🧪 Playwright Tests
 
 on:
   #schedule:
   #  - cron: '0 7 * * 1-5' # 9:00 AM Kyiv time (Kyiv is UTC+3, so 7:00 UTC)
-  push:
-    branches:
-      - template
+  # push:
+  #   branches:
+  #     - template
   workflow_dispatch:
     inputs:
-      environment:
-        description: 'Environment to run the tests against'
-        required: true
-        default: 'prod'
-        type: choice
-        options:
-          - PROD
       test_suite:
-        description: 'Test suite(s) to run (comma-separated, e.g. CHAT_E2E_TESTS_PROD,BOOKRETREATS_E2E_TESTS_PROD, or ALL). Available suites: CHAT_E2E_TESTS_PROD, SOFTSERVE_BULLIES_TESTS_PROD, BOOKRETREATS_E2E_TESTS_PROD, BLOCKCHAIN_TESTS_PROD, GMAIL_TESTS_PROD, AUTHENTICATION_TESTS_PROD'
+        description: 'Test suite(s) to run (comma-separated, e.g. CHAT_TESTS, SOFTSERVE_TESTS, BOOKRETREATS_TESTS, or PW_ALL). Available suites: CHAT_TESTS, SOFTSERVE_TESTS, BOOKRETREATS_TESTS, BLOCKCHAIN_TESTS, GMAIL_TESTS, AUTHENTICATION_TESTS'
         required: true
         default: 'ALL'
         type: string
+      browser:
+        description: 'Browser to run the tests against'
+        required: true
+        default: 'chrome'
+        type: choice
+        options:
+          - chrome
+      environment:
+        description: 'Environment to run the tests against'
+        required: true
+        default: 'stage'
+        type: choice
+        options:
+          - stage
+          - prod
 
 env:
-  ALL_TESTS_PROD:               ${{vars.ALL_TESTS_PROD}}
-  CHAT_E2E_TESTS_PROD:          ${{vars.CHAT_E2E_TESTS_PROD}}
-  SOFTSERVE_BULLIES_TESTS_PROD: ${{vars.SOFTSERVE_BULLIES_TESTS_PROD}}
-  BOOKRETREATS_E2E_TESTS_PROD:  ${{vars.BOOKRETREATS_E2E_TESTS_PROD}}
-  BLOCKCHAIN_TESTS_PROD:        ${{vars.BLOCKCHAIN_TESTS_PROD}}
-  GMAIL_TESTS_PROD:             ${{vars.GMAIL_TESTS_PROD}}
-  AUTHENTICATION_TESTS_PROD:    ${{vars.AUTHENTICATION_TESTS_PROD}}
-  SLACK_CHANNEL:                ${{vars.SLACK_CHANNEL}}
-  SLACK_WEBHOOK:                ${{vars.SLACK_WEBHOOK}}
-  SLACK_USER:                   ${{vars.SLACK_USER}}
-  CI_PIPELINE_URL:              "https://github.com/alexzavg/playwright_retreat/actions/runs/${{github.run_id}}"
-  TZ:                           ${{vars.TZ}}
-  NODE_VERSION:                 22.x
+  ALL_TESTS:              ${{vars.PW_ALL_TESTS}}
+  CHAT_TESTS:             ${{vars.PW_CHAT_TESTS}}
+  SOFTSERVE_TESTS:        ${{vars.PW_SOFTSERVE_TESTS}}
+  BOOKRETREATS_TESTS:     ${{vars.PW_BOOKRETREATS_TESTS}}
+  BLOCKCHAIN_TESTS:       ${{vars.PW_BLOCKCHAIN_TESTS}}
+  GMAIL_TESTS:            ${{vars.PW_GMAIL_TESTS}}
+  AUTHENTICATION_TESTS:   ${{vars.PW_AUTHENTICATION_TESTS}}
+  SLACK_CHANNEL:          ${{vars.PW_SLACK_CHANNEL}}
+  SLACK_WEBHOOK:          ${{vars.PW_SLACK_WEBHOOK}}
+  SLACK_USER:             ${{vars.SLACK_USER}}
+  CI_PIPELINE_URL:        "https://github.com/alexzavg/playwright_retreat/actions/runs/${{github.run_id}}"
+  TZ:                     ${{vars.TZ}}
+  NODE_VERSION:           22.x
 
 jobs:
   set-matrix:
@@ -45,7 +53,14 @@ jobs:
     steps:
       - id: set-matrix
         run: |
-          ALL_SUITES=("CHAT_E2E_TESTS_PROD" "SOFTSERVE_BULLIES_TESTS_PROD" "BOOKRETREATS_E2E_TESTS_PROD" "BLOCKCHAIN_TESTS_PROD" "GMAIL_TESTS_PROD" "AUTHENTICATION_TESTS_PROD")
+          ALL_SUITES=(
+            "CHAT_TESTS"
+            "SOFTSERVE_TESTS"
+            "BOOKRETREATS_TESTS"
+            "BLOCKCHAIN_TESTS"
+            "GMAIL_TESTS"
+            "AUTHENTICATION_TESTS"
+          )
           if [[ "${{ github.event.inputs.test_suite }}" == "ALL" ]]; then
             SUITES_JSON=$(printf '%s\n' "${ALL_SUITES[@]}" | jq -R . | jq -c -s .)
             echo "suite-matrix=$SUITES_JSON" >> $GITHUB_OUTPUT
@@ -115,25 +130,32 @@ jobs:
           fi
 
       - name: Create .env file
-        run: echo "${{secrets.CONFIG_PROD}}" > .env.prod
+        run: |
+          if [[ "${{ github.event.inputs.environment }}" == "prod" ]]; then
+            echo "${{ secrets.PW_CONFIG_PROD }}" > .env.prod
+          elif [[ "${{ github.event.inputs.environment }}" == "stage" ]]; then
+            echo "${{ secrets.PW_CONFIG_STAGE }}" > .env.stage
+          else
+            echo "${{ secrets[format('PW_CONFIG_{0}', github.event.inputs.environment)] }}" > ".env.${{ github.event.inputs.environment }}"
+          fi
 
       - name: Run E2E tests
-        run: xvfb-run npm run ${{ env[matrix.suite] }}
+        run: xvfb-run node run-playwright.js ${{ github.event.inputs.browser }} ${{ matrix.suite }} ${{ github.event.inputs.environment }}
 
       - name: 🧼 Clean previous report folder
         if: always()
         run: |
-          rm -rf ${{ matrix.suite }}
-          mkdir -p ${{ matrix.suite }}
-          cp -r html_report/* ${{ matrix.suite }}/ || echo "No report found to copy"
+          rm -rf ${{ matrix.suite }}_${{ github.event.inputs.browser }}_${{ github.event.inputs.environment }}
+          mkdir -p ${{ matrix.suite }}_${{ github.event.inputs.browser }}_${{ github.event.inputs.environment }}
+          cp -r html_report/* ${{ matrix.suite }}_${{ github.event.inputs.browser }}_${{ github.event.inputs.environment }}/ || echo "No report found to copy"
 
       - name: 🛰 Deploy suite report to GitHub Pages
         if: always()
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ${{ matrix.suite }}
-          destination_dir: ${{ matrix.suite }}
+          publish_dir: ${{ matrix.suite }}_${{ github.event.inputs.browser }}_${{ github.event.inputs.environment }}
+          destination_dir: ${{ matrix.suite }}_${{ github.event.inputs.browser }}_${{ github.event.inputs.environment }}
 
       - name: Notify Slack
         if: always()
@@ -151,7 +173,7 @@ jobs:
             EMOJI=":black_square_for_stop:"
           fi
 
-          REPORT_URL="https://alexzavg.github.io/playwright_retreat/${{ matrix.suite }}/"
+          REPORT_URL="https://alexzavg.github.io/playwright_retreat/${{ matrix.suite }}_${{ github.event.inputs.browser }}_${{ github.event.inputs.environment }}"
           echo ""
           echo "🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥"
           echo "🟩 REPORT URL FOR ${STATUS^^}: ${REPORT_URL}"
@@ -163,7 +185,7 @@ jobs:
             \"username\":\"Github\",
             \"attachments\":[{
               \"color\":\"$COLOR\",
-              \"text\":\"$EMOJI Test suite *${{ matrix.suite }}* finished with status *$STATUS*. :book: <${{ env.CI_PIPELINE_URL }}|LOGS>, :bar_chart: <$REPORT_URL|REPORT> $SLACK_TAG\",
+              \"text\":\"$EMOJI Test suite *${{ matrix.suite }}* with browser *${{ github.event.inputs.browser }}* and environment *${{ github.event.inputs.environment }}* finished with status *$STATUS*. :book: <${{ env.CI_PIPELINE_URL }}|LOGS>, :bar_chart: <$REPORT_URL|REPORT> $SLACK_TAG\",
               \"footer\":\"Time: $(TZ=$TZ date)\"
             }]
           }" $SLACK_WEBHOOK
