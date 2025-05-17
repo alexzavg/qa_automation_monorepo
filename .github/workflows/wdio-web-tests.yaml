@@ -90,17 +90,17 @@ jobs:
         if: always()
         run: |
           cd wdio
-          rm -rf ${{ github.event.inputs.appName }}_${{ github.event.inputs.suiteName }}_${{ github.event.inputs.environment }}
-          mkdir -p ${{ github.event.inputs.appName }}_${{ github.event.inputs.suiteName }}_${{ github.event.inputs.environment }}
-          cp -r html-report/allure-report/* ${{ github.event.inputs.appName }}_${{ github.event.inputs.suiteName }}_${{ github.event.inputs.environment }}/ || echo "No report found to copy"
+          rm -rf ${{ github.event.inputs.appName }}_${{ github.event.inputs.suiteName }}_${{ github.event.inputs.environment }}/${{github.run_number}}
+          mkdir -p ${{ github.event.inputs.appName }}_${{ github.event.inputs.suiteName }}_${{ github.event.inputs.environment }}/${{github.run_number}}
+          cp -r html-report/allure-report/* ${{ github.event.inputs.appName }}_${{ github.event.inputs.suiteName }}_${{ github.event.inputs.environment }}/${{github.run_number}}/ || echo "No report found to copy"
 
-      - name: 🛰 Deploy suite report to GitHub Pages
+      - name: 🛁 Deploy suite report to GitHub Pages
         if: always()
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: wdio/${{ github.event.inputs.appName }}_${{ github.event.inputs.suiteName }}_${{ github.event.inputs.environment }}
-          destination_dir: ${{ github.event.inputs.appName }}_${{ github.event.inputs.suiteName }}_${{ github.event.inputs.environment }}
+          publish_dir: wdio/${{ github.event.inputs.appName }}_${{ github.event.inputs.suiteName }}_${{ github.event.inputs.environment }}/${{github.run_number}}
+          destination_dir: ${{ github.event.inputs.appName }}_${{ github.event.inputs.suiteName }}_${{ github.event.inputs.suiteName }}/${{github.run_number}}
 
       - name: Notify Slack
         if: always()
