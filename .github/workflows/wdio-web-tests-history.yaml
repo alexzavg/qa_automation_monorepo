@@ -135,12 +135,44 @@ jobs:
           echo "SLUG=$SLUG" >> $GITHUB_OUTPUT
           echo "BUILD_NUMBER=$BUILD_NUMBER" >> $GITHUB_OUTPUT
 
+      - name: Prepare allure history
+        if: always()
+        run: |
+          SLUG="${{ steps.get_build_number.outputs.SLUG }}"
+          BUILD_NUMBER="${{ steps.get_build_number.outputs.BUILD_NUMBER }}"
+          
+          # Create build directory
+          mkdir -p "wdio/html-report/allure-report/${SLUG}/${BUILD_NUMBER}"
+          
+          # Copy main report files to build directory
+          cp -r wdio/html-report/allure-report/* "wdio/html-report/allure-report/${SLUG}/${BUILD_NUMBER}/"
+          
+          # Create shared history directory if it doesn't exist
+          mkdir -p "wdio/html-report/allure-report/${SLUG}/history"
+          
+          # Copy history files to shared location
+          cp -r wdio/html-report/allure-report/history/* "wdio/html-report/allure-report/${SLUG}/history/" || true
+          
+          # Update history.json with new build
+          if [ -f "wdio/html-report/allure-report/${SLUG}/history/history.json" ]; then
+            jq --arg build "$BUILD_NUMBER" \
+               --arg date "$(date -u +'%Y-%m-%dT%H:%M:%SZ')" \
+               '.builds += [{build: $build, date: $date}]' \
+               "wdio/html-report/allure-report/${SLUG}/history/history.json" > "wdio/html-report/allure-report/${SLUG}/history/history.json.tmp" && \
+               mv "wdio/html-report/allure-report/${SLUG}/history/history.json.tmp" "wdio/html-report/allure-report/${SLUG}/history/history.json"
+          else
+            # Create initial history.json if it doesn't exist
+            jq -n '{builds: [{build: $build, date: $date}]}' \
+               --arg build "$BUILD_NUMBER" \
+               --arg date "$(date -u +'%Y-%m-%dT%H:%M:%SZ')" > "wdio/html-report/allure-report/${SLUG}/history/history.json"
+          fi
+
       - name: Deploy suite report to GitHub Pages
         if: always()
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: wdio/html-report/allure-report
+          publish_dir: wdio/html-report/allure-report/${{ steps.get_build_number.outputs.SLUG }}/${{ steps.get_build_number.outputs.BUILD_NUMBER }}
           destination_dir: ${{ steps.get_build_number.outputs.SLUG }}/${{ steps.get_build_number.outputs.BUILD_NUMBER }}
 
       - name: Notify Slack
