@@ -211,7 +211,9 @@ jobs:
             EMOJI=":black_square_for_stop:"
           fi
 
-          REPORT_URL="https://alexzavg.github.io/qa_automation_monorepo/${{ matrix.suite }}_${{ github.event.inputs.browser }}_${{ github.event.inputs.environment }}"
+          BUILD_NUMBER=${{ steps.get_build_number.outputs.BUILD_NUMBER }}
+          SLUG=${{ steps.get_build_number.outputs.SLUG }}
+          REPORT_URL="https://alexzavg.github.io/qa_automation_monorepo/${SLUG}/${BUILD_NUMBER}"
           echo ""
           echo "🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥"
           echo "🟩 REPORT URL FOR ${STATUS^^}: ${REPORT_URL}"
