@@ -150,14 +150,6 @@ jobs:
           suite_value=$(eval echo \${${{ matrix.suite }}})
           xvfb-run node run-playwright.js ${{ github.event.inputs.browser }} "$suite_value" ${{ github.event.inputs.environment }}
 
-      - name: 🧼 Clean previous report folder
-        if: always()
-        run: |
-          cd playwright
-          rm -rf ${{ matrix.suite }}_${{ github.event.inputs.browser }}_${{ github.event.inputs.environment }}
-          mkdir -p ${{ matrix.suite }}_${{ github.event.inputs.browser }}_${{ github.event.inputs.environment }}
-          cp -r html_report/* ${{ matrix.suite }}_${{ github.event.inputs.browser }}_${{ github.event.inputs.environment }}/ || echo "No report found to copy"
-
       - name: Get latest build number
         if: always()
         id: get_build_number
