@@ -159,8 +159,8 @@ jobs:
             EMOJI=":black_square_for_stop:"
           fi
 
-          BUILD_NUMBER=${{ steps.get_build_number.outputs.BUILD_NUMBER }}
           SLUG=${{ steps.get_build_number.outputs.SLUG }}
+          BUILD_NUMBER=${{ steps.get_build_number.outputs.BUILD_NUMBER }}
           REPORT_URL="https://alexzavg.github.io/qa_automation_monorepo/${SLUG}/${BUILD_NUMBER}"
 
           echo ""
