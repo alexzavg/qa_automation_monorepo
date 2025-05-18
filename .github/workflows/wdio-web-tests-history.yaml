@@ -1,5 +1,5 @@
-name: WDIO Web Tests
-run-name: 🧪 WDIO Web Tests
+name: WDIO Web Tests with history
+run-name: 🧪 WDIO Web Tests with history
 
 on:
   workflow_dispatch:
