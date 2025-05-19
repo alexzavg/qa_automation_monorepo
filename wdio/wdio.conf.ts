@@ -6,7 +6,7 @@ import dotenv from 'dotenv'
 import { pageManager } from './utils/pageManager'
 
 // .env config selection (e.g. dev, stage, prod)
-dotenv.config({ path: `./.env.${process.env.ENV}` })
+dotenv.config({ path: `./.env.${process.env.ENV_NAME}` })
 
 declare global {
   // Make pageManager available as global.pages in all specs
