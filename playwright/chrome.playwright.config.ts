@@ -16,6 +16,7 @@ const config: PlaywrightTestConfig = {
     launchOptions: {
       slowMo: 1000, // for demo purposes, emulates real user behavior with a bit of delay
       channel: 'chrome',
+      // Chromium capabilities list https://peter.sh/experiments/chromium-command-line-switches
       args: [
         '--start-maximized',
         '--disable-extensions',
