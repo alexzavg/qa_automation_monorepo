@@ -1,4 +1,3 @@
-// @ts-ignore
 import shell from 'shelljs'
 
 const APPIUM_PORT = 4723
