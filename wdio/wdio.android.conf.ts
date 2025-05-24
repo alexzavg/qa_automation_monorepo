@@ -21,13 +21,14 @@ export const config = {
         platformName: 'Android',
         'appium:platformVersion': '14', // Replace with your emulator's platform version
         'appium:deviceName': 'Samsung_S24_API_34', // Replace with your emulator name
+        'appium:autoGrantPermissions': true,
         // 'appium:browserName': 'Chrome', // Use Chrome for web app testing
         'appium:automationName': 'UiAutomator2', // Use UiAutomator2 driver
-        'appium:noReset': true, // Don't reset app state between sessions
-        'appium:fullReset': false, // Avoid uninstalling/reinstalling apps
+        'appium:noReset': false, // Don't reset app state between sessions
+        'appium:fullReset': true, // Avoid uninstalling/reinstalling apps
         //'appium:appPackage': 'com.mobile.app', // App Package name derived from installed application
         //'appium:appActivity': 'com.mobile.app.MainActivity', // App activity string derived from running application
-        //'appium:app': `apks/${appName}/app-release.apk` // Install location for app apk in repo
+        'appium:app': `apks/${appName}/app-release.apk` // Install location for app apk in repo
     }],
     services: [
         ['appium', {
