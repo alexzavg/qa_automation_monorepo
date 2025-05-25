@@ -11,6 +11,7 @@ if(suiteName === 'all') {
 } else {
     suitePath = `./tests/mobile/${appName}/android/${suiteName}/*.test.ts`
 }
+const emulatorName = process.argv.find(arg => arg.includes('--emulatorName='))?.split('=')[1]
 
 export const config = {
     ...base,
@@ -20,7 +21,7 @@ export const config = {
     capabilities: [{
         platformName: 'Android',
         'appium:platformVersion': '14', // Replace with your emulator's platform version
-        'appium:deviceName': 'Samsung_S24_API_34', // Replace with your emulator name
+        'appium:deviceName': emulatorName || 'Samsung_S24_API_34', // Replace with your emulator name
         'appium:autoGrantPermissions': true, // Auto grant permissions to access the app
         // 'appium:browserName': 'Chrome', // Use Chrome for web app testing
         'appium:automationName': 'UiAutomator2', // Use UiAutomator2 driver
