@@ -1,8 +1,9 @@
-import WebMainPage from '../pages/web/webMain.page'
-import LoginPage from '../pages/web/login.page'
-import SecurePage from '../pages/web/secure.page'
-import AndroidMainPage from '../pages/android/androidMain.page'
-import HerokuHomePage from '../pages/android/androidHeroku.page'
+import WebMainPage from '../pages/testApp/web/webMain.page'
+import LoginPage from '../pages/testApp/web/login.page'
+import SecurePage from '../pages/testApp/web/secure.page'
+import TestAppAndroidMainPage from '../pages/testApp/android/testAppAndroidMain.page'
+import TestAppAndroidHerokuPage from '../pages/testApp/android/testAppAndroidHeroku.page'
+import TestAppHomePage from '../pages/testApp/android/testAppHome.page'
 
 export class PageManager {
   get webMainPage(): WebMainPage {
@@ -14,14 +15,15 @@ export class PageManager {
   get securePage(): SecurePage {
     return new SecurePage()
   }
-  get androidMainPage(): AndroidMainPage {
-    return new AndroidMainPage()
+  get androidMainPage(): TestAppAndroidMainPage {
+    return new TestAppAndroidMainPage()
   }
-  get herokuHomePage(): HerokuHomePage {
-    return new HerokuHomePage()
+  get herokuHomePage(): TestAppAndroidHerokuPage {
+    return new TestAppAndroidHerokuPage()
+  }
+  get testAppHomePage(): TestAppHomePage {
+    return new TestAppHomePage()
   }
 }
 
-// Export a singleton instance for convenience
 export const pageManager = new PageManager()
-
