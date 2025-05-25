@@ -21,7 +21,7 @@ export const config = {
         platformName: 'Android',
         'appium:platformVersion': '14', // Replace with your emulator's platform version
         'appium:deviceName': 'Samsung_S24_API_34', // Replace with your emulator name
-        'appium:autoGrantPermissions': true,
+        'appium:autoGrantPermissions': true, // Auto grant permissions to access the app
         // 'appium:browserName': 'Chrome', // Use Chrome for web app testing
         'appium:automationName': 'UiAutomator2', // Use UiAutomator2 driver
         'appium:noReset': false, // Don't reset app state between sessions
