@@ -99,9 +99,11 @@ export PATH=$PATH:$ANDROID_HOME/emulator:$ANDROID_HOME/platform-tools:$ANDROID_H
 
 ### Android Test Development
 1. Install Appium Inspector in the `Assets` section from https://github.com/appium/appium-inspector/releases
-2. Open Appium Inspector and connect to the emulator via this manual https://appium.github.io/appium-inspector/latest/quickstart/starting-a-session/
-3. Use Appium Inspector to find the elements you want to test
-4. Use the element locators in your page object files
+2. Start Appium `npm run appium:start`
+3. Start the emulator `npm run android:emulator:start`
+4. Open Appium Inspector and connect to the emulator via this manual https://appium.github.io/appium-inspector/latest/quickstart/starting-a-session/ , here's an example session setup ![Alt text](manual/android8.png)
+5. Use Appium Inspector to find the element selectors, record sessions e.t.c. ![Alt text](manual/android9.png)
+6. Use the element selectors in your page object files & develop specs as usual
 
 ### Running Android Tests
 1. Start Appium `npm run appium:start`
