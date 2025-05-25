@@ -26,8 +26,8 @@ export const config = {
         'appium:automationName': 'UiAutomator2', // Use UiAutomator2 driver
         'appium:noReset': false, // Don't reset app state between sessions
         'appium:fullReset': true, // Avoid uninstalling/reinstalling apps
-        //'appium:appPackage': 'com.mobile.app', // App Package name derived from installed application
-        //'appium:appActivity': 'com.mobile.app.MainActivity', // App activity string derived from running application
+        //'appium:appPackage': "com.linkedin.mdctest.test", // App Package name derived from installed application
+        //'appium:appActivity': "com.linkedin.mdctest.test.MainScreenActivity", // App activity string derived from running application
         'appium:app': `apks/${appName}/app-release.apk` // Install location for app apk in repo
     }],
     services: [
