@@ -111,9 +111,22 @@ jobs:
           unzip -q cmdline-tools.zip -d cmdline-tools
           mv cmdline-tools/cmdline-tools cmdline-tools/latest
           
-          # Accept licenses and install required packages
-          yes | sdkmanager --licenses
-          sdkmanager --install ${{ env.ANDROID_SDK_PACKAGES }}
+          # Accept licenses first
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
+          
+          # Update the SDK manager and install platform tools first
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --update
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-${{ env.ANDROID_VERSION }}"
+          
+          # Install emulator and system image
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "emulator"
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "system-images;android-${{ env.ANDROID_VERSION }};google_apis_playstore;x86_64"
+          
+          # Install build tools
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "build-tools;${{ env.ANDROID_BUILD_TOOLS_VERSION }}"
+          
+          # Verify installation
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --list
           
       - name: Create Android Virtual Device (AVD)
         run: |
