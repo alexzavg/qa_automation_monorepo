@@ -143,16 +143,19 @@ jobs:
           echo "Available AVDs:"
           ${ANDROID_HOME}/emulator/emulator -list-avds
           
-          # Start the emulator with more verbose output
-          echo "Starting emulator..."
+          # Start the emulator with software rendering and disabled hardware acceleration
+          echo "Starting emulator with software rendering..."
           nohup ${ANDROID_HOME}/emulator/emulator -avd test \
             -no-window \
             -no-boot-anim \
             -no-audio \
+            -gpu swiftshader_indirect \
+            -no-accel \
             -no-snapshot \
-            -gpu swiftshader \
             -memory 2048 \
             -partition-size 2048 \
+            -no-snapshot \
+            -gpu swiftshader \
             -accel auto \
             -no-snapshot-save \
             -no-snapshot-load \
