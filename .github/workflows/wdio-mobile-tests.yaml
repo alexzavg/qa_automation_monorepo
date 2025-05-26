@@ -122,13 +122,13 @@ jobs:
           # Install platform tools and emulator
           $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT "platform-tools" "emulator"
           
-          # Install x86_64 system image for better compatibility in CI
-          echo "Installing x86_64 system image for Android ${ANDROID_VERSION} (${ANDROID_IMAGE})"
-          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT "system-images;android-${ANDROID_VERSION};${ANDROID_IMAGE};x86_64"
+          # Install ARM64 system image
+          echo "Installing ARM64 system image for Android ${ANDROID_VERSION} (${ANDROID_IMAGE})"
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT "system-images;android-${ANDROID_VERSION};${ANDROID_IMAGE};arm64-v8a"
           
-          # Create AVD with x86_64 architecture
-          echo "Creating x86_64 AVD with device profile: ${ANDROID_EMULATOR}"
-          echo "no" | $ANDROID_HOME/cmdline-tools/latest/bin/avdmanager create avd -n test -k "system-images;android-${ANDROID_VERSION};${ANDROID_IMAGE};x86_64" -d ${ANDROID_EMULATOR} --force
+          # Create AVD with ARM64 architecture
+          echo "Creating ARM64 AVD with device profile: ${ANDROID_EMULATOR}"
+          echo "no" | $ANDROID_HOME/cmdline-tools/latest/bin/avdmanager create avd -n test -k "system-images;android-${ANDROID_VERSION};${ANDROID_IMAGE};arm64-v8a" -d ${ANDROID_EMULATOR} --force
           
       - name: Start Android Emulator
         run: |
@@ -143,13 +143,13 @@ jobs:
           echo "Available AVDs:"
           ${ANDROID_HOME}/emulator/emulator -list-avds
           
-          # Start the emulator with software rendering and disabled hardware acceleration
-          echo "Starting emulator with software rendering..."
+          # Start the emulator with software rendering
+          echo "Starting ARM64 emulator with software rendering..."
           nohup ${ANDROID_HOME}/emulator/emulator -avd test \
             -no-window \
             -no-boot-anim \
             -no-audio \
-            -gpu swiftshader \
+            -gpu swiftshader_indirect \
             -no-accel \
             -no-snapshot \
             -memory 2048 \
@@ -158,10 +158,9 @@ jobs:
             -no-snapshot-load \
             -no-snapshot-update-time \
             -verbose \
-            -no-hw-gl \
-            -no-window \
-            -no-boot-anim \
-            -no-audio \
+            -feature -HVF \
+            -accel off \
+            -qemu -machine virt,accel=tcg,tb-size=1024 \
             -debug init \
             > emulator.log 2>&1 &
             
