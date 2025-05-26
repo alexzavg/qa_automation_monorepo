@@ -59,10 +59,12 @@ env:
   CI_PIPELINE_URL: "https://github.com/alexzavg/qa_automation_monorepo/actions/runs/${{github.run_id}}"
   TZ: ${{vars.TZ}}
   NODE_VERSION: 20.x
-  # Using API 30 (Android 11) as it's more stable in CI
+  # Using the selected Android version from input
   ANDROID_VERSION: ${{ github.event.inputs.androidVersion || '30' }}
   # Using a simpler device profile
   ANDROID_EMULATOR: ${{ github.event.inputs.emulatorName || 'pixel' }}
+  # Default to Google APIs image for better compatibility
+  ANDROID_IMAGE: google_apis
 
 jobs:
   mobile_tests:
@@ -103,8 +105,10 @@ jobs:
 
       - name: Setup Android SDK
         run: |
-          echo "y" | ${ANDROID_HOME}/tools/bin/sdkmanager --install "system-images;android-${ANDROID_VERSION};google_apis;arm64-v8a"
-          echo "no" | ${ANDROID_HOME}/tools/bin/avdmanager create avd -n test -k "system-images;android-${ANDROID_VERSION};google_apis;arm64-v8a" -d pixel
+          echo "Installing system image for Android ${ANDROID_VERSION} (${ANDROID_IMAGE})"
+          echo "y" | ${ANDROID_HOME}/tools/bin/sdkmanager --install "system-images;android-${ANDROID_VERSION};${ANDROID_IMAGE};arm64-v8a"
+          echo "Creating AVD with device profile: ${ANDROID_EMULATOR}"
+          echo "no" | ${ANDROID_HOME}/tools/bin/avdmanager create avd -n test -k "system-images;android-${ANDROID_VERSION};${ANDROID_IMAGE};arm64-v8a" -d ${ANDROID_EMULATOR}
           
       - name: Start Android Emulator
         run: |
@@ -153,7 +157,8 @@ jobs:
           ENV=${{ github.event.inputs.environment }} npx wdio run wdio.android.conf.ts \
             --appName=${{ github.event.inputs.appName }} \
             --suiteName=${{ github.event.inputs.suiteName }} \
-            --emulatorName=${{ env.ANDROID_EMULATOR }}
+            --emulatorName=${{ env.ANDROID_EMULATOR }} \
+            --platformVersion=${{ env.ANDROID_VERSION }}.0
 
       - name: Get latest build number
         if: always()

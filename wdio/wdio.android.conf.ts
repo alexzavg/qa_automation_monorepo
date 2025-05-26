@@ -12,6 +12,7 @@ if(suiteName === 'all') {
     suitePath = `./tests/mobile/${appName}/android/${suiteName}/*.test.ts`
 }
 const emulatorName = process.argv.find(arg => arg.includes('--emulatorName='))?.split('=')[1]
+const platformVersion = process.argv.find(arg => arg.includes('--platformVersion='))?.split('=')[1]
 
 export const config = {
     ...base,
@@ -20,7 +21,7 @@ export const config = {
     maxInstances: 1,
     capabilities: [{
         platformName: 'Android',
-        'appium:platformVersion': '14', // Replace with your emulator's platform version
+        'appium:platformVersion': platformVersion || '14', // Get from command line or default to 14
         'appium:deviceName': emulatorName || 'Samsung_S24_API_34', // Replace with your emulator name
         'appium:autoGrantPermissions': true, // Auto grant permissions to access the app
         // 'appium:browserName': 'Chrome', // Use Chrome for web app testing
