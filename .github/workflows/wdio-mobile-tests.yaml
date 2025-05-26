@@ -128,7 +128,7 @@ jobs:
           
           # Create AVD
           echo "Creating AVD with device profile: ${ANDROID_EMULATOR}"
-          echo "no" | $ANDROID_HOME/cmdline-tools/latest/bin/avdmanager --sdk_root=$ANDROID_SDK_ROOT create avd -n test -k "system-images;android-${ANDROID_VERSION};${ANDROID_IMAGE};arm64-v8a" -d ${ANDROID_EMULATOR}
+          echo "no" | $ANDROID_HOME/cmdline-tools/latest/bin/avdmanager create avd --sdk_root=$ANDROID_SDK_ROOT -n test -k "system-images;android-${ANDROID_VERSION};${ANDROID_IMAGE};arm64-v8a" -d ${ANDROID_EMULATOR}
           
       - name: Start Android Emulator
         run: |
