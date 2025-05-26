@@ -53,18 +53,32 @@ on:
           - 'Nexus 6'
 
 env:
+  # Slack and general environment variables
   SLACK_CHANNEL: ${{vars.WDIO_SLACK_CHANNEL}}
   SLACK_WEBHOOK: ${{vars.WDIO_SLACK_WEBHOOK}}
   SLACK_USER: ${{vars.SLACK_USER}}
   CI_PIPELINE_URL: "https://github.com/alexzavg/qa_automation_monorepo/actions/runs/${{github.run_id}}"
   TZ: ${{vars.TZ}}
+  
+  # Node.js version
   NODE_VERSION: 20.x
-  # Using the selected Android version from input
-  ANDROID_VERSION: ${{ github.event.inputs.androidVersion || '30' }}
-  # Using a simpler device profile
+  
+  # Android configuration
+  ANDROID_ARCH: x86_64
+  ANDROID_TARGET: google_apis_playstore
+  ANDROID_VERSION: ${{ github.event.inputs.androidVersion || '33' }}
   ANDROID_EMULATOR: ${{ github.event.inputs.emulatorName || 'pixel' }}
-  # Default to Google APIs image for better compatibility
-  ANDROID_IMAGE: google_apis
+  ANDROID_IMAGE: google_apis_playstore
+  ANDROID_BUILD_TOOLS_VERSION: 33.0.2
+  ANDROID_SDK_PACKAGES: system-images;android-${{ github.event.inputs.androidVersion || '33' }};google_apis_playstore;x86_64 platforms;android-${{ github.event.inputs.androidVersion || '33' }} build-tools;33.0.2 platform-tools emulator
+  EMULATOR_TIMEOUT: 350
+  
+  # Android SDK paths
+  ANDROID_HOME: ${{ github.workspace }}/android-sdk
+  ANDROID_SDK_ROOT: ${{ github.workspace }}/android-sdk
+  
+  # Add Android tools to PATH (will be set in the workflow step)
+  PATH: ${{ github.workspace }}/android-sdk/cmdline-tools/latest/bin:${{ github.workspace }}/android-sdk/emulator:${{ github.workspace }}/android-sdk/platform-tools:${{ github.workspace }}/android-sdk/tools/bin:${{ github.workspace }}/android-sdk/build-tools/33.0.2:${{ env.PATH }}
 
 jobs:
   mobile_tests:
@@ -80,6 +94,46 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: '17'
+          
+      - name: Add Android tools to PATH
+        run: |
+          echo "$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/emulator:$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools:$ANDROID_HOME/build-tools/${{ env.ANDROID_BUILD_TOOLS_VERSION }}" >> $GITHUB_PATH
+          
+      - name: Install Android SDK and tools
+        run: |
+          # Create Android SDK directory
+          mkdir -p $ANDROID_HOME
+          
+          # Download and extract command line tools
+          cd $ANDROID_HOME
+          wget -q https://dl.google.com/android/repository/commandlinetools-mac-9477386_latest.zip -O cmdline-tools.zip
+          unzip -q cmdline-tools.zip -d cmdline-tools
+          mv cmdline-tools/cmdline-tools cmdline-tools/latest
+          
+          # Accept licenses and install required packages
+          yes | sdkmanager --licenses
+          sdkmanager --install ${{ env.ANDROID_SDK_PACKAGES }}
+          
+      - name: Create Android Virtual Device (AVD)
+        run: |
+          echo "no" | avdmanager --verbose create avd \
+            --force \
+            --name "${{ env.ANDROID_EMULATOR }}" \
+            --package "system-images;android-${{ env.ANDROID_VERSION }};${{ env.ANDROID_TARGET }};${{ env.ANDROID_ARCH }}" \
+            --device "pixel_6"
+            
+      - name: Launch Android Emulator
+        run: |
+          # Make the script executable
+          chmod +x .github/scripts/start_emu_headless.sh
+          
+          # Start the emulator with the specified timeout and name
+          EMULATOR_TIMEOUT=${{ env.EMULATOR_TIMEOUT }} \
+          EMULATOR_NAME=${{ env.ANDROID_EMULATOR }} \
+          ./.github/scripts/start_emu_headless.sh
+          
+          # Verify emulator is running
+          adb devices -l
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -87,7 +141,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
           cache-dependency-path: '**/package-lock.json'
-
+          
       - name: Install dependencies
         working-directory: ./wdio
         run: npm install
@@ -103,188 +157,6 @@ jobs:
             echo "Created .env.prod"
           fi
 
-      - name: Setup Android SDK
-        run: |
-          # Install newer command-line tools that support Java 17
-          cd $ANDROID_HOME
-          wget https://dl.google.com/android/repository/commandlinetools-mac-9477386_latest.zip -O cmdline-tools.zip
-          unzip -q cmdline-tools.zip -d cmdline-tools
-          mv cmdline-tools/cmdline-tools cmdline-tools/latest
-          
-          # Set up environment variables
-          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/emulator:$ANDROID_HOME/platform-tools:$PATH
-          export ANDROID_HOME=$ANDROID_HOME
-          export ANDROID_SDK_ROOT=$ANDROID_HOME
-          
-          # Accept licenses
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT --licenses
-          
-          # Install platform tools and emulator
-          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT "platform-tools" "emulator"
-          
-          # Install ARM64 system image
-          echo "Installing ARM64 system image for Android ${ANDROID_VERSION} (${ANDROID_IMAGE})"
-          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT "system-images;android-${ANDROID_VERSION};${ANDROID_IMAGE};arm64-v8a"
-          
-          # Create AVD with ARM64 architecture
-          echo "Creating ARM64 AVD with device profile: ${ANDROID_EMULATOR}"
-          echo "no" | $ANDROID_HOME/cmdline-tools/latest/bin/avdmanager create avd -n test -k "system-images;android-${ANDROID_VERSION};${ANDROID_IMAGE};arm64-v8a" -d ${ANDROID_EMULATOR} --force
-          
-      - name: Start Android Emulator
-        run: |
-          # Kill any existing emulator and ADB server
-          pkill -f 'emulator' || true
-          adb kill-server || true
-          
-          # Start ADB server
-          adb start-server
-          
-          # List available AVDs
-          echo "Available AVDs:"
-          ${ANDROID_HOME}/emulator/emulator -list-avds
-          
-          # Start the emulator with software rendering
-          echo "Starting ARM64 emulator with software rendering..."
-          nohup ${ANDROID_HOME}/emulator/emulator -avd test \
-            -no-window \
-            -no-boot-anim \
-            -no-audio \
-            -gpu swiftshader_indirect \
-            -no-accel \
-            -no-snapshot \
-            -memory 2048 \
-            -partition-size 2048 \
-            -no-snapshot-save \
-            -no-snapshot-load \
-            -no-snapshot-update-time \
-            -verbose \
-            -feature -HVF \
-            -accel off \
-            -qemu -machine virt,accel=tcg,tb-size=1024 \
-            -debug init \
-            > emulator.log 2>&1 &
-            
-          # Save emulator PID for later
-          EMULATOR_PID=$!
-          echo "Emulator started with PID: $EMULATOR_PID"
-          
-      - name: Wait for emulator
-        run: |
-          # Function to check emulator status
-          check_emulator() {
-              echo "Checking emulator status..."
-              adb devices | grep -q emulator
-          }
-          
-          echo "Waiting for emulator to start..."
-          
-          # Wait for emulator to be detected by ADB (up to 5 minutes)
-          for i in {1..30}; do
-              if check_emulator; then
-                  echo "✅ Emulator detected"
-                  break
-              fi
-              echo "⏳ Waiting for emulator... (attempt $i/30)"
-              sleep 10
-              
-              # If we've been waiting for a while, show emulator log
-              if [ $i -eq 10 ] || [ $i -eq 20 ]; then
-                  echo "\n=== Emulator Log (last 20 lines) ==="
-                  tail -n 20 emulator.log || true
-                  echo "=================================\n"
-              fi
-              
-              # Restart ADB server every few attempts
-              if [ $((i % 5)) -eq 0 ]; then
-                  echo "Restarting ADB server..."
-                  adb kill-server
-                  adb start-server
-              fi
-          done
-          
-          # Final check
-          if ! check_emulator; then
-              echo "❌ Failed to detect emulator after 30 attempts"
-              echo "\n=== Full Emulator Log ==="
-              cat emulator.log || true
-              echo "\n=== ADB Devices ==="
-              adb devices -l || true
-              echo "\n=== Process List ==="
-              ps aux | grep -i emulator || true
-              exit 1
-          fi
-          
-          # Wait for device to be ready
-          echo "Waiting for device to be ready..."
-          adb wait-for-device
-          
-          # Wait for boot to complete (up to 10 minutes)
-          echo "Waiting for boot to complete..."
-          BOOT_COMPLETED=false
-          for i in {1..60}; do
-              BOOT_STATUS=$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r' || true)
-              if [ "$BOOT_STATUS" = "1" ]; then
-                  echo "✅ Boot completed"
-                  BOOT_COMPLETED=true
-                  break
-              fi
-              echo "⏳ Still waiting for boot to complete... (attempt $i/60)"
-              sleep 10
-              
-              # If stuck, try to get more info
-              if [ $i -eq 20 ] || [ $i -eq 40 ]; then
-                  echo "\n=== Boot Info ==="
-                  adb shell getprop | grep -E 'init.svc.bootanim|sys.boot_completed|dev.bootcomplete' || true
-                  echo "=================\n"
-              fi
-          done
-          
-          if [ "$BOOT_COMPLETED" != "true" ]; then
-              echo "❌ Boot did not complete after 10 minutes"
-              echo "\n=== Last Boot Info ==="
-              adb shell getprop | grep -E 'init.svc.bootanim|sys.boot_completed|dev.bootcomplete' || true
-              echo "\n=== Logcat ==="
-              adb logcat -d | tail -n 30 || true
-              exit 1
-          fi
-          
-          echo "✅ Emulator is ready"
-          echo "\n=== Device Info ==="
-          adb shell getprop | grep -E 'ro.build.version|ro.product' || true
-          echo "\n=== ADB Devices ==="
-          adb devices -l
-          
-      - name: Set up emulator
-        run: |
-          # Wait for boot to complete
-          while [ "$(adb shell getprop sys.boot_completed | tr -d '\r')" != "1" ]; do
-            echo "Waiting for boot to complete..."
-            sleep 5
-          done
-          
-          # Disable animations
-          adb shell settings put global window_animation_scale 0
-          adb shell settings put global transition_animation_scale 0
-          adb shell settings put global animator_duration_scale 0
-          
-          # Enable hardware keyboard
-          adb shell settings put secure show_ime_with_hard_keyboard 0
-          
-          # Disable spell checker
-          adb shell settings put secure spell_checker_enabled 0
-          
-          # Disable auto-correct
-          adb shell settings put secure auto_replace 0
-          adb shell settings put secure auto_caps 0
-          adb shell settings put secure auto_punctuate 0
-          adb shell settings put secure show_password 0
-          
-          # Grant permissions
-          adb root
-          sleep 2
-          adb shell pm grant com.android.shell android.permission.READ_EXTERNAL_STORAGE
-          adb shell pm grant com.android.shell android.permission.WRITE_EXTERNAL_STORAGE
-
       - name: Run mobile tests
         working-directory: ./wdio
         run: |
@@ -292,7 +164,7 @@ jobs:
             --appName=${{ github.event.inputs.appName }} \
             --suiteName=${{ github.event.inputs.suiteName }} \
             --emulatorName=${{ env.ANDROID_EMULATOR }} \
-            --platformVersion=${{ env.ANDROID_VERSION }}.0
+            --platformVersion=${{ env.ANDROID_VERSION }}
 
       - name: Get latest build number
         if: always()
