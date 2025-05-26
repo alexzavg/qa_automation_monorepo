@@ -77,8 +77,8 @@ env:
   ANDROID_HOME: ${{ github.workspace }}/android-sdk
   ANDROID_SDK_ROOT: ${{ github.workspace }}/android-sdk
   
-  # Add Android tools to PATH (will be set in the workflow step)
-  PATH: ${{ github.workspace }}/android-sdk/cmdline-tools/latest/bin:${{ github.workspace }}/android-sdk/emulator:${{ github.workspace }}/android-sdk/platform-tools:${{ github.workspace }}/android-sdk/tools/bin:${{ github.workspace }}/android-sdk/build-tools/33.0.2:${{ env.PATH }}
+  # Base PATH for Android tools (will be extended in the workflow step)
+  BASE_ANDROID_PATH: ${{ github.workspace }}/android-sdk/cmdline-tools/latest/bin:${{ github.workspace }}/android-sdk/emulator:${{ github.workspace }}/android-sdk/platform-tools:${{ github.workspace }}/android-sdk/tools/bin:${{ github.workspace }}/android-sdk/build-tools/33.0.2
 
 jobs:
   mobile_tests:
@@ -97,7 +97,8 @@ jobs:
           
       - name: Add Android tools to PATH
         run: |
-          echo "$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/emulator:$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools:$ANDROID_HOME/build-tools/${{ env.ANDROID_BUILD_TOOLS_VERSION }}" >> $GITHUB_PATH
+          # Add Android tools to PATH
+          echo "${{ env.BASE_ANDROID_PATH }}" >> $GITHUB_PATH
           
       - name: Install Android SDK and tools
         run: |
