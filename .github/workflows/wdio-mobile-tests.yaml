@@ -1,0 +1,213 @@
+name: WDIO Mobile Tests
+run-name: 📱 WDIO Mobile Tests
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to run the tests against'
+        required: true
+        default: 'stage'
+        type: choice
+        options:
+          - stage
+          - prod
+      appName:
+        description: 'Name of the app to test (e.g. testApp)'
+        required: true
+        default: 'testApp'
+        type: string
+      suiteName:
+        description: 'Test suite name (e.g. e2e, all)'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - e2e
+      androidVersion:
+        description: 'Android API level to use for the emulator'
+        required: true
+        default: '34'
+        type: choice
+        options:
+          - '35'  # Android 15
+          - '34'  # Android 14
+          - '33'  # Android 13
+          - '32'  # Android 12L
+          - '31'  # Android 12
+          - '30'  # Android 11
+      emulatorName:
+        description: 'Name of the emulator profile to use'
+        required: true
+        default: 'pixel_6'
+        type: choice
+        options:
+          - 'pixel_6'
+          - 'pixel_5'
+          - 'pixel_4'
+          - 'pixel_xl'
+          - 'pixel'
+          - 'Nexus 5X'
+          - 'Nexus 6P'
+          - 'Nexus 6'
+
+env:
+  SLACK_CHANNEL: ${{vars.WDIO_SLACK_CHANNEL}}
+  SLACK_WEBHOOK: ${{vars.WDIO_SLACK_WEBHOOK}}
+  SLACK_USER: ${{vars.SLACK_USER}}
+  CI_PIPELINE_URL: "https://github.com/alexzavg/qa_automation_monorepo/actions/runs/${{github.run_id}}"
+  TZ: ${{vars.TZ}}
+  NODE_VERSION: 20.x
+  ANDROID_VERSION: ${{ github.event.inputs.androidVersion || '34' }}
+  ANDROID_EMULATOR: ${{ github.event.inputs.emulatorName || 'pixel_6' }}
+
+jobs:
+  mobile_tests:
+    runs-on: macos-latest
+    timeout-minutes: 60
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: 'wdio/package-lock.json'
+
+      - name: Install dependencies
+        working-directory: ./wdio
+        run: npm ci
+
+      - name: Create .env file
+        run: |
+          cd wdio
+          if [ "${{ github.event.inputs.environment }}" = "stage" ]; then
+            echo "${{ secrets.WDIO_CONFIG_STAGE }}" > .env.stage
+            echo "Created .env.stage"
+          elif [ "${{ github.event.inputs.environment }}" = "prod" ]; then
+            echo "${{ secrets.WDIO_CONFIG_PROD }}" > .env.prod
+            echo "Created .env.prod"
+          fi
+
+      - name: Start Android Emulator
+        uses: reactivecircus/android-emulator-runner@v2.32.0
+        with:
+          api-level: ${{ env.ANDROID_VERSION }}
+          arch: x86_64
+          profile: ${{ env.ANDROID_EMULATOR }}
+          script: |
+            adb devices
+            adb logcat -G 16M
+            adb logcat -c
+
+      - name: Run mobile tests
+        working-directory: ./wdio
+        run: |
+          ENV=${{ github.event.inputs.environment }} npx wdio run wdio.android.conf.ts \
+            --appName=${{ github.event.inputs.appName }} \
+            --suiteName=${{ github.event.inputs.suiteName }} \
+            --emulatorName=${{ env.ANDROID_EMULATOR }}
+
+      - name: Get latest build number
+        if: always()
+        id: get_build_number
+        run: |
+          SLUG="${{ github.event.inputs.appName }}_${{ github.event.inputs.suiteName }}_${{ github.event.inputs.environment }}_mobile"
+          # Get the latest build number for this slug
+          echo "Checking for existing builds in ${SLUG}"
+          
+          # First, get the directory contents from gh-pages branch
+          echo "Checking contents of: ${SLUG}"
+          curl_url="https://api.github.com/repos/${{ github.repository }}/contents/${SLUG}?ref=gh-pages"
+          echo "URL: $curl_url"
+          DIR_CONTENTS=$(curl -s "$curl_url" \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}")
+          
+          # Add debug output
+          echo "Raw API response: $DIR_CONTENTS"
+          
+          if [ -z "$DIR_CONTENTS" ]; then
+            echo "No builds found yet, starting with 1"
+            BUILD_NUMBER="1"
+          else
+            # Check if the response is an array (directory exists)
+            if echo "$DIR_CONTENTS" | grep -q '"name"'; then
+              echo "Directory exists, checking for builds..."
+              # Get the latest build number
+              LATEST_BUILD=$(echo "$DIR_CONTENTS" \
+                | jq -r '.[] | select(.name | test("^[0-9]+$")) | .name' \
+                | sort -nr \
+                | head -n 1)
+              
+              if [ -z "$LATEST_BUILD" ]; then
+                echo "No builds found yet, starting with 1"
+                BUILD_NUMBER="1"
+              else
+                echo "Latest build found: $LATEST_BUILD"
+                BUILD_NUMBER=$(($LATEST_BUILD + 1))
+                echo "New build number: $BUILD_NUMBER"
+              fi
+            else
+              # If it's not an array, it means the directory exists but is empty
+              echo "Directory exists but is empty, starting with 1"
+              BUILD_NUMBER="1"
+            fi
+          fi
+          
+          echo "SLUG=$SLUG" >> $GITHUB_OUTPUT
+          echo "BUILD_NUMBER=$BUILD_NUMBER" >> $GITHUB_OUTPUT
+
+      - name: Deploy suite report to GitHub Pages
+        if: always()
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: wdio/html-report/allure-report
+          destination_dir: ${{ steps.get_build_number.outputs.SLUG }}/${{ steps.get_build_number.outputs.BUILD_NUMBER }}
+
+      - name: Notify Slack
+        if: always()
+        run: |
+          STATUS="${{ job.status }}"
+          COLOR="#2EB67D"
+          EMOJI=":white_check_mark:"
+          SLACK_TAG=""
+          if [ "$STATUS" == "failure" ]; then
+            COLOR="#E01E5A"
+            EMOJI=":x:"
+            SLACK_TAG="<${{ env.SLACK_USER }}>"
+          elif [ "$STATUS" == "cancelled" ]; then
+            COLOR="#808080"
+            EMOJI=":black_square_for_stop:"
+          fi
+
+          SLUG=${{ steps.get_build_number.outputs.SLUG }}
+          BUILD_NUMBER=${{ steps.get_build_number.outputs.BUILD_NUMBER }}
+          REPORT_URL="https://alexzavg.github.io/qa_automation_monorepo/${SLUG}/${BUILD_NUMBER}"
+
+          echo ""
+          echo "🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥"
+          echo "🟩 REPORT URL FOR ${STATUS^^}: ${REPORT_URL}"
+          echo "🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥"
+          echo ""
+
+          curl -X POST -H 'Content-type: application/json' --data "{
+            \"channel\":\"$SLACK_CHANNEL\",
+            \"username\":\"Github\",
+            \"attachments\":[{
+              \"color\":\"$COLOR\",
+              \"text\":\"$EMOJI Test suite *${{ github.event.inputs.suiteName }}* for app *${{ github.event.inputs.appName }}* on environment *${{ github.event.inputs.environment }}* finished with status *$STATUS*. :book: <${{ env.CI_PIPELINE_URL }}|LOGS>, :bar_chart: <$REPORT_URL|REPORT> $SLACK_TAG\",
+              \"footer\":\"Time: $(TZ=$TZ date)\"
+            }]
+          }" $SLACK_WEBHOOK
