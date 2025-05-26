@@ -64,13 +64,13 @@ env:
   NODE_VERSION: 20.x
   
   # Android configuration
-  ANDROID_ARCH: x86_64
+  ANDROID_ARCH: arm64-v8a
   ANDROID_TARGET: google_apis_playstore
-  ANDROID_VERSION: ${{ github.event.inputs.androidVersion || '33' }}
-  ANDROID_EMULATOR: ${{ github.event.inputs.emulatorName || 'pixel' }}
+  ANDROID_VERSION: ${{ github.event.inputs.androidVersion || '34' }}
+  ANDROID_EMULATOR: ${{ github.event.inputs.emulatorName || 'pixel_6' }}
   ANDROID_IMAGE: google_apis_playstore
   ANDROID_BUILD_TOOLS_VERSION: 33.0.2
-  ANDROID_SDK_PACKAGES: system-images;android-${{ github.event.inputs.androidVersion || '33' }};google_apis_playstore;x86_64 platforms;android-${{ github.event.inputs.androidVersion || '33' }} build-tools;33.0.2 platform-tools emulator
+  ANDROID_SDK_PACKAGES: system-images;android-${{ github.event.inputs.androidVersion || '34' }};google_apis_playstore;arm64-v8a platforms;android-${{ github.event.inputs.androidVersion || '34' }} build-tools;33.0.2 platform-tools emulator
   EMULATOR_TIMEOUT: 350
   
   # Android SDK paths
@@ -130,12 +130,22 @@ jobs:
           
       - name: Create Android Virtual Device (AVD)
         run: |
+          # Create a new AVD with ARM64 image
           echo "no" | avdmanager --verbose create avd \
             --force \
             --name "${{ env.ANDROID_EMULATOR }}" \
-            --package "system-images;android-${{ env.ANDROID_VERSION }};${{ env.ANDROID_TARGET }};${{ env.ANDROID_ARCH }}" \
-            --device "pixel_6"
-            
+            --package "system-images;android-${{ env.ANDROID_VERSION }};google_apis_playstore;arm64-v8a" \
+            --device "${{ env.ANDROID_EMULATOR }}" \
+            --abi "arm64-v8a"
+          
+          # List available AVDs
+          emulator -list-avds
+          
+          # Configure AVD settings
+          echo "hw.keyboard=yes" >> $HOME/.android/avd/${{ env.ANDROID_EMULATOR }}.avd/config.ini
+          echo "hw.gpu.mode=swiftshader" >> $HOME/.android/avd/${{ env.ANDROID_EMULATOR }}.avd/config.ini
+          echo "hw.gpu.enabled=yes" >> $HOME/.android/avd/${{ env.ANDROID_EMULATOR }}.avd/config.ini
+
       - name: Launch Android Emulator
         run: |
           # Make the script executable

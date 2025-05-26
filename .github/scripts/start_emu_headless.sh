@@ -33,11 +33,21 @@ function check_hardware_acceleration() {
 hw_accel_flag=$(check_hardware_acceleration)
 
 function launch_emulator () {
-  # Kill any running emulators
+  # Kill any running emulator
   adb devices | grep emulator | cut -f1 | xargs -I {} adb -s "{}" emu kill
   
   # Set emulator options
-  options="@${emulator_name} -no-window -no-snapshot -screen no-touch -noaudio -memory 2048 -no-boot-anim ${hw_accel_flag} -camera-back none"
+  options="@${emulator_name} -no-window -no-snapshot -screen no-touch -noaudio -memory 2048 -no-boot-anim -camera-back none"
+  
+  # For ARM64, we need to use different GPU settings
+  if [[ "$(uname -m)" == "arm64" ]]; then
+    options="${options} -gpu swiftshader -feature -GLESDynamicVersion"
+  else
+    options="${options} ${hw_accel_flag} -gpu swiftshader_indirect"
+  fi
+  
+  echo -e "${BL}==> ${G}Launching emulator with options: ${NC}${options}"
+  echo -e "${BL}==> ${G}Emulator name: ${NC}${emulator_name}"
   
   if [[ "$OSTYPE" == *linux* ]]; then
     echo "${OSTYPE}: emulator ${options} -gpu off"
