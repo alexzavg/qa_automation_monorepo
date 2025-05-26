@@ -132,11 +132,36 @@ jobs:
           
       - name: Start Android Emulator
         run: |
-          ${ANDROID_HOME}/emulator/emulator -avd test -no-window -no-boot-anim -no-audio -no-snapshot -gpu swiftshader -memory 2048 -partition-size 2048 -accel auto -no-snapshot-save -no-snapshot-load -no-snapshot-update-time &
+          # Kill any existing emulator instances
+          adb kill-server
+          
+          # Start the emulator in the background
+          nohup ${ANDROID_HOME}/emulator/emulator -avd test -no-window -no-boot-anim -no-audio -no-snapshot -gpu swiftshader -memory 2048 -partition-size 2048 -accel auto -no-snapshot-save -no-snapshot-load -no-snapshot-update-time > /dev/null 2>&1 &
           
       - name: Wait for emulator
         run: |
+          echo "Waiting for emulator to start..."
+          # Wait for the emulator to be detected by ADB
+          for i in {1..30}; do
+              if adb devices | grep -q emulator; then
+                  echo "Emulator detected"
+                  break
+              fi
+              echo "Waiting for emulator... (attempt $i/30)"
+              sleep 10
+          done
+          
+          # Wait for device to be ready
+          echo "Waiting for device to be ready..."
           adb wait-for-device
+          
+          # Wait for boot to complete
+          echo "Waiting for boot to complete..."
+          while [ "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" != "1" ]; do
+              sleep 5
+              echo "Still waiting for boot to complete..."
+          done
+          
           echo "Emulator is ready"
           adb devices
           
