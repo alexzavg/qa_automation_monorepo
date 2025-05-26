@@ -64,13 +64,13 @@ env:
   NODE_VERSION: 20.x
   
   # Android configuration
-  ANDROID_ARCH: arm64-v8a
+  ANDROID_ARCH: x86_64
   ANDROID_TARGET: google_apis_playstore
   ANDROID_VERSION: ${{ github.event.inputs.androidVersion || '34' }}
   ANDROID_EMULATOR: ${{ github.event.inputs.emulatorName || 'pixel_6' }}
   ANDROID_IMAGE: google_apis_playstore
   ANDROID_BUILD_TOOLS_VERSION: 33.0.2
-  ANDROID_SDK_PACKAGES: system-images;android-${{ github.event.inputs.androidVersion || '34' }};google_apis_playstore;arm64-v8a platforms;android-${{ github.event.inputs.androidVersion || '34' }} build-tools;33.0.2 platform-tools emulator
+  ANDROID_SDK_PACKAGES: system-images;android-${{ github.event.inputs.androidVersion || '34' }};google_apis_playstore;x86_64 platforms;android-${{ github.event.inputs.androidVersion || '34' }} build-tools;33.0.2 platform-tools emulator
   EMULATOR_TIMEOUT: 350
   
   # Android SDK paths
@@ -130,21 +130,33 @@ jobs:
           
       - name: Create Android Virtual Device (AVD)
         run: |
-          # Create a new AVD with ARM64 image
+          # Create AVD directory if it doesn't exist
+          mkdir -p $HOME/.android/avd/
+          
+          # Create a new AVD with x86_64 image
           echo "no" | avdmanager --verbose create avd \
             --force \
             --name "${{ env.ANDROID_EMULATOR }}" \
-            --package "system-images;android-${{ env.ANDROID_VERSION }};google_apis_playstore;arm64-v8a" \
+            --package "system-images;android-${{ env.ANDROID_VERSION }};google_apis_playstore;x86_64" \
             --device "${{ env.ANDROID_EMULATOR }}" \
-            --abi "arm64-v8a"
+            --abi "x86_64"
           
           # List available AVDs
+          echo "Available AVDs:"
           emulator -list-avds
           
-          # Configure AVD settings
-          echo "hw.keyboard=yes" >> $HOME/.android/avd/${{ env.ANDROID_EMULATOR }}.avd/config.ini
-          echo "hw.gpu.mode=swiftshader" >> $HOME/.android/avd/${{ env.ANDROID_EMULATOR }}.avd/config.ini
-          echo "hw.gpu.enabled=yes" >> $HOME/.android/avd/${{ env.ANDROID_EMULATOR }}.avd/config.ini
+          # Configure AVD settings for better performance
+          AVD_CONFIG=$HOME/.android/avd/${{ env.ANDROID_EMULATOR }}.avd/config.ini
+          echo "hw.keyboard=yes" >> $AVD_CONFIG
+          echo "hw.gpu.enabled=yes" >> $AVD_CONFIG
+          echo "hw.gpu.mode=auto" >> $AVD_CONFIG
+          echo "hw.ramSize=2048" >> $AVD_CONFIG
+          echo "vm.heapSize=256" >> $AVD_CONFIG
+          echo "showDeviceFrame=yes" >> $AVD_CONFIG
+          
+          # Display AVD configuration
+          echo "AVD configuration:"
+          cat $AVD_CONFIG
 
       - name: Launch Android Emulator
         run: |
