@@ -150,18 +150,12 @@ jobs:
             -no-boot-anim \
             -no-audio \
             -gpu swiftshader_indirect \
-            -no-accel \
             -no-snapshot \
             -memory 2048 \
             -partition-size 2048 \
-            -no-snapshot \
-            -gpu swiftshader \
-            -accel auto \
             -no-snapshot-save \
             -no-snapshot-load \
             -no-snapshot-update-time \
-            -logcat *:V \
-            -show-kernel \
             -verbose \
             -debug init \
             > emulator.log 2>&1 &
