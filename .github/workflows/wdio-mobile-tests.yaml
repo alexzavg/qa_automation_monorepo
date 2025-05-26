@@ -132,38 +132,126 @@ jobs:
           
       - name: Start Android Emulator
         run: |
-          # Kill any existing emulator instances
-          adb kill-server
+          # Kill any existing emulator and ADB server
+          pkill -f 'emulator' || true
+          adb kill-server || true
           
-          # Start the emulator in the background
-          nohup ${ANDROID_HOME}/emulator/emulator -avd test -no-window -no-boot-anim -no-audio -no-snapshot -gpu swiftshader -memory 2048 -partition-size 2048 -accel auto -no-snapshot-save -no-snapshot-load -no-snapshot-update-time > /dev/null 2>&1 &
+          # Start ADB server
+          adb start-server
+          
+          # List available AVDs
+          echo "Available AVDs:"
+          ${ANDROID_HOME}/emulator/emulator -list-avds
+          
+          # Start the emulator with more verbose output
+          echo "Starting emulator..."
+          nohup ${ANDROID_HOME}/emulator/emulator -avd test \
+            -no-window \
+            -no-boot-anim \
+            -no-audio \
+            -no-snapshot \
+            -gpu swiftshader \
+            -memory 2048 \
+            -partition-size 2048 \
+            -accel auto \
+            -no-snapshot-save \
+            -no-snapshot-load \
+            -no-snapshot-update-time \
+            -logcat *:V \
+            -show-kernel \
+            -verbose \
+            -debug init \
+            > emulator.log 2>&1 &
+            
+          # Save emulator PID for later
+          EMULATOR_PID=$!
+          echo "Emulator started with PID: $EMULATOR_PID"
           
       - name: Wait for emulator
         run: |
+          # Function to check emulator status
+          check_emulator() {
+              echo "Checking emulator status..."
+              adb devices | grep -q emulator
+          }
+          
           echo "Waiting for emulator to start..."
-          # Wait for the emulator to be detected by ADB
+          
+          # Wait for emulator to be detected by ADB (up to 5 minutes)
           for i in {1..30}; do
-              if adb devices | grep -q emulator; then
-                  echo "Emulator detected"
+              if check_emulator; then
+                  echo "✅ Emulator detected"
                   break
               fi
-              echo "Waiting for emulator... (attempt $i/30)"
+              echo "⏳ Waiting for emulator... (attempt $i/30)"
               sleep 10
+              
+              # If we've been waiting for a while, show emulator log
+              if [ $i -eq 10 ] || [ $i -eq 20 ]; then
+                  echo "\n=== Emulator Log (last 20 lines) ==="
+                  tail -n 20 emulator.log || true
+                  echo "=================================\n"
+              fi
+              
+              # Restart ADB server every few attempts
+              if [ $((i % 5)) -eq 0 ]; then
+                  echo "Restarting ADB server..."
+                  adb kill-server
+                  adb start-server
+              fi
           done
+          
+          # Final check
+          if ! check_emulator; then
+              echo "❌ Failed to detect emulator after 30 attempts"
+              echo "\n=== Full Emulator Log ==="
+              cat emulator.log || true
+              echo "\n=== ADB Devices ==="
+              adb devices -l || true
+              echo "\n=== Process List ==="
+              ps aux | grep -i emulator || true
+              exit 1
+          fi
           
           # Wait for device to be ready
           echo "Waiting for device to be ready..."
           adb wait-for-device
           
-          # Wait for boot to complete
+          # Wait for boot to complete (up to 10 minutes)
           echo "Waiting for boot to complete..."
-          while [ "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" != "1" ]; do
-              sleep 5
-              echo "Still waiting for boot to complete..."
+          BOOT_COMPLETED=false
+          for i in {1..60}; do
+              BOOT_STATUS=$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r' || true)
+              if [ "$BOOT_STATUS" = "1" ]; then
+                  echo "✅ Boot completed"
+                  BOOT_COMPLETED=true
+                  break
+              fi
+              echo "⏳ Still waiting for boot to complete... (attempt $i/60)"
+              sleep 10
+              
+              # If stuck, try to get more info
+              if [ $i -eq 20 ] || [ $i -eq 40 ]; then
+                  echo "\n=== Boot Info ==="
+                  adb shell getprop | grep -E 'init.svc.bootanim|sys.boot_completed|dev.bootcomplete' || true
+                  echo "=================\n"
+              fi
           done
           
-          echo "Emulator is ready"
-          adb devices
+          if [ "$BOOT_COMPLETED" != "true" ]; then
+              echo "❌ Boot did not complete after 10 minutes"
+              echo "\n=== Last Boot Info ==="
+              adb shell getprop | grep -E 'init.svc.bootanim|sys.boot_completed|dev.bootcomplete' || true
+              echo "\n=== Logcat ==="
+              adb logcat -d | tail -n 30 || true
+              exit 1
+          fi
+          
+          echo "✅ Emulator is ready"
+          echo "\n=== Device Info ==="
+          adb shell getprop | grep -E 'ro.build.version|ro.product' || true
+          echo "\n=== ADB Devices ==="
+          adb devices -l
           
       - name: Set up emulator
         run: |
