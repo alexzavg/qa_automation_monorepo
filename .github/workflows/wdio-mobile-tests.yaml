@@ -122,13 +122,13 @@ jobs:
           # Install platform tools and emulator
           $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT "platform-tools" "emulator"
           
-          # Install system image
-          echo "Installing system image for Android ${ANDROID_VERSION} (${ANDROID_IMAGE})"
-          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT "system-images;android-${ANDROID_VERSION};${ANDROID_IMAGE};arm64-v8a"
+          # Install x86_64 system image for better compatibility in CI
+          echo "Installing x86_64 system image for Android ${ANDROID_VERSION} (${ANDROID_IMAGE})"
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT "system-images;android-${ANDROID_VERSION};${ANDROID_IMAGE};x86_64"
           
-          # Create AVD
-          echo "Creating AVD with device profile: ${ANDROID_EMULATOR}"
-          echo "no" | $ANDROID_HOME/cmdline-tools/latest/bin/avdmanager create avd -n test -k "system-images;android-${ANDROID_VERSION};${ANDROID_IMAGE};arm64-v8a" -d ${ANDROID_EMULATOR}
+          # Create AVD with x86_64 architecture
+          echo "Creating x86_64 AVD with device profile: ${ANDROID_EMULATOR}"
+          echo "no" | $ANDROID_HOME/cmdline-tools/latest/bin/avdmanager create avd -n test -k "system-images;android-${ANDROID_VERSION};${ANDROID_IMAGE};x86_64" -d ${ANDROID_EMULATOR} --force
           
       - name: Start Android Emulator
         run: |
@@ -149,7 +149,8 @@ jobs:
             -no-window \
             -no-boot-anim \
             -no-audio \
-            -gpu swiftshader_indirect \
+            -gpu swiftshader \
+            -no-accel \
             -no-snapshot \
             -memory 2048 \
             -partition-size 2048 \
@@ -157,6 +158,10 @@ jobs:
             -no-snapshot-load \
             -no-snapshot-update-time \
             -verbose \
+            -no-hw-gl \
+            -no-window \
+            -no-boot-anim \
+            -no-audio \
             -debug init \
             > emulator.log 2>&1 &
             
