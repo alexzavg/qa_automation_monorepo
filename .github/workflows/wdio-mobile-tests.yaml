@@ -111,22 +111,24 @@ jobs:
           unzip -q cmdline-tools.zip -d cmdline-tools
           mv cmdline-tools/cmdline-tools cmdline-tools/latest
           
-          # Update PATH to include the new tools
-          echo "$ANDROID_HOME/cmdline-tools/latest:$ANDROID_HOME/emulator:$ANDROID_HOME/platform-tools" >> $GITHUB_PATH
+          # Set up environment variables
+          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/emulator:$ANDROID_HOME/platform-tools:$PATH
+          export ANDROID_HOME=$ANDROID_HOME
+          export ANDROID_SDK_ROOT=$ANDROID_HOME
           
           # Accept licenses
-          yes | sdkmanager --licenses
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT --licenses
           
           # Install platform tools and emulator
-          sdkmanager --install "platform-tools" "emulator"
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT "platform-tools" "emulator"
           
           # Install system image
           echo "Installing system image for Android ${ANDROID_VERSION} (${ANDROID_IMAGE})"
-          sdkmanager --install "system-images;android-${ANDROID_VERSION};${ANDROID_IMAGE};arm64-v8a"
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT "system-images;android-${ANDROID_VERSION};${ANDROID_IMAGE};arm64-v8a"
           
           # Create AVD
           echo "Creating AVD with device profile: ${ANDROID_EMULATOR}"
-          echo "no" | avdmanager create avd -n test -k "system-images;android-${ANDROID_VERSION};${ANDROID_IMAGE};arm64-v8a" -d ${ANDROID_EMULATOR}
+          echo "no" | $ANDROID_HOME/cmdline-tools/latest/bin/avdmanager --sdk_root=$ANDROID_SDK_ROOT create avd -n test -k "system-images;android-${ANDROID_VERSION};${ANDROID_IMAGE};arm64-v8a" -d ${ANDROID_EMULATOR}
           
       - name: Start Android Emulator
         run: |
