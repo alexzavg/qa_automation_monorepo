@@ -86,7 +86,7 @@ jobs:
 
       - name: Install dependencies
         working-directory: ./wdio
-        run: npm ci
+        run: npm install
 
       - name: Create .env file
         run: |
