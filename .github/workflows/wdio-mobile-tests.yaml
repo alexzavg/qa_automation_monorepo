@@ -150,28 +150,32 @@ jobs:
           # Update PATH for the current step
           export PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin"
           
-          # Accept licenses
-          echo "y" | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
+          # Create licenses directory and accept all licenses
+          mkdir -p "$ANDROID_HOME/licenses"
+          echo -e "\n24333f8a63b6825ea9c5514f83c2829b004d1fee" > "$ANDROID_HOME/licenses/android-sdk-license"
+          echo -e "\n601085b94cd77f4b54fdd51d5c8f40578350695c" >> "$ANDROID_HOME/licenses/android-sdk-license"
+          echo -e "\n33b6a2b64607f11b758fbaef771056a541b65e6b" > "$ANDROID_HOME/licenses/android-sdk-preview-license"
           
           # Update the SDK manager
-          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --update
+          echo "Updating SDK manager..."
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --update
           
           # Install required components
           echo "Installing platform tools..."
-          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platform-tools"
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platform-tools"
           
           echo "Installing platform ${{ env.ANDROID_VERSION }}..."
-          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platforms;android-${{ env.ANDROID_VERSION }}"
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platforms;android-${{ env.ANDROID_VERSION }}"
           
           echo "Installing build tools..."
-          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "build-tools;${{ env.ANDROID_BUILD_TOOLS_VERSION }}"
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "build-tools;${{ env.ANDROID_BUILD_TOOLS_VERSION }}"
           
           echo "Installing emulator..."
-          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "emulator"
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "emulator"
           
-          # Install the ARM64 system image
+          # Install the ARM64 system image (using google_apis instead of google_apis_playstore)
           echo "Installing ARM64 system image..."
-          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "system-images;android-${{ env.ANDROID_VERSION }};google_apis;arm64-v8a"
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "system-images;android-${{ env.ANDROID_VERSION }};google_apis;arm64-v8a"
           
           # Verify installation
           echo "=== Installed packages ==="
@@ -203,34 +207,42 @@ jobs:
           export ANDROID_SDK_ROOT="${{ env.ANDROID_SDK_ROOT }}"
           export PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/emulator:$ANDROID_HOME/platform-tools"
           
-          # Create AVD directory if it doesn't exist
+          # Create necessary directories
           mkdir -p "$HOME/.android/avd/"
           
-          # Find the first available system image
-          SYSTEM_IMAGE=$($ANDROID_HOME/cmdline-tools/latest/bin/avdmanager list | grep 'system-images' | head -1 | tr -d ' ')
+          # Use the system image we just installed
+          SYSTEM_IMAGE="system-images;android-${{ env.ANDROID_VERSION }};google_apis;arm64-v8a"
+          ABI="arm64-v8a"
           
-          if [ -z "$SYSTEM_IMAGE" ]; then
-            echo "No system images found. Installing default..."
-            $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "system-images;android-34;google_apis_playstore;arm64-v8a"
-            SYSTEM_IMAGE="system-images;android-34;google_apis_playstore;arm64-v8a"
+          # Verify the system image exists
+          if ! $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --list_installed | grep -q "$SYSTEM_IMAGE"; then
+            echo "Error: Required system image not found: $SYSTEM_IMAGE"
+            echo "Installed system images:"
+            $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --list_installed | grep 'system-images' || true
+            exit 1
           fi
-          
-          echo "Using system image: $SYSTEM_IMAGE"
-          export SYSTEM_IMAGE
-          
-          # Extract ABI from system image path
-          ABI=$(echo "$SYSTEM_IMAGE" | rev | cut -d';' -f1 | rev)
           
           echo "=== Creating AVD with ARM64 architecture ==="
           echo "Using system image: $SYSTEM_IMAGE"
           echo "Using ABI: $ABI"
           
-          # Create AVD with the detected system image
+          # Delete existing AVD if it exists
+          if [ -d "$HOME/.android/avd/${{ env.ANDROID_EMULATOR }}.avd" ]; then
+            echo "Deleting existing AVD..."
+            rm -rf "$HOME/.android/avd/${{ env.ANDROID_EMULATOR }}.avd"
+            rm -f "$HOME/.android/avd/${{ env.ANDROID_EMULATOR }}.ini"
+          fi
+          
+          # Create the AVD
+          echo "Creating AVD..."
           echo "no" | $ANDROID_HOME/cmdline-tools/latest/bin/avdmanager create avd \
             --name "${{ env.ANDROID_EMULATOR }}" \
             --package "$SYSTEM_IMAGE" \
             --abi "$ABI" \
-            --force
+            --force || {
+              echo "Failed to create AVD. Check the logs above for details."
+              exit 1
+            }
           
           # List available AVDs for verification
           echo "=== Available AVDs ==="
