@@ -160,19 +160,6 @@ function launch_emulator() {
     log "Emulator is ready!"
     return 0
 }
-  
-  # Additional environment variables for better emulator performance
-  export QEMU_AUDIO_DRV=none
-  export QT_QPA_PLATFORM=offscreen
-  
-  # Start the emulator
-  nohup emulator $options &
-
-  if [ $? -ne 0 ]; then
-    echo "Error launching emulator"
-    return 1
-  fi
-}
 
 function check_emulator_status () {
   printf "${G}==> ${BL}Checking emulator booting up status 🧐${NC}\n"
