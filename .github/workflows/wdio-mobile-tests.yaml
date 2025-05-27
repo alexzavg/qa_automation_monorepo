@@ -339,22 +339,44 @@ jobs:
           
           # Verify AVD exists
           if ! $ANDROID_HOME/emulator/emulator -list-avds | grep -q "^$EMULATOR_NAME$"; then
-            echo "Error: AVD '$EMULATOR_NAME' not found. Available AVDs:"
-            $ANDROID_HOME/emulator/emulator -list-avds || true
-            exit 1
+            echo "AVD '$EMULATOR_NAME' not found. Creating it..."
+            echo "Using system image: $ANDROID_SYSTEM_IMAGE"
+            
+            # Accept licenses first
+            yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
+            
+            # Create the AVD
+            echo "Creating AVD with command:"
+            echo "avdmanager create avd -n $EMULATOR_NAME -k \"$ANDROID_SYSTEM_IMAGE\" --force"
+            echo "no" | $ANDROID_HOME/cmdline-tools/latest/bin/avdmanager create avd \
+              -n $EMULATOR_NAME \
+              -k "$ANDROID_SYSTEM_IMAGE" \
+              --force || {
+                echo "Failed to create AVD"
+                exit 1
+              }
+              
+            # Verify AVD was created
+            if ! $ANDROID_HOME/emulator/emulator -list-avds | grep -q "^$EMULATOR_NAME$"; then
+              echo "Failed to verify AVD creation. Available AVDs:"
+              $ANDROID_HOME/emulator/emulator -list-avds || true
+              exit 1
+            fi
           fi
           
           # Start the emulator using our enhanced script
           echo "=== Starting emulator ==="
           if ! .github/scripts/start_android_headless.sh; then
               echo "=== Emulator logs ==="
-              adb logcat -d | tail -n 50 || true
+              find $ANDROID_AVD_HOME -name "*.log" -type f -exec echo -e "\n=== {} ===\n" \; -exec cat {} \; || true
               echo "=== Emulator process status ==="
-              ps aux | grep emulator || true
+              ps aux | grep -i emulator || true
               echo "=== ADB devices ==="
               adb devices -l || true
-              echo "=== Emulator error logs ==="
-              find ~/.android/avd -name "*.log" -type f -exec echo "=== {} ===" \; -exec cat {} \; || true
+              echo "=== System properties ==="
+              adb shell getprop || true
+              echo "=== dmesg output ==="
+              adb shell dmesg || true
               exit 1
           fi
           

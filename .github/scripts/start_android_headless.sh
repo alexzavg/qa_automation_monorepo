@@ -26,16 +26,49 @@ function check_required_vars() {
     local required_vars=("ANDROID_HOME" "ANDROID_SDK_ROOT" "EMULATOR_NAME")
     local missing_vars=()
     
-    for var in "${required_vars[@]}"; do
-        if [[ -z "${!var}" ]]; then
-            missing_vars+=("$var")
+    # Ensure ANDROID_HOME and ANDROID_SDK_ROOT are set and point to the same directory
+    if [[ -z "$ANDROID_HOME" || -z "$ANDROID_SDK_ROOT" ]]; then
+        missing_vars+=("ANDROID_HOME" "ANDROID_SDK_ROOT")
+    elif [[ "$ANDROID_HOME" != "$ANDROID_SDK_ROOT" ]]; then
+        log "WARNING: ANDROID_HOME and ANDROID_SDK_ROOT point to different directories. Using ANDROID_HOME: $ANDROID_HOME"
+        export ANDROID_SDK_ROOT="$ANDROID_HOME"
+    fi
+    
+    # Verify the directory exists and has the required subdirectories
+    if [[ ! -d "$ANDROID_HOME" ]]; then
+        log_error "ANDROID_HOME directory does not exist: $ANDROID_HOME"
+        exit 1
+    fi
+    
+    # Check for required subdirectories
+    local required_dirs=("emulator" "platform-tools" "cmdline-tools")
+    for dir in "${required_dirs[@]}"; do
+        if [[ ! -d "$ANDROID_HOME/$dir" ]]; then
+            log_error "Required directory not found: $ANDROID_HOME/$dir"
+            exit 1
         fi
     done
+    
+    # Check for emulator binary
+    if [[ ! -x "$ANDROID_HOME/emulator/emulator" ]]; then
+        log_error "Emulator binary not found at $ANDROID_HOME/emulator/emulator"
+        exit 1
+    fi
+    
+    # Check EMULATOR_NAME
+    if [[ -z "$EMULATOR_NAME" ]]; then
+        missing_vars+=("EMULATOR_NAME")
+    fi
     
     if [[ ${#missing_vars[@]} -gt 0 ]]; then
         log_error "Missing required environment variables: ${missing_vars[*]}"
         exit 1
     fi
+    
+    # Log the final paths being used
+    log "Using ANDROID_HOME: $ANDROID_HOME"
+    log "Using ANDROID_SDK_ROOT: $ANDROID_SDK_ROOT"
+    log "Using EMULATOR_NAME: $EMULATOR_NAME"
 }
 
 function check_emulator_binary() {
