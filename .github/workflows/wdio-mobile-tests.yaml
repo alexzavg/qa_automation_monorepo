@@ -64,13 +64,15 @@ env:
   NODE_VERSION: 20.x
   
   # Android configuration
-  ANDROID_ARCH: x86_64
-  ANDROID_TARGET: google_apis
   ANDROID_VERSION: ${{ github.event.inputs.androidVersion || '34' }}
   ANDROID_EMULATOR: ${{ github.event.inputs.emulatorName || 'pixel_6' }}
   ANDROID_IMAGE: google_apis
   ANDROID_BUILD_TOOLS_VERSION: 33.0.2
-  ANDROID_SDK_PACKAGES: system-images;android-${{ github.event.inputs.androidVersion || '34' }};google_apis;x86_64 platforms;android-${{ github.event.inputs.androidVersion || '34' }} build-tools;33.0.2 platform-tools emulator
+  
+  # Set architecture based on runner OS
+  ANDROID_ARCH: ${{ runner.arch == 'ARM64' && 'arm64-v8a' || 'x86_64' }}
+  ANDROID_SYSTEM_IMAGE: system-images;android-${{ github.event.inputs.androidVersion || '34' }};google_apis;${{ runner.arch == 'ARM64' && 'arm64-v8a' || 'x86_64' }}
+  ANDROID_SDK_PACKAGES: ${{ runner.arch == 'ARM64' && 'platforms;android-' || '' }}${{ github.event.inputs.androidVersion || '34' }} build-tools;33.0.2 platform-tools emulator ${{ runner.arch == 'ARM64' && 'system-images;android-' || '' }}${{ github.event.inputs.androidVersion || '34' }}${{ runner.arch == 'ARM64' && ';google_apis;arm64-v8a' || '' }}
   EMULATOR_TIMEOUT: 350
   
   # Android SDK paths
@@ -118,9 +120,17 @@ jobs:
           $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --update
           $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-${{ env.ANDROID_VERSION }}"
           
-          # Install emulator and system image
+          # Install emulator
           $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "emulator"
-          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "system-images;android-${{ env.ANDROID_VERSION }};google_apis_playstore;x86_64"
+          
+          # Install the correct system image based on architecture
+          if [[ "${{ runner.arch }}" == "ARM64" ]]; then
+            echo "Installing ARM64 system image..."
+            $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "system-images;android-${{ env.ANDROID_VERSION }};google_apis;arm64-v8a"
+          else
+            echo "Installing x86_64 system image..."
+            $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "system-images;android-${{ env.ANDROID_VERSION }};google_apis;x86_64"
+          fi
           
           # Install build tools
           $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "build-tools;${{ env.ANDROID_BUILD_TOOLS_VERSION }}"
@@ -133,26 +143,53 @@ jobs:
           # Create AVD directory if it doesn't exist
           mkdir -p $HOME/.android/avd/
           
-          # Create a new AVD with x86_64 image
-          echo "no" | avdmanager --verbose create avd \
-            --force \
-            --name "${{ env.ANDROID_EMULATOR }}" \
-            --package "system-images;android-${{ env.ANDROID_VERSION }};google_apis_playstore;x86_64" \
-            --device "${{ env.ANDROID_EMULATOR }}" \
-            --abi "x86_64"
+          # Create AVD with architecture-specific settings
+          if [[ "${{ runner.arch }}" == "ARM64" ]]; then
+            # For ARM64 (M1/M2) - use arm64-v8a with hardware acceleration
+            echo "no" | avdmanager create avd \
+              --name ${{ env.ANDROID_EMULATOR }} \
+              --package "system-images;android-${{ env.ANDROID_VERSION }};google_apis;arm64-v8a" \
+              --abi "arm64-v8a" \
+              --force
+          else
+            # For x86_64
+            echo "no" | avdmanager create avd \
+              --name ${{ env.ANDROID_EMULATOR }} \
+              --package "system-images;android-${{ env.ANDROID_VERSION }};google_apis;x86_64" \
+              --abi "x86_64" \
+              --force
+          fi
           
           # List available AVDs
           echo "Available AVDs:"
           emulator -list-avds
           
-          # Configure AVD settings for better performance
-          AVD_CONFIG=$HOME/.android/avd/${{ env.ANDROID_EMULATOR }}.avd/config.ini
-          echo "hw.keyboard=yes" >> $AVD_CONFIG
+          # Configure AVD settings
+          AVD_CONFIG="$HOME/.android/avd/${{ env.ANDROID_EMULATOR }}.avd/config.ini"
+          
+          # Common settings
+          echo "hw.cpu.ncore=2" > $AVD_CONFIG
           echo "hw.gpu.enabled=yes" >> $AVD_CONFIG
-          echo "hw.gpu.mode=auto" >> $AVD_CONFIG
           echo "hw.ramSize=2048" >> $AVD_CONFIG
           echo "vm.heapSize=256" >> $AVD_CONFIG
           echo "showDeviceFrame=yes" >> $AVD_CONFIG
+          
+          # Architecture-specific settings
+          if [[ "${{ runner.arch }}" == "ARM64" ]]; then
+            echo "hw.cpu.arch=arm64" >> $AVD_CONFIG
+            echo "hw.gpu.mode=swiftshader_indirect" >> $AVD_CONFIG
+            echo "hw.gpu.enabled=yes" >> $AVD_CONFIG
+            echo "hw.cpu.ncore=4" >> $AVD_CONFIG  # More cores for better performance on ARM
+          else
+            echo "hw.cpu.arch=x86_64" >> $AVD_CONFIG
+            echo "hw.gpu.mode=auto" >> $AVD_CONFIG
+            echo "hw.gpu.enabled=yes" >> $AVD_CONFIG
+          fi
+          
+          # Additional performance settings for both architectures
+          echo "disk.dataPartition.size=800M" >> $AVD_CONFIG
+          echo "hw.initialOrientation=portrait" >> $AVD_CONFIG
+          echo "skin.dynamic=yes" >> $AVD_CONFIG
           
           # Display AVD configuration
           echo "AVD configuration:"

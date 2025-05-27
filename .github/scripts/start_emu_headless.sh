@@ -84,7 +84,8 @@ function check_emulator_status () {
       printf "\e[K${G}==> \u2713 Emulator is ready : '$result'           ${NC}\n"
       adb devices -l
       adb shell input keyevent 82
-      break
+      echo "Emulator started successfully!"
+      return 0
     elif [ "$result" == "" ]; then
       printf "${YE}==> Emulator is partially Booted! 😕 ${spinner[$i]} ${NC}\r"
     else
@@ -96,7 +97,8 @@ function check_emulator_status () {
     elapsed_time=$((current_time - start_time))
     if [ $elapsed_time -gt $timeout ]; then
       printf "${RED}==> Timeout after ${timeout} seconds elapsed 🕛.. ${NC}\n"
-      break
+      echo "##[error]Emulator failed to start within the timeout period"
+      exit 1
     fi
     sleep 4
   done
