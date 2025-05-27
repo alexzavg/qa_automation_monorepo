@@ -295,6 +295,81 @@ jobs:
             exit 1
           fi
 
+      - name: Verify System Image Installation
+        run: |
+          echo "=== Verifying system image installation ==="
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --list_installed | grep 'system-images' || true
+          
+          # Ensure the required system image is installed
+          if ! $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --list_installed 2>&1 | grep -q "$ANDROID_SYSTEM_IMAGE"; then
+              echo "Installing system image: $ANDROID_SYSTEM_IMAGE"
+              yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "$ANDROID_SYSTEM_IMAGE"
+          fi
+          
+          # Verify the system image is now available
+          echo "=== Available system images after installation ==="
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --list_installed | grep 'system-images' || true
+
+      - name: Create Android AVD
+        timeout-minutes: 5
+        env:
+          ANDROID_HOME: ${{ env.ANDROID_HOME }}
+          ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
+          ANDROID_AVD_HOME: ${{ env.ANDROID_AVD_HOME }}
+        run: |
+          # Set PATH for this step
+          export PATH="$ANDROID_HOME/emulator:$ANDROID_HOME/platform-tools:$ANDROID_HOME/cmdline-tools/latest/bin:$PATH"
+          
+          # Create AVD directory if it doesn't exist
+          mkdir -p "$ANDROID_AVD_HOME"
+          
+          # Check if AVD already exists
+          if $ANDROID_HOME/emulator/emulator -list-avds | grep -q "^${{ env.ANDROID_EMULATOR }}$"; then
+              echo "AVD ${{ env.ANDROID_EMULATOR }} already exists. Deleting it..."
+              rm -rf "$ANDROID_AVD_HOME/${{ env.ANDROID_EMULATOR }}.avd"
+              rm -f "$ANDROID_AVD_HOME/${{ env.ANDROID_EMULATOR }}.ini"
+          fi
+          
+          echo "Creating AVD ${{ env.ANDROID_EMULATOR }} with system image ${{ env.ANDROID_SYSTEM_IMAGE }}"
+          echo "no" | $ANDROID_HOME/cmdline-tools/latest/bin/avdmanager create avd \
+            --name "${{ env.ANDROID_EMULATOR }}" \
+            --package "${{ env.ANDROID_SYSTEM_IMAGE }}" \
+            --force
+            
+          # Verify AVD was created
+          echo "=== List of available AVDs ==="
+          $ANDROID_HOME/emulator/emulator -list-avds
+          
+          # Configure AVD settings
+          AVD_CONFIG="$ANDROID_AVD_HOME/${{ env.ANDROID_EMULATOR }}.avd/config.ini"
+          if [ -f "$AVD_CONFIG" ]; then
+              echo "Configuring AVD settings..."
+              # Set RAM size to 4GB
+              sed -i '' 's/hw.ramSize=.*/hw.ramSize=4096/' "$AVD_CONFIG"
+              # Set VM heap size to 1GB
+              sed -i '' 's/vm.heapSize=.*/vm.heapSize=1024/' "$AVD_CONFIG"
+              # Enable hardware keyboard
+              sed -i '' 's/hw.keyboard=.*/hw.keyboard=yes/' "$AVD_CONFIG"
+              # Set CPU architecture
+              echo "hw.cpu.arch=arm64" >> "$AVD_CONFIG"
+              # Set CPU model
+              echo "hw.cpu.model=cortex-a57" >> "$AVD_CONFIG"
+              # Set ABI type
+              echo "abi.type=arm64-v8a" >> "$AVD_CONFIG"
+              # Set GPU mode
+              echo "hw.gpu.mode=swiftshader_indirect" >> "$AVD_CONFIG"
+              echo "hw.gpu.enabled=yes" >> "$AVD_CONFIG"
+              # Disable snapshots for CI
+              echo "snapshot.present=false" >> "$AVD_CONFIG"
+              echo "fastboot.forceColdBoot=yes" >> "$AVD_CONFIG"
+              
+              echo "=== AVD Configuration ==="
+              cat "$AVD_CONFIG"
+          else
+              echo "AVD config file not found: $AVD_CONFIG"
+              exit 1
+          fi
+
       - name: Start Android Emulator
         timeout-minutes: 15
         env:
@@ -316,6 +391,21 @@ jobs:
           echo "ANDROID_SDK_ROOT: $ANDROID_SDK_ROOT"
           echo "ANDROID_AVD_HOME: $ANDROID_AVD_HOME"
           echo "EMULATOR_NAME: $EMULATOR_NAME"
+          echo "EMULATOR_TIMEOUT: $EMULATOR_TIMEOUT"
+          
+          # List available AVDs
+          echo "=== Available AVDs ==="
+          $ANDROID_HOME/emulator/emulator -list-avds
+          
+          # Verify AVD exists
+          if ! $ANDROID_HOME/emulator/emulator -list-avds | grep -q "^$EMULATOR_NAME$"; then
+              echo "Error: AVD '$EMULATOR_NAME' not found"
+              exit 1
+          fi
+          
+          # Start the emulator using our script
+          echo "Starting emulator..."
+          .github/scripts/start_android_headless.sh
           echo "EMULATOR_TIMEOUT: $EMULATOR_TIMEOUT"
           echo "PATH: $PATH"
           
