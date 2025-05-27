@@ -256,6 +256,9 @@ function launch_emulator() {
         -verbose
         -no-accel
         -accel off
+        -qemu -machine type=ranchu,accel=off
+        -qemu -cpu max
+        -feature -HVF
     )
     
     # Export environment variables for better performance
