@@ -98,10 +98,26 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
           
-      - name: Add Android tools to PATH
+      - name: Setup Android environment
         run: |
+          # Create required directories
+          mkdir -p $ANDROID_HOME/emulator
+          mkdir -p $ANDROID_HOME/platform-tools
+          mkdir -p $ANDROID_HOME/cmdline-tools/latest
+          
           # Add Android tools to PATH
-          echo "${{ env.BASE_ANDROID_PATH }}" >> $GITHUB_PATH
+          echo "$ANDROID_HOME/emulator" >> $GITHUB_PATH
+          echo "$ANDROID_HOME/platform-tools" >> $GITHUB_PATH
+          echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> $GITHUB_PATH
+          
+          # Set environment variables
+          echo "ANDROID_SDK_ROOT=$ANDROID_HOME" >> $GITHUB_ENV
+          echo "ANDROID_AVD_HOME=$HOME/.android/avd" >> $GITHUB_ENV
+          
+          # Verify SDK root
+          echo "ANDROID_HOME: $ANDROID_HOME"
+          echo "ANDROID_SDK_ROOT: $ANDROID_SDK_ROOT"
+          ls -la $ANDROID_HOME
           
       - name: Install Android SDK and tools
         id: setup_android
@@ -136,12 +152,28 @@ jobs:
           sdkmanager "emulator"
           sdkmanager "build-tools;${{ env.ANDROID_BUILD_TOOLS_VERSION }}"
           
+          # Install platform tools and platform
+          echo "Installing platform tools and platform..."
+          yes | sdkmanager "platform-tools" "platforms;android-${{ env.ANDROID_VERSION }}"
+          
+          # Install emulator and build tools
+          echo "Installing emulator and build tools..."
+          yes | sdkmanager "emulator" "build-tools;${{ env.ANDROID_BUILD_TOOLS_VERSION }}"
+          
           # Install the ARM64 system image
           echo "Installing ARM64 system image..."
-          sdkmanager "system-images;android-${{ env.ANDROID_VERSION }};google_apis;arm64-v8a"
+          yes | sdkmanager "system-images;android-${{ env.ANDROID_VERSION }};google_apis;arm64-v8a"
+          
+          # Accept all licenses
+          yes | sdkmanager --licenses
           
           # Verify installation
+          echo "Installed packages:"
           $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --list
+          
+          # List available system images
+          echo "Available system images:"
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --list_installed | grep 'system-images'
           
       - name: Create Android Virtual Device (AVD)
         run: |
@@ -190,12 +222,31 @@ jobs:
           # Make the script executable
           chmod +x .github/scripts/start_android_headless.sh
           
+          # Create required directories
+          mkdir -p $HOME/.android/avd
+          
+          # Set environment variables
+          export ANDROID_SDK_ROOT=$ANDROID_HOME
+          export ANDROID_AVD_HOME=$HOME/.android/avd
+          export PATH=$PATH:$ANDROID_HOME/emulator:$ANDROID_HOME/platform-tools:$ANDROID_HOME/cmdline-tools/latest/bin
+          
+          # Verify environment
+          echo "ANDROID_HOME: $ANDROID_HOME"
+          echo "ANDROID_SDK_ROOT: $ANDROID_SDK_ROOT"
+          echo "PATH: $PATH"
+          
+          # List available targets and AVDs for debugging
+          $ANDROID_HOME/cmdline-tools/latest/bin/avdmanager list target
+          $ANDROID_HOME/emulator/emulator -list-avds
+          
           # Start the emulator with the specified timeout and name
-          EMULATOR_TIMEOUT=${{ env.EMULATOR_TIMEOUT }} \
+          echo "Starting emulator..."
+          EMULATOR_TIMEOUT=350 \
           EMULATOR_NAME=${{ env.ANDROID_EMULATOR }} \
           ./.github/scripts/start_android_headless.sh
           
           # Verify emulator is running
+          echo "Checking for running devices..."
           adb devices -l
 
       - name: Setup Node.js
