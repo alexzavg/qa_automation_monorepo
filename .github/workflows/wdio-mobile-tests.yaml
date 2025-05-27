@@ -316,6 +316,7 @@ jobs:
           echo "ANDROID_SDK_ROOT: $ANDROID_SDK_ROOT"
           echo "ANDROID_AVD_HOME: $ANDROID_AVD_HOME"
           echo "EMULATOR_NAME: $EMULATOR_NAME"
+          echo "EMULATOR_TIMEOUT: $EMULATOR_TIMEOUT"
           echo "PATH: $PATH"
           
           # Verify adb is working
@@ -334,7 +335,14 @@ jobs:
           
           # List available AVDs
           echo "=== Available AVDs ==="
-          $ANDROID_HOME/emulator/emulator -list-avds
+          $ANDROID_HOME/emulator/emulator -list-avds || true
+          
+          # Verify AVD exists
+          if ! $ANDROID_HOME/emulator/emulator -list-avds | grep -q "^$EMULATOR_NAME$"; then
+            echo "Error: AVD '$EMULATOR_NAME' not found. Available AVDs:"
+            $ANDROID_HOME/emulator/emulator -list-avds || true
+            exit 1
+          fi
           
           # Start the emulator using our enhanced script
           echo "=== Starting emulator ==="
@@ -352,23 +360,11 @@ jobs:
           
           # Additional verification
           echo "=== Emulator status ==="
-          adb shell getprop | grep -E 'ro.build.version|ro.product.cpu.abilist'
-          
-          # Verify device is ready
-          echo "=== Verifying device is ready ==="
-          adb wait-for-device
-          adb shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 1; done; input keyevent 82'
-          
-          # Wait for emulator to be fully booted
-          echo "=== Waiting for emulator to be ready ==="
-          $ANDROID_HOME/platform-tools/adb wait-for-device
-          
-          echo "=== Checking device status ==="
-          $ANDROID_HOME/platform-tools/adb shell getprop sys.boot_completed | grep -q 1
+          adb shell getprop | grep -E 'ro.build.version|ro.product.cpu.abilist' || true
           
           # List all connected devices
           echo "=== Connected Android Devices ==="
-          $ANDROID_HOME/platform-tools/adb devices -l
+          adb devices -l || true
 
       - name: Setup Node.js
         uses: actions/setup-node@v4

@@ -23,7 +23,7 @@ function log_error() {
 }
 
 function check_required_vars() {
-    local required_vars=("ANDROID_HOME" "ANDROID_SDK_ROOT")
+    local required_vars=("ANDROID_HOME" "ANDROID_SDK_ROOT" "EMULATOR_NAME")
     local missing_vars=()
     
     for var in "${required_vars[@]}"; do
@@ -47,7 +47,7 @@ function check_emulator_binary() {
 
 function wait_for_emulator() {
     local start_time=$(date +%s)
-    local timeout=$1
+    local timeout=${1:-$EMULATOR_TIMEOUT}
     local boot_completed=0
     local attempts=0
     
@@ -85,9 +85,15 @@ function wait_for_emulator() {
 function launch_emulator() {
     log "Starting emulator ${EMULATOR_NAME}..."
     
+    # Check required variables
+    check_required_vars
+    check_emulator_binary
+    
     # Clean up any existing emulator instances
     log "Killing any existing emulator instances..."
     adb devices | grep emulator | cut -f1 | xargs -I {} adb -s "{}" emu kill || true
+    pkill -9 qemu-system-aarch64 || true
+    pkill -9 emulator || true
     
     # Wait for the emulator to fully shut down
     sleep 5
@@ -125,8 +131,8 @@ function launch_emulator() {
     export QT_QPA_PLATFORM=offscreen
     
     # Start the emulator in the background
-    log "Starting emulator with options: ${options[*]}"
-    "$ANDROID_HOME/emulator/emulator" -avd "${EMULATOR_NAME}" "${options[@]}" &
+    log "Starting emulator with command: $ANDROID_HOME/emulator/emulator -avd $EMULATOR_NAME ${options[*]}"
+    "$ANDROID_HOME/emulator/emulator" -avd "$EMULATOR_NAME" "${options[@]}" >/dev/null 2>&1 &
     EMULATOR_PID=$!
     
     # Wait for the emulator to be ready
@@ -147,6 +153,9 @@ function launch_emulator() {
     
     # Set timezone
     adb shell setprop persist.sys.timezone "UTC"
+    
+    # Unlock the screen
+    adb shell input keyevent 82
     
     log "Emulator is ready!"
     return 0
