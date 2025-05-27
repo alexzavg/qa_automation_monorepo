@@ -250,12 +250,12 @@ function launch_emulator() {
         -camera-back none
         -camera-front none
         -no-snapshot
-        -memory 4096
-        -partition-size 4096
+        -memory 2048
+        -partition-size 2048
         -netfast
         -verbose
-        -qemu
-        -enable-kvm
+        -no-accel
+        -accel off
     )
     
     # Export environment variables for better performance
