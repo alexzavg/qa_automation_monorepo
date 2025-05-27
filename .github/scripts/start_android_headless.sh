@@ -3,6 +3,26 @@
 set -e  # Exit on any error
 set -x  # Print commands for debugging
 
+# Set up log file
+LOG_FILE="$ANDROID_HOME/emulator_startup.log"
+
+echo "=== Starting Android Emulator ===" | tee "$LOG_FILE"
+echo "Timestamp: $(date)" | tee -a "$LOG_FILE"
+
+trap 'handle_error $? $LINENO' ERR
+
+function handle_error() {
+    local exit_code=$1
+    local line_no=$2
+    echo "[ERROR] Script failed with exit code $exit_code at line $line_no" | tee -a "$LOG_FILE"
+    
+    # Dump log file for debugging
+    echo -e "\n=== Last 50 lines of log ($LOG_FILE) ==="
+    tail -n 50 "$LOG_FILE" || true
+    
+    exit $exit_code
+}
+
 BL='\033[0;34m'
 G='\033[0;32m'
 RED='\033[0;31m'
@@ -114,83 +134,128 @@ function check_emulator_binary() {
 
 function wait_for_emulator() {
     local start_time=$(date +%s)
-    local timeout=${1:-$EMULATOR_TIMEOUT}
+    local timeout=${1:-${EMULATOR_TIMEOUT:-600}}  # Default to 600s if not set
     local boot_completed=0
     local attempts=0
+    local max_attempts=$((timeout / 5))  # Check every 5 seconds
     
-    log "Waiting for emulator to boot (timeout: ${timeout}s)..."
+    log "Waiting for emulator to boot (timeout: ${timeout}s, max attempts: $max_attempts)..."
     
+    # Wait for emulator to start up
+    log "Waiting for emulator to start up..."
+    local emulator_running=0
+    for ((i=1; i<=max_attempts; i++)); do
+        if ps -p $EMULATOR_PID > /dev/null; then
+            emulator_running=1
+            break
+        fi
+        sleep 5
+        log "Waiting for emulator process to start... (attempt $i/$max_attempts)"
+    done
+    
+    if [ $emulator_running -eq 0 ]; then
+        log_error "Emulator process failed to start"
+        log "=== Last 20 lines of emulator log ($LOG_FILE) ==="
+        tail -n 20 "$LOG_FILE" || true
+        exit 1
+    fi
+    
+    log "Emulator process is running. Waiting for device to be ready..."
+    
+    local boot_success=0
     while [[ $(( $(date +%s) - start_time )) -lt $timeout ]]; do
-        if adb -s emulator-5554 shell "getprop sys.boot_completed" 2>/dev/null | grep -q "1"; then
-            boot_completed=1
+        attempts=$((attempts + 1))
+        
+        # Check if emulator is still running
+        if ! ps -p $EMULATOR_PID > /dev/null; then
+            log_error "Emulator process died unexpectedly"
+            log "=== Last 20 lines of emulator log ==="
+            tail -n 20 "$LOG_FILE" || true
+            exit 1
+        fi
+        
+        # Try to get boot status
+        local boot_status
+        boot_status=$(adb -e shell getprop sys.boot_completed 2>&1 || true)
+        
+        # Check if boot completed
+        if echo "$boot_status" | grep -q '1'; then
+            boot_success=1
             break
         fi
         
-        # Check if emulator process is still running
-        if ! pgrep -f "@${EMULATOR_NAME}" > /dev/null; then
-            log_error "Emulator process not found. It might have crashed."
-            return 1
-        fi
-        
-        attempts=$((attempts + 1))
-        if [[ $((attempts % 10)) -eq 0 ]]; then
-            log "Still waiting for emulator to boot... (${attempts} attempts)"
+        # Log progress every 5 attempts (25 seconds)
+        if (( attempts % 5 == 0 )); then
+            local elapsed=$(( $(date +%s) - start_time ))
+            log "Waiting for emulator to boot... (${elapsed}s elapsed, status: $boot_status)"
+            
+            # Log adb devices for debugging
+            log "Current ADB devices:"
+            adb devices -l || true
+            
+            # Log emulator status
+            log "Emulator process status:"
+            ps -p $EMULATOR_PID -o %cpu,%mem,cmd || true
         fi
         
         sleep 5
     done
     
-    if [[ $boot_completed -eq 1 ]]; then
-        log "Emulator booted successfully!"
-        return 0
-    else
-        log_error "Emulator failed to boot within ${timeout} seconds"
-        return 1
+    if [[ $boot_success -eq 0 ]]; then
+        log_error "Emulator failed to boot within $timeout seconds"
+        log "=== Last 50 lines of emulator log ==="
+        tail -n 50 "$LOG_FILE" || true
+        log "=== ADB devices ==="
+        adb devices -l || true
+        log "=== System properties ==="
+        adb shell getprop || true
+        log "=== dmesg output ==="
+        adb shell dmesg || true
+        exit 1
     fi
+    
+    local boot_time=$(( $(date +%s) - start_time ))
+    log "Emulator booted successfully in ${boot_time} seconds"
+    
+    # Wait for package manager to be ready
+    log "Waiting for package manager to be ready..."
+    local pm_ready=0
+    for ((i=0; i<12; i++)); do  # Wait up to 1 minute
+        if adb shell pm path android >/dev/null 2>&1; then
+            pm_ready=1
+            break
+        fi
+        sleep 5
+    done
+    
+    if [[ $pm_ready -eq 0 ]]; then
+        log_error "Package manager not ready after 1 minute"
+        exit 1
+    fi
+    
+    log "Package manager is ready"
 }
 
 function launch_emulator() {
     log "Starting emulator ${EMULATOR_NAME}..."
     
-    # Check required variables
-    check_required_vars
-    check_emulator_binary
-    
-    # Clean up any existing emulator instances
-    log "Killing any existing emulator instances..."
-    adb devices | grep emulator | cut -f1 | xargs -I {} adb -s "{}" emu kill || true
-    pkill -9 qemu-system-aarch64 || true
-    pkill -9 emulator || true
-    
-    # Wait for the emulator to fully shut down
-    sleep 5
-    
-    # Set performance options
-    local options=(
-        "-no-window"
-        "-no-snapshot"
-        "-noaudio"
-        "-memory 4096"
-        "-no-boot-anim"
-        "-camera-back none"
-        "-no-snapshot-save"
-        "-wipe-data"
-        "-gpu swiftshader_indirect"
-        "-feature -GLESDynamicVersion"
-        "-no-accel"
-        "-qemu"
-        "-cpu host"
-        "-s 4"
-        "-m 4G"
-        "-l 2G"
-        "-enable-kvm"
-        "-partition-size 2048"
-        "-no-snapshot-load"
-        "-skip-adb-auth"
-        "-no-passive-gps"
-        "-no-snapshot-save"
-        "-no-snapshot"
-        "-no-sim"
+    local emulator_cmd=(
+        "$ANDROID_HOME/emulator/emulator"
+        -avd "$EMULATOR_NAME"
+        -no-audio
+        -no-window
+        -no-boot-anim
+        -no-snapshot-save
+        -gpu swiftshader_indirect
+        -camera-back none
+        -camera-front none
+        -no-snapshot
+        -memory 4096
+        -partition-size 4096
+        -netfast
+        -verbose
+        -qemu
+        -enable-kvm
     )
     
     # Export environment variables for better performance
@@ -201,11 +266,7 @@ function launch_emulator() {
     local log_file="$ANDROID_AVD_HOME/emulator_${EMULATOR_NAME}.log"
     
     # Start the emulator in the background with logging
-    local cmd=("$ANDROID_HOME/emulator/emulator" -avd "$EMULATOR_NAME" "${options[@]}")
-    log "Starting emulator with command: ${cmd[*]}"
-    
-    # Run the emulator command in the background and capture its output
-    "${cmd[@]}" > "$log_file" 2>&1 &
+    "${emulator_cmd[@]}" > "$log_file" 2>&1 &
     EMULATOR_PID=$!
     
     # Give it a moment to start
@@ -290,18 +351,99 @@ function disable_animation() {
   adb shell "settings put global animator_duration_scale 0.0"
 };
 
-function hidden_policy() {
-  adb shell "settings put global hidden_api_policy_pre_p_apps 1;settings put global hidden_api_policy_p_apps 1;settings put global hidden_api_policy 1"
-};
+    function disable_animation() {
+      adb shell "settings put global window_animation_scale 0.0"
+      adb shell "settings put global transition_animation_scale 0.0"
+      adb shell "settings put global animator_duration_scale 0.0"
+    };
 
-# Main execution
-launch_emulator
-sleep 2
-check_emulator_status
-sleep 1
-disable_animation
-sleep 1
-hidden_policy
-sleep 1
+    function hidden_policy() {
+      adb shell "settings put global hidden_api_policy_pre_p_apps 1;settings put global hidden_api_policy_p_apps 1;settings put global hidden_api_policy 1"
+    };
 
-echo "✅ Emulator setup complete"
+    function main() {
+        log "=== Android Emulator Startup Script ==="
+        log "Timestamp: $(date)"
+        
+        # Check for required variables and binaries
+        check_required_vars
+        check_emulator_binary
+        
+        # Launch the emulator
+        launch_emulator
+        
+        # Verify the emulator is accessible
+        log "Verifying emulator accessibility..."
+        if ! adb devices | grep -q emulator; then
+            log_error "No emulator found in adb devices"
+            log "ADB devices:"
+            adb devices -l || true
+            exit 1
+        fi
+        
+        # Get the emulator serial
+        local emulator_serial
+        emulator_serial=$(adb devices | grep emulator | awk '{print $1}' | head -n 1)
+        
+        if [ -z "$emulator_serial" ]; then
+            log_error "Failed to get emulator serial number"
+            exit 1
+        fi
+        
+        log "Emulator is running with serial: $emulator_serial"
+        log "=== Emulator Information ==="
+        adb -s "$emulator_serial" shell getprop | grep -E 'ro.build.version|ro.product.model|ro.bootimage.build.fingerprint' || true
+        
+        # Keep the container running
+        log "=== Emulator is ready! ==="
+        log "To connect: adb -s $emulator_serial shell"
+        log "Log file: $LOG_FILE"
+        log "Press Ctrl+C to stop the emulator"
+        
+        # Handle graceful shutdown
+        trap 'shutdown_emulator' INT TERM
+        
+        # Keep the script running
+        while true; do
+            # Check if emulator is still running
+            if ! ps -p "$EMULATOR_PID" > /dev/null 2>&1; then
+                log_error "Emulator process (PID: $EMULATOR_PID) has stopped unexpectedly"
+                log "=== Last 20 lines of log ==="
+                tail -n 20 "$LOG_FILE" || true
+                exit 1
+            fi
+            
+            # Check if emulator is responding
+            if ! adb -s "$emulator_serial" shell echo "ping" >/dev/null 2>&1; then
+                log_error "Emulator is not responding to ADB commands"
+                log "=== Last 20 lines of log ==="
+                tail -n 20 "$LOG_FILE" || true
+                exit 1
+            fi
+            
+            sleep 5
+        done
+    }
+
+    # Function to gracefully shut down the emulator
+    shutdown_emulator() {
+        log "\nShutting down emulator..."
+        
+        # Try to gracefully shut down the emulator
+        if [ -n "$emulator_serial" ]; then
+            log "Sending shutdown command to emulator $emulator_serial..."
+            adb -s "$emulator_serial" emu kill || true
+        fi
+        
+        # Kill the emulator process if it's still running
+        if [ -n "$EMULATOR_PID" ] && ps -p "$EMULATOR_PID" > /dev/null; then
+            log "Force killing emulator process $EMULATOR_PID..."
+            kill -9 "$EMULATOR_PID" 2>/dev/null || true
+        fi
+        
+        log "Emulator shutdown complete"
+        exit 0
+    }
+
+    # Run the main function
+    main "$@"
