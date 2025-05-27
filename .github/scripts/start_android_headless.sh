@@ -244,7 +244,11 @@ function launch_emulator() {
     export QT_QPA_PLATFORM=offscreen
     export ANDROID_EMU_HYPERVISOR=0  # Disable hypervisor
     export ANDROID_EMU_HYPERVISOR_FEATURES=0
+    export ANDROID_EMULATOR_USE_SYSTEM_LIBS=1
+    export ANDROID_EMULATOR_VIRTUAL_SENSORS=0
+    export ANDROID_EMULATOR_LAUNCH_HEADLESS=1
     
+    # Force x86_64 architecture and disable all acceleration
     local emulator_cmd=(
         "$ANDROID_HOME/emulator/emulator"
         -avd "$EMULATOR_NAME"
@@ -261,7 +265,19 @@ function launch_emulator() {
         -netfast
         -verbose
         -no-accel
-        -feature HVF=0  # Explicitly disable HVF
+        -feature HVF=0
+        -feature GLESDynamicVersion=on
+        -feature AllowSnapshotMigration
+        -no-snapstorage
+        -no-snapshot-update-time
+        -no-jni
+        -no-boot-anim
+        -no-window-anim
+        -no-sim
+        -no-passive-gps
+        -no-snapshot-load
+        -qemu -cpu host
+        -qemu -machine type=ranchu,accel=off
     )
     
     # Export environment variables for better performance
