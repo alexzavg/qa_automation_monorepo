@@ -1,53 +1,149 @@
 #!/bin/bash
 
+set -e  # Exit on any error
+
 BL='\033[0;34m'
 G='\033[0;32m'
 RED='\033[0;31m'
 YE='\033[1;33m'
 NC='\033[0m' # No Color
 
-emulator_name=${EMULATOR_NAME:-pixel}
+# Default values
+EMULATOR_NAME=${EMULATOR_NAME:-pixel}
+EMULATOR_TIMEOUT=${EMULATOR_TIMEOUT:-600}  # 10 minutes timeout
+ADB_TIMEOUT=30
+MAX_BOOT_ATTEMPTS=3
 
-function check_hardware_acceleration() {
-    if [[ "$HW_ACCEL_OVERRIDE" != "" ]]; then
-        hw_accel_flag="$HW_ACCEL_OVERRIDE"
-    else
-        if [[ "$OSTYPE" == "darwin"* ]]; then
-            # macOS-specific hardware acceleration check
-            HW_ACCEL_SUPPORT=$(sysctl -a | grep -E -c '(vmx|svm)')
-        else
-            # generic Linux hardware acceleration check
-            HW_ACCEL_SUPPORT=$(grep -E -c '(vmx|svm)' /proc/cpuinfo)
-        fi
-
-        if [[ $HW_ACCEL_SUPPORT == 0 ]]; then
-            hw_accel_flag="-accel off"
-        else
-            hw_accel_flag="-accel on"
-        fi
-    fi
-
-    echo "$hw_accel_flag"
+function log() {
+    echo -e "${BL}[$(date +'%Y-%m-%d %H:%M:%S')]${NC} $1"
 }
 
-hw_accel_flag=$(check_hardware_acceleration)
+function log_error() {
+    echo -e "${RED}[ERROR] $1${NC}" >&2
+}
 
-function launch_emulator () {
-  # Kill any running emulator
-  adb devices | grep emulator | cut -f1 | xargs -I {} adb -s "{}" emu kill
-  
-  # Set emulator options for ARM64
-  options="@${emulator_name} -no-window -no-snapshot -noaudio -memory 2048 -no-boot-anim -camera-back none -no-snapshot-save -wipe-data"
-  
-  # Configure for ARM64 (M1/M2)
-  options="${options} -gpu swiftshader_indirect -feature -GLESDynamicVersion -no-accel"
-  
-  # Additional performance optimizations for ARM64
-  options="${options} -qemu -cpu host -s 4 -m 2G -l 1G -enable-kvm"
-  
-  echo -e "${BL}==> ${G}Launching emulator with options: ${NC}${options}"
-  echo -e "${BL}==> ${G}Emulator name: ${NC}${emulator_name}"
-  echo -e "${BL}==> ${G}Hardware acceleration: ${NC}${hw_accel_flag}"
+function check_required_vars() {
+    local required_vars=("ANDROID_HOME" "ANDROID_SDK_ROOT")
+    local missing_vars=()
+    
+    for var in "${required_vars[@]}"; do
+        if [[ -z "${!var}" ]]; then
+            missing_vars+=("$var")
+        fi
+    done
+    
+    if [[ ${#missing_vars[@]} -gt 0 ]]; then
+        log_error "Missing required environment variables: ${missing_vars[*]}"
+        exit 1
+    fi
+}
+
+function check_emulator_binary() {
+    if [[ ! -x "$ANDROID_HOME/emulator/emulator" ]]; then
+        log_error "Emulator binary not found at $ANDROID_HOME/emulator/emulator"
+        exit 1
+    fi
+}
+
+function wait_for_emulator() {
+    local start_time=$(date +%s)
+    local timeout=$1
+    local boot_completed=0
+    local attempts=0
+    
+    log "Waiting for emulator to boot (timeout: ${timeout}s)..."
+    
+    while [[ $(( $(date +%s) - start_time )) -lt $timeout ]]; do
+        if adb -s emulator-5554 shell "getprop sys.boot_completed" 2>/dev/null | grep -q "1"; then
+            boot_completed=1
+            break
+        fi
+        
+        # Check if emulator process is still running
+        if ! pgrep -f "@${EMULATOR_NAME}" > /dev/null; then
+            log_error "Emulator process not found. It might have crashed."
+            return 1
+        fi
+        
+        attempts=$((attempts + 1))
+        if [[ $((attempts % 10)) -eq 0 ]]; then
+            log "Still waiting for emulator to boot... (${attempts} attempts)"
+        fi
+        
+        sleep 5
+    done
+    
+    if [[ $boot_completed -eq 1 ]]; then
+        log "Emulator booted successfully!"
+        return 0
+    else
+        log_error "Emulator failed to boot within ${timeout} seconds"
+        return 1
+    fi
+}
+
+function launch_emulator() {
+    log "Starting emulator ${EMULATOR_NAME}..."
+    
+    # Clean up any existing emulator instances
+    log "Killing any existing emulator instances..."
+    adb devices | grep emulator | cut -f1 | xargs -I {} adb -s "{}" emu kill || true
+    
+    # Wait for the emulator to fully shut down
+    sleep 5
+    
+    # Set performance options
+    local options=(
+        "-no-window"
+        "-no-snapshot"
+        "-noaudio"
+        "-memory 4096"
+        "-no-boot-anim"
+        "-camera-back none"
+        "-no-snapshot-save"
+        "-wipe-data"
+        "-gpu swiftshader_indirect"
+        "-feature -GLESDynamicVersion"
+        "-no-accel"
+        "-qemu"
+        "-cpu host"
+        "-s 4"
+        "-m 4G"
+        "-l 2G"
+        "-enable-kvm"
+        "-partition-size 2048"
+        "-no-snapshot-load"
+        "-skip-adb-auth"
+        "-no-passive-gps"
+        "-no-snapshot-save"
+        "-no-snapshot"
+        "-no-sim"
+    )
+    
+    # Start the emulator in the background
+    log "Starting emulator with options: ${options[*]}"
+    nohup "$ANDROID_HOME/emulator/emulator" @"${EMULATOR_NAME}" "${options[@]}" >/dev/null 2>&1 &
+    
+    # Wait for the emulator to be ready
+    wait_for_emulator "$EMULATOR_TIMEOUT" || {
+        log_error "Failed to start emulator"
+        return 1
+    }
+    
+    # Additional setup after boot
+    log "Setting up emulator..."
+    adb wait-for-device
+    
+    # Disable animations
+    adb shell settings put global window_animation_scale 0
+    adb shell settings put global transition_animation_scale 0
+    adb shell settings put global animator_duration_scale 0
+    
+    # Set timezone
+    adb shell setprop persist.sys.timezone "UTC"
+    
+    log "Emulator is ready!"
+}
   
   # Additional environment variables for better emulator performance
   export QEMU_AUDIO_DRV=none

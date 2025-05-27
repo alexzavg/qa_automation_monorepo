@@ -262,14 +262,28 @@ jobs:
           echo "vm.heapSize=512" >> "$AVD_CONFIG"
           echo "hw.gpu.enabled=yes" >> "$AVD_CONFIG"
           echo "hw.gpu.mode=swiftshader_indirect" >> "$AVD_CONFIG"
-          echo "showDeviceFrame=yes" >> "$AVD_CONFIG"
+          echo "showDeviceFrame=no" >> "$AVD_CONFIG"
           
           # Performance settings
           echo "disk.dataPartition.size=2G" >> "$AVD_CONFIG"
           echo "hw.initialOrientation=portrait" >> "$AVD_CONFIG"
-          echo "skin.dynamic=yes" >> "$AVD_CONFIG"
+          echo "skin.dynamic=no" >> "$AVD_CONFIG"
           echo "hw.keyboard=yes" >> "$AVD_CONFIG"
           echo "hw.mainKeys=no" >> "$AVD_CONFIG"
+          
+          # Disable animations for faster startup
+          echo "hw.initialWindowX=0" >> "$AVD_CONFIG"
+          echo "hw.initialWindowY=0" >> "$AVD_CONFIG"
+          echo "hw.lcd.density=420" >> "$AVD_CONFIG"
+          echo "hw.lcd.height=2400" >> "$AVD_CONFIG"
+          echo "hw.lcd.width=1080" >> "$AVD_CONFIG"
+          echo "hw.sdCard=no" >> "$AVD_CONFIG"
+          echo "hw.sensors.orientation=no" >> "$AVD_CONFIG"
+          echo "hw.sensors.proximity=no" >> "$AVD_CONFIG"
+          echo "hw.trackBall=no" >> "$AVD_CONFIG"
+          echo "vm.heapGrowthLimit=192m" >> "$AVD_CONFIG"
+          echo "vm.heapsize=512m" >> "$AVD_CONFIG"
+          echo "vm.stack=32m" >> "$AVD_CONFIG"
           
           # Display AVD configuration
           echo "=== AVD configuration ==="
