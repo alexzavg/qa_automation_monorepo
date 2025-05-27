@@ -198,12 +198,12 @@ jobs:
       - name: Launch Android Emulator
         run: |
           # Make the script executable
-          chmod +x .github/scripts/start_emu_headless.sh
+          chmod +x .github/scripts/start_android_headless.sh
           
           # Start the emulator with the specified timeout and name
           EMULATOR_TIMEOUT=${{ env.EMULATOR_TIMEOUT }} \
           EMULATOR_NAME=${{ env.ANDROID_EMULATOR }} \
-          ./.github/scripts/start_emu_headless.sh
+          ./.github/scripts/start_android_headless.sh
           
           # Verify emulator is running
           adb devices -l
