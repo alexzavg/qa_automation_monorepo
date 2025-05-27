@@ -295,55 +295,74 @@ jobs:
             exit 1
           fi
 
-      - name: Launch Android Emulator
+      - name: Start Android Emulator
+        timeout-minutes: 15
+        env:
+          ANDROID_HOME: ${{ env.ANDROID_HOME }}
+          ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
+          ANDROID_AVD_HOME: ${{ env.ANDROID_AVD_HOME }}
+          EMULATOR_NAME: ${{ env.ANDROID_EMULATOR }}
+          EMULATOR_TIMEOUT: ${{ env.EMULATOR_TIMEOUT }}
         run: |
-          # Set environment variables
-          export ANDROID_HOME="${{ env.ANDROID_HOME }}"
-          export ANDROID_SDK_ROOT="${{ env.ANDROID_SDK_ROOT }}"
-          export ANDROID_AVD_HOME="$HOME/.android/avd"
-          export PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/emulator:$ANDROID_HOME/platform-tools"
+          # Make sure the script is executable
+          chmod +x .github/scripts/start_android_headless.sh
           
-          # Verify environment
+          # Set PATH for this step
+          export PATH="$ANDROID_HOME/emulator:$ANDROID_HOME/platform-tools:$ANDROID_HOME/cmdline-tools/latest/bin:$PATH"
+          
+          # Debug info
           echo "=== Environment Variables ==="
           echo "ANDROID_HOME: $ANDROID_HOME"
           echo "ANDROID_SDK_ROOT: $ANDROID_SDK_ROOT"
           echo "ANDROID_AVD_HOME: $ANDROID_AVD_HOME"
+          echo "EMULATOR_NAME: $EMULATOR_NAME"
           echo "PATH: $PATH"
           
-          # Verify emulator binary exists
-          if [ ! -f "$ANDROID_HOME/emulator/emulator" ]; then
-            echo "Error: Emulator binary not found at $ANDROID_HOME/emulator/emulator"
-            ls -la "$ANDROID_HOME/emulator/" || true
-            exit 1
-          fi
+          # Verify adb is working
+          echo "=== ADB Version ==="
+          adb version
+          
+          # Kill any existing ADB server and emulator
+          echo "=== Cleaning up existing instances ==="
+          adb kill-server || true
+          pkill -9 qemu-system-aarch64 || true
+          pkill -9 emulator || true
+          
+          # Start ADB server
+          echo "=== Starting ADB server ==="
+          adb start-server
           
           # List available AVDs
           echo "=== Available AVDs ==="
           $ANDROID_HOME/emulator/emulator -list-avds
           
-          # Make the script executable
-          chmod +x .github/scripts/start_android_headless.sh
-          
-          # Verify the script exists
-          if [ ! -f ".github/scripts/start_android_headless.sh" ]; then
-            echo "Error: start_android_headless.sh not found!"
-            exit 1
+          # Start the emulator using our enhanced script
+          echo "=== Starting emulator ==="
+          if ! .github/scripts/start_android_headless.sh; then
+              echo "=== Emulator logs ==="
+              adb logcat -d | tail -n 50 || true
+              echo "=== Emulator process status ==="
+              ps aux | grep emulator || true
+              echo "=== ADB devices ==="
+              adb devices -l || true
+              echo "=== Emulator error logs ==="
+              find ~/.android/avd -name "*.log" -type f -exec echo "=== {} ===" \; -exec cat {} \; || true
+              exit 1
           fi
           
-          # Start the emulator
-          echo "=== Starting Emulator ==="
-          EMULATOR_TIMEOUT=350 \
-          EMULATOR_NAME="${{ env.ANDROID_EMULATOR }}" \
-          ANDROID_HOME="$ANDROID_HOME" \
-          ANDROID_SDK_ROOT="$ANDROID_SDK_ROOT" \
-          PATH="$PATH" \
-          ./.github/scripts/start_android_headless.sh
+          # Additional verification
+          echo "=== Emulator status ==="
+          adb shell getprop | grep -E 'ro.build.version|ro.product.cpu.abilist'
+          
+          # Verify device is ready
+          echo "=== Verifying device is ready ==="
+          adb wait-for-device
+          adb shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 1; done; input keyevent 82'
           
           # Wait for emulator to be fully booted
           echo "=== Waiting for emulator to be ready ==="
           $ANDROID_HOME/platform-tools/adb wait-for-device
           
-          # Check if device is booted
           echo "=== Checking device status ==="
           $ANDROID_HOME/platform-tools/adb shell getprop sys.boot_completed | grep -q 1
           

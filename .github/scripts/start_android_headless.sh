@@ -120,13 +120,19 @@ function launch_emulator() {
         "-no-sim"
     )
     
+    # Export environment variables for better performance
+    export QEMU_AUDIO_DRV=none
+    export QT_QPA_PLATFORM=offscreen
+    
     # Start the emulator in the background
     log "Starting emulator with options: ${options[*]}"
-    nohup "$ANDROID_HOME/emulator/emulator" @"${EMULATOR_NAME}" "${options[@]}" >/dev/null 2>&1 &
+    "$ANDROID_HOME/emulator/emulator" -avd "${EMULATOR_NAME}" "${options[@]}" &
+    EMULATOR_PID=$!
     
     # Wait for the emulator to be ready
     wait_for_emulator "$EMULATOR_TIMEOUT" || {
         log_error "Failed to start emulator"
+        kill -9 $EMULATOR_PID 2>/dev/null || true
         return 1
     }
     
@@ -143,6 +149,7 @@ function launch_emulator() {
     adb shell setprop persist.sys.timezone "UTC"
     
     log "Emulator is ready!"
+    return 0
 }
   
   # Additional environment variables for better emulator performance
