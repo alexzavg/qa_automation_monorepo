@@ -1,6 +1,7 @@
 #!/bin/bash
 
 set -e  # Exit on any error
+set -x  # Print commands for debugging
 
 BL='\033[0;34m'
 G='\033[0;32m'
@@ -23,8 +24,13 @@ function log_error() {
 }
 
 function check_required_vars() {
+    log "=== Checking required environment variables ==="
     local required_vars=("ANDROID_HOME" "ANDROID_SDK_ROOT" "EMULATOR_NAME")
     local missing_vars=()
+    
+    # Log all environment variables for debugging
+    log "Current environment:"
+    env | sort
     
     # Ensure ANDROID_HOME and ANDROID_SDK_ROOT are set and point to the same directory
     if [[ -z "$ANDROID_HOME" || -z "$ANDROID_SDK_ROOT" ]]; then
@@ -37,23 +43,33 @@ function check_required_vars() {
     # Verify the directory exists and has the required subdirectories
     if [[ ! -d "$ANDROID_HOME" ]]; then
         log_error "ANDROID_HOME directory does not exist: $ANDROID_HOME"
+        log "Current directory contents:"
+        ls -la "$(dirname "$ANDROID_HOME")" || true
         exit 1
     fi
     
     # Check for required subdirectories
     local required_dirs=("emulator" "platform-tools" "cmdline-tools")
+    log "Checking required directories in $ANDROID_HOME"
     for dir in "${required_dirs[@]}"; do
         if [[ ! -d "$ANDROID_HOME/$dir" ]]; then
             log_error "Required directory not found: $ANDROID_HOME/$dir"
+            log "Contents of $ANDROID_HOME:"
+            ls -la "$ANDROID_HOME" || true
             exit 1
         fi
+        log "Found directory: $ANDROID_HOME/$dir"
     done
     
     # Check for emulator binary
-    if [[ ! -x "$ANDROID_HOME/emulator/emulator" ]]; then
-        log_error "Emulator binary not found at $ANDROID_HOME/emulator/emulator"
+    local emulator_path="$ANDROID_HOME/emulator/emulator"
+    if [[ ! -x "$emulator_path" ]]; then
+        log_error "Emulator binary not found or not executable: $emulator_path"
+        log "Contents of $ANDROID_HOME/emulator:"
+        ls -la "$ANDROID_HOME/emulator" || true
         exit 1
     fi
+    log "Found emulator binary: $emulator_path"
     
     # Check EMULATOR_NAME
     if [[ -z "$EMULATOR_NAME" ]]; then
@@ -66,9 +82,27 @@ function check_required_vars() {
     fi
     
     # Log the final paths being used
+    log "=== Environment verification successful ==="
     log "Using ANDROID_HOME: $ANDROID_HOME"
     log "Using ANDROID_SDK_ROOT: $ANDROID_SDK_ROOT"
     log "Using EMULATOR_NAME: $EMULATOR_NAME"
+    log "Using EMULATOR_TIMEOUT: ${EMULATOR_TIMEOUT:-600}"
+    log "Using ANDROID_AVD_HOME: ${ANDROID_AVD_HOME:-Not set}"
+    
+    # Verify AVD exists
+    log "Verifying AVD: $EMULATOR_NAME"
+    local avd_list
+    avd_list=$("$ANDROID_HOME/emulator/emulator" -list-avds 2>&1) || {
+        log_error "Failed to list AVDs. Error: $avd_list"
+        exit 1
+    }
+    
+    if ! echo "$avd_list" | grep -q "^$EMULATOR_NAME$"; then
+        log_error "AVD '$EMULATOR_NAME' not found. Available AVDs:"
+        echo "$avd_list"
+        exit 1
+    fi
+    log "AVD found: $EMULATOR_NAME"
 }
 
 function check_emulator_binary() {

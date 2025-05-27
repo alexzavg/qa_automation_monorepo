@@ -364,11 +364,25 @@ jobs:
             fi
           fi
           
-          # Start the emulator using our enhanced script
+          # Verify SDK root before starting emulator
+          echo "=== Verifying SDK root directory ==="
+          if [ ! -d "$ANDROID_SDK_ROOT" ]; then
+              echo "ERROR: ANDROID_SDK_ROOT directory does not exist: $ANDROID_SDK_ROOT"
+              echo "Current directory contents:"
+              ls -la "$(dirname "$ANDROID_SDK_ROOT")" || true
+              exit 1
+          fi
+          
+          # Create a verification file in the SDK root
+          echo "Creating SDK verification file..."
+          VERIFY_FILE="$ANDROID_SDK_ROOT/.sdk_root_verified"
+          echo "Android SDK Root: $ANDROID_SDK_ROOT" > "$VERIFY_FILE"
+          
+          # Start the emulator using our enhanced script with full path
           echo "=== Starting emulator ==="
-          if ! .github/scripts/start_android_headless.sh; then
+          if ! bash -x .github/scripts/start_android_headless.sh; then
               echo "=== Emulator logs ==="
-              find $ANDROID_AVD_HOME -name "*.log" -type f -exec echo -e "\n=== {} ===\n" \; -exec cat {} \; || true
+              find "$ANDROID_AVD_HOME" -name "*.log" -type f -exec echo -e "\n=== {} ===\n" \; -exec cat {} \; || true
               echo "=== Emulator process status ==="
               ps aux | grep -i emulator || true
               echo "=== ADB devices ==="
@@ -377,6 +391,10 @@ jobs:
               adb shell getprop || true
               echo "=== dmesg output ==="
               adb shell dmesg || true
+              echo "=== SDK directory contents ==="
+              ls -la "$ANDROID_SDK_ROOT" || true
+              echo "=== Emulator directory contents ==="
+              ls -la "$ANDROID_SDK_ROOT/emulator" || true
               exit 1
           fi
           
