@@ -37,27 +37,31 @@ function launch_emulator () {
   adb devices | grep emulator | cut -f1 | xargs -I {} adb -s "{}" emu kill
   
   # Set emulator options
-  options="@${emulator_name} -no-window -no-snapshot -screen no-touch -noaudio -memory 2048 -no-boot-anim -camera-back none"
+  options="@${emulator_name} -no-window -no-snapshot -noaudio -memory 2048 -no-boot-anim -camera-back none -no-snapshot-save -wipe-data"
   
-  # For ARM64, we need to use different GPU settings
+  # Determine architecture and set appropriate GPU settings
   if [[ "$(uname -m)" == "arm64" ]]; then
-    options="${options} -gpu swiftshader -feature -GLESDynamicVersion"
+    # For Apple Silicon (M1/M2)
+    options="${options} -gpu swiftshader_indirect -feature -GLESDynamicVersion -no-accel"
   else
-    options="${options} ${hw_accel_flag} -gpu swiftshader_indirect"
+    # For Intel
+    if [[ "${hw_accel_flag}" == *"off"* ]]; then
+      options="${options} -gpu swiftshader -no-accel"
+    else
+      options="${options} -gpu host"
+    fi
   fi
   
   echo -e "${BL}==> ${G}Launching emulator with options: ${NC}${options}"
   echo -e "${BL}==> ${G}Emulator name: ${NC}${emulator_name}"
+  echo -e "${BL}==> ${G}Hardware acceleration: ${NC}${hw_accel_flag}"
   
-  if [[ "$OSTYPE" == *linux* ]]; then
-    echo "${OSTYPE}: emulator ${options} -gpu off"
-    nohup emulator $options -gpu off &
-  fi
+  # Additional environment variables for better emulator performance
+  export QEMU_AUDIO_DRV=none
+  export QT_QPA_PLATFORM=offscreen
   
-  if [[ "$OSTYPE" == *darwin* ]] || [[ "$OSTYPE" == *macos* ]]; then
-    echo "${OSTYPE}: emulator ${options} -gpu swiftshader_indirect"
-    nohup emulator $options -gpu swiftshader_indirect &
-  fi
+  # Start the emulator
+  nohup emulator $options &
 
   if [ $? -ne 0 ]; then
     echo "Error launching emulator"

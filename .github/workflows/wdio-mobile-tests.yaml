@@ -65,12 +65,12 @@ env:
   
   # Android configuration
   ANDROID_ARCH: x86_64
-  ANDROID_TARGET: google_apis_playstore
+  ANDROID_TARGET: google_apis
   ANDROID_VERSION: ${{ github.event.inputs.androidVersion || '34' }}
   ANDROID_EMULATOR: ${{ github.event.inputs.emulatorName || 'pixel_6' }}
-  ANDROID_IMAGE: google_apis_playstore
+  ANDROID_IMAGE: google_apis
   ANDROID_BUILD_TOOLS_VERSION: 33.0.2
-  ANDROID_SDK_PACKAGES: system-images;android-${{ github.event.inputs.androidVersion || '34' }};google_apis_playstore;x86_64 platforms;android-${{ github.event.inputs.androidVersion || '34' }} build-tools;33.0.2 platform-tools emulator
+  ANDROID_SDK_PACKAGES: system-images;android-${{ github.event.inputs.androidVersion || '34' }};google_apis;x86_64 platforms;android-${{ github.event.inputs.androidVersion || '34' }} build-tools;33.0.2 platform-tools emulator
   EMULATOR_TIMEOUT: 350
   
   # Android SDK paths
