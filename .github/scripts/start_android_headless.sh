@@ -130,14 +130,35 @@ function launch_emulator() {
     export QEMU_AUDIO_DRV=none
     export QT_QPA_PLATFORM=offscreen
     
-    # Start the emulator in the background
-    log "Starting emulator with command: $ANDROID_HOME/emulator/emulator -avd $EMULATOR_NAME ${options[*]}"
-    "$ANDROID_HOME/emulator/emulator" -avd "$EMULATOR_NAME" "${options[@]}" >/dev/null 2>&1 &
+    # Create a log file for emulator output
+    local log_file="$ANDROID_AVD_HOME/emulator_${EMULATOR_NAME}.log"
+    
+    # Start the emulator in the background with logging
+    local cmd=("$ANDROID_HOME/emulator/emulator" -avd "$EMULATOR_NAME" "${options[@]}")
+    log "Starting emulator with command: ${cmd[*]}"
+    
+    # Run the emulator command in the background and capture its output
+    "${cmd[@]}" > "$log_file" 2>&1 &
     EMULATOR_PID=$!
+    
+    # Give it a moment to start
+    sleep 5
+    
+    # Check if the emulator process is still running
+    if ! ps -p $EMULATOR_PID > /dev/null; then
+        log_error "Emulator process failed to start. Check the log file: $log_file"
+        log_error "Last 20 lines of emulator log:"
+        tail -n 20 "$log_file" >&2
+        return 1
+    fi
+    
+    log "Emulator started with PID: $EMULATOR_PID"
     
     # Wait for the emulator to be ready
     wait_for_emulator "$EMULATOR_TIMEOUT" || {
-        log_error "Failed to start emulator"
+        log_error "Failed to start emulator. Check the log file: $log_file"
+        log_error "Last 20 lines of emulator log:"
+        tail -n 20 "$log_file" >&2
         kill -9 $EMULATOR_PID 2>/dev/null || true
         return 1
     }
