@@ -123,131 +123,178 @@ jobs:
         id: setup_android
         run: |
           echo "Setting up for ARM64 architecture (M1/M2 Macs)"
+          
+          # Set environment variables
+          export ANDROID_HOME="${{ env.ANDROID_HOME }}"
+          export ANDROID_SDK_ROOT="${{ env.ANDROID_SDK_ROOT }}"
+          export PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/emulator:$ANDROID_HOME/platform-tools"
+          
+          # Create Android SDK directory
+          mkdir -p "$ANDROID_HOME"
+          
+          # Download and extract command line tools
+          cd "$ANDROID_HOME"
+          echo "Downloading command line tools..."
+          wget -q https://dl.google.com/android/repository/commandlinetools-mac-11076708_latest.zip -O cmdline-tools.zip
+          unzip -q cmdline-tools.zip -d cmdline-tools
+          mkdir -p cmdline-tools/latest
+          mv cmdline-tools/cmdline-tools/* cmdline-tools/latest/
+          
+          # Verify sdkmanager is available
+          if [ ! -f "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" ]; then
+            echo "Error: sdkmanager not found!"
+            ls -la "$ANDROID_HOME/cmdline-tools/latest/bin/"
+            exit 1
+          fi
+          
+          # Update PATH for the current step
+          export PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin"
+          
+          # Accept licenses
+          echo "y" | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
+          
+          # Update the SDK manager
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --update
+          
+          # Install required components
+          echo "Installing platform tools..."
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platform-tools"
+          
+          echo "Installing platform ${{ env.ANDROID_VERSION }}..."
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platforms;android-${{ env.ANDROID_VERSION }}"
+          
+          echo "Installing build tools..."
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "build-tools;${{ env.ANDROID_BUILD_TOOLS_VERSION }}"
+          
+          echo "Installing emulator..."
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "emulator"
+          
+          # Install the ARM64 system image
+          echo "Installing ARM64 system image..."
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "system-images;android-${{ env.ANDROID_VERSION }};google_apis;arm64-v8a"
+          
+          # Verify installation
+          echo "=== Installed packages ==="
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --list
+          
+          echo "=== Available system images ==="
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --list_installed | grep 'system-images' || true
+          
+          # Set output variables for subsequent steps
           echo "ANDROID_ARCH=arm64-v8a" >> $GITHUB_ENV
           echo "ANDROID_SYSTEM_IMAGE=system-images;android-${{ env.ANDROID_VERSION }};google_apis;arm64-v8a" >> $GITHUB_ENV
           echo "ANDROID_ABI=arm64-v8a" >> $GITHUB_ENV
           
-          # Create Android SDK directory
-          mkdir -p $ANDROID_HOME
-          
-          # Download and extract command line tools
-          cd $ANDROID_HOME
-          wget -q https://dl.google.com/android/repository/commandlinetools-mac-9477386_latest.zip -O cmdline-tools.zip
-          unzip -q cmdline-tools.zip -d cmdline-tools
-          mv cmdline-tools/cmdline-tools cmdline-tools/latest
-          
-          # Add to PATH
-          echo "$ANDROID_HOME/cmdline-tools/latest" >> $GITHUB_PATH
-          echo "$ANDROID_HOME/emulator" >> $GITHUB_PATH
-          echo "$ANDROID_HOME/platform-tools" >> $GITHUB_PATH
-          
-          # Accept licenses first
-          yes | sdkmanager --licenses
-          
-          # Update the SDK manager and install platform tools
-          sdkmanager --update
-          sdkmanager "platform-tools" "platforms;android-${{ env.ANDROID_VERSION }}"
-          
-          # Install emulator and build tools
-          sdkmanager "emulator"
-          sdkmanager "build-tools;${{ env.ANDROID_BUILD_TOOLS_VERSION }}"
-          
-          # Install platform tools and platform
-          echo "Installing platform tools and platform..."
-          yes | sdkmanager "platform-tools" "platforms;android-${{ env.ANDROID_VERSION }}"
-          
-          # Install emulator and build tools
-          echo "Installing emulator and build tools..."
-          yes | sdkmanager "emulator" "build-tools;${{ env.ANDROID_BUILD_TOOLS_VERSION }}"
-          
-          # Install the ARM64 system image
-          echo "Installing ARM64 system image..."
-          yes | sdkmanager "system-images;android-${{ env.ANDROID_VERSION }};google_apis;arm64-v8a"
-          
-          # Accept all licenses
-          yes | sdkmanager --licenses
-          
-          # Verify installation
-          echo "Installed packages:"
-          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --list
-          
-          # List available system images
-          echo "Available system images:"
-          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --list_installed | grep 'system-images'
-          
       - name: Create Android Virtual Device (AVD)
         run: |
+          # Export environment variables for current step
+          export ANDROID_HOME="${{ env.ANDROID_HOME }}"
+          export ANDROID_SDK_ROOT="${{ env.ANDROID_SDK_ROOT }}"
+          export PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/emulator:$ANDROID_HOME/platform-tools"
+          
           # Create AVD directory if it doesn't exist
-          mkdir -p $HOME/.android/avd/
+          mkdir -p "$HOME/.android/avd/"
           
           # Create AVD with ARM64 architecture
-          echo "Creating AVD with ARM64 architecture..."
-          echo "no" | avdmanager create avd \
-            --name ${{ env.ANDROID_EMULATOR }} \
+          echo "=== Creating AVD with ARM64 architecture ==="
+          echo "no" | $ANDROID_HOME/cmdline-tools/latest/bin/avdmanager create avd \
+            --name "${{ env.ANDROID_EMULATOR }}" \
             --package "system-images;android-${{ env.ANDROID_VERSION }};google_apis;arm64-v8a" \
             --abi "arm64-v8a" \
             --force
           
-          # List available AVDs
-          echo "Available AVDs:"
-          emulator -list-avds
+          # List available AVDs for verification
+          echo "=== Available AVDs ==="
+          $ANDROID_HOME/emulator/emulator -list-avds
           
           # Configure AVD settings
           AVD_CONFIG="$HOME/.android/avd/${{ env.ANDROID_EMULATOR }}.avd/config.ini"
           
-          # Common settings
-          echo "hw.cpu.ncore=2" > $AVD_CONFIG
-          echo "hw.gpu.enabled=yes" >> $AVD_CONFIG
-          echo "hw.ramSize=2048" >> $AVD_CONFIG
-          echo "vm.heapSize=256" >> $AVD_CONFIG
-          echo "showDeviceFrame=yes" >> $AVD_CONFIG
+          echo "=== Configuring AVD settings ==="
+          # Remove existing config if it exists
+          [ -f "$AVD_CONFIG" ] && rm "$AVD_CONFIG"
           
-          # ARM64 specific settings
-          echo "hw.cpu.arch=arm64" >> $AVD_CONFIG
-          echo "hw.gpu.mode=swiftshader_indirect" >> $AVD_CONFIG
-          echo "hw.gpu.enabled=yes" >> $AVD_CONFIG
-          echo "hw.cpu.ncore=4" >> $AVD_CONFIG  # More cores for better performance on ARM
+          # Basic AVD settings
+          echo "hw.cpu.arch=arm64" >> "$AVD_CONFIG"
+          echo "hw.cpu.ncore=4" >> "$AVD_CONFIG"
+          echo "hw.ramSize=4096" >> "$AVD_CONFIG"
+          echo "vm.heapSize=512" >> "$AVD_CONFIG"
+          echo "hw.gpu.enabled=yes" >> "$AVD_CONFIG"
+          echo "hw.gpu.mode=swiftshader_indirect" >> "$AVD_CONFIG"
+          echo "showDeviceFrame=yes" >> "$AVD_CONFIG"
           
-          # Additional performance settings for both architectures
-          echo "disk.dataPartition.size=800M" >> $AVD_CONFIG
-          echo "hw.initialOrientation=portrait" >> $AVD_CONFIG
-          echo "skin.dynamic=yes" >> $AVD_CONFIG
+          # Performance settings
+          echo "disk.dataPartition.size=2G" >> "$AVD_CONFIG"
+          echo "hw.initialOrientation=portrait" >> "$AVD_CONFIG"
+          echo "skin.dynamic=yes" >> "$AVD_CONFIG"
+          echo "hw.keyboard=yes" >> "$AVD_CONFIG"
+          echo "hw.mainKeys=no" >> "$AVD_CONFIG"
           
           # Display AVD configuration
-          echo "AVD configuration:"
-          cat $AVD_CONFIG
+          echo "=== AVD configuration ==="
+          cat "$AVD_CONFIG"
+          
+          # Verify AVD was created successfully
+          if [ ! -f "$AVD_CONFIG" ]; then
+            echo "Error: AVD configuration file was not created!"
+            exit 1
+          fi
 
       - name: Launch Android Emulator
         run: |
+          # Set environment variables
+          export ANDROID_HOME="${{ env.ANDROID_HOME }}"
+          export ANDROID_SDK_ROOT="${{ env.ANDROID_SDK_ROOT }}"
+          export ANDROID_AVD_HOME="$HOME/.android/avd"
+          export PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/emulator:$ANDROID_HOME/platform-tools"
+          
+          # Verify environment
+          echo "=== Environment Variables ==="
+          echo "ANDROID_HOME: $ANDROID_HOME"
+          echo "ANDROID_SDK_ROOT: $ANDROID_SDK_ROOT"
+          echo "ANDROID_AVD_HOME: $ANDROID_AVD_HOME"
+          echo "PATH: $PATH"
+          
+          # Verify emulator binary exists
+          if [ ! -f "$ANDROID_HOME/emulator/emulator" ]; then
+            echo "Error: Emulator binary not found at $ANDROID_HOME/emulator/emulator"
+            ls -la "$ANDROID_HOME/emulator/" || true
+            exit 1
+          fi
+          
+          # List available AVDs
+          echo "=== Available AVDs ==="
+          $ANDROID_HOME/emulator/emulator -list-avds
+          
           # Make the script executable
           chmod +x .github/scripts/start_android_headless.sh
           
-          # Create required directories
-          mkdir -p $HOME/.android/avd
+          # Verify the script exists
+          if [ ! -f ".github/scripts/start_android_headless.sh" ]; then
+            echo "Error: start_android_headless.sh not found!"
+            exit 1
+          fi
           
-          # Set environment variables
-          export ANDROID_SDK_ROOT=$ANDROID_HOME
-          export ANDROID_AVD_HOME=$HOME/.android/avd
-          export PATH=$PATH:$ANDROID_HOME/emulator:$ANDROID_HOME/platform-tools:$ANDROID_HOME/cmdline-tools/latest/bin
-          
-          # Verify environment
-          echo "ANDROID_HOME: $ANDROID_HOME"
-          echo "ANDROID_SDK_ROOT: $ANDROID_SDK_ROOT"
-          echo "PATH: $PATH"
-          
-          # List available targets and AVDs for debugging
-          $ANDROID_HOME/cmdline-tools/latest/bin/avdmanager list target
-          $ANDROID_HOME/emulator/emulator -list-avds
-          
-          # Start the emulator with the specified timeout and name
-          echo "Starting emulator..."
+          # Start the emulator
+          echo "=== Starting Emulator ==="
           EMULATOR_TIMEOUT=350 \
-          EMULATOR_NAME=${{ env.ANDROID_EMULATOR }} \
+          EMULATOR_NAME="${{ env.ANDROID_EMULATOR }}" \
+          ANDROID_HOME="$ANDROID_HOME" \
+          ANDROID_SDK_ROOT="$ANDROID_SDK_ROOT" \
+          PATH="$PATH" \
           ./.github/scripts/start_android_headless.sh
           
-          # Verify emulator is running
-          echo "Checking for running devices..."
-          adb devices -l
+          # Wait for emulator to be fully booted
+          echo "=== Waiting for emulator to be ready ==="
+          $ANDROID_HOME/platform-tools/adb wait-for-device
+          
+          # Check if device is booted
+          echo "=== Checking device status ==="
+          $ANDROID_HOME/platform-tools/adb shell getprop sys.boot_completed | grep -q 1
+          
+          # List all connected devices
+          echo "=== Connected Android Devices ==="
+          $ANDROID_HOME/platform-tools/adb devices -l
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
