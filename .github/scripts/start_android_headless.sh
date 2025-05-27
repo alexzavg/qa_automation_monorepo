@@ -36,21 +36,14 @@ function launch_emulator () {
   # Kill any running emulator
   adb devices | grep emulator | cut -f1 | xargs -I {} adb -s "{}" emu kill
   
-  # Set emulator options
+  # Set emulator options for ARM64
   options="@${emulator_name} -no-window -no-snapshot -noaudio -memory 2048 -no-boot-anim -camera-back none -no-snapshot-save -wipe-data"
   
-  # Determine architecture and set appropriate GPU settings
-  if [[ "$(uname -m)" == "arm64" ]]; then
-    # For Apple Silicon (M1/M2)
-    options="${options} -gpu swiftshader_indirect -feature -GLESDynamicVersion -no-accel"
-  else
-    # For Intel
-    if [[ "${hw_accel_flag}" == *"off"* ]]; then
-      options="${options} -gpu swiftshader -no-accel"
-    else
-      options="${options} -gpu host"
-    fi
-  fi
+  # Configure for ARM64 (M1/M2)
+  options="${options} -gpu swiftshader_indirect -feature -GLESDynamicVersion -no-accel"
+  
+  # Additional performance optimizations for ARM64
+  options="${options} -qemu -cpu host -s 4 -m 2G -l 1G -enable-kvm"
   
   echo -e "${BL}==> ${G}Launching emulator with options: ${NC}${options}"
   echo -e "${BL}==> ${G}Emulator name: ${NC}${emulator_name}"

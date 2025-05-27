@@ -69,10 +69,11 @@ env:
   ANDROID_IMAGE: google_apis
   ANDROID_BUILD_TOOLS_VERSION: 33.0.2
   
-  # Default architecture settings (will be overridden by the setup step)
-  ANDROID_ARCH: x86_64
-  ANDROID_SYSTEM_IMAGE: system-images;android-${{ github.event.inputs.androidVersion || '34' }};google_apis;x86_64
-  ANDROID_SDK_PACKAGES: platforms;android-${{ github.event.inputs.androidVersion || '34' }} build-tools;33.0.2 platform-tools emulator system-images;android-${{ github.event.inputs.androidVersion || '34' }};google_apis;x86_64
+  # ARM64 architecture settings for M1/M2 Macs
+  ANDROID_ARCH: arm64-v8a
+  ANDROID_ABI: arm64-v8a
+  ANDROID_SYSTEM_IMAGE: system-images;android-${{ github.event.inputs.androidVersion || '34' }};google_apis;arm64-v8a
+  ANDROID_SDK_PACKAGES: platforms;android-${{ github.event.inputs.androidVersion || '34' }} build-tools;33.0.2 platform-tools emulator system-images;android-${{ github.event.inputs.androidVersion || '34' }};google_apis;arm64-v8a
   EMULATOR_TIMEOUT: 350
   
   # Android SDK paths
@@ -105,18 +106,10 @@ jobs:
       - name: Install Android SDK and tools
         id: setup_android
         run: |
-          # Detect system architecture
-          if [[ $(uname -m) == "arm64" ]]; then
-            echo "ARM64 architecture detected"
-            echo "ANDROID_ARCH=arm64-v8a" >> $GITHUB_ENV
-            echo "ANDROID_SYSTEM_IMAGE=system-images;android-${{ env.ANDROID_VERSION }};google_apis;arm64-v8a" >> $GITHUB_ENV
-            echo "ANDROID_ABI=arm64-v8a" >> $GITHUB_ENV
-          else
-            echo "x86_64 architecture detected"
-            echo "ANDROID_ARCH=x86_64" >> $GITHUB_ENV
-            echo "ANDROID_SYSTEM_IMAGE=system-images;android-${{ env.ANDROID_VERSION }};google_apis;x86_64" >> $GITHUB_ENV
-            echo "ANDROID_ABI=x86_64" >> $GITHUB_ENV
-          fi
+          echo "Setting up for ARM64 architecture (M1/M2 Macs)"
+          echo "ANDROID_ARCH=arm64-v8a" >> $GITHUB_ENV
+          echo "ANDROID_SYSTEM_IMAGE=system-images;android-${{ env.ANDROID_VERSION }};google_apis;arm64-v8a" >> $GITHUB_ENV
+          echo "ANDROID_ABI=arm64-v8a" >> $GITHUB_ENV
           
           # Create Android SDK directory
           mkdir -p $ANDROID_HOME
@@ -143,9 +136,9 @@ jobs:
           sdkmanager "emulator"
           sdkmanager "build-tools;${{ env.ANDROID_BUILD_TOOLS_VERSION }}"
           
-          # Install the appropriate system image
-          echo "Installing $ANDROID_ARCH system image..."
-          sdkmanager "$ANDROID_SYSTEM_IMAGE"
+          # Install the ARM64 system image
+          echo "Installing ARM64 system image..."
+          sdkmanager "system-images;android-${{ env.ANDROID_VERSION }};google_apis;arm64-v8a"
           
           # Verify installation
           $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --list
@@ -155,12 +148,12 @@ jobs:
           # Create AVD directory if it doesn't exist
           mkdir -p $HOME/.android/avd/
           
-          # Create AVD with the detected architecture
-          echo "Creating AVD with $ANDROID_ARCH architecture..."
+          # Create AVD with ARM64 architecture
+          echo "Creating AVD with ARM64 architecture..."
           echo "no" | avdmanager create avd \
             --name ${{ env.ANDROID_EMULATOR }} \
-            --package "$ANDROID_SYSTEM_IMAGE" \
-            --abi "$ANDROID_ABI" \
+            --package "system-images;android-${{ env.ANDROID_VERSION }};google_apis;arm64-v8a" \
+            --abi "arm64-v8a" \
             --force
           
           # List available AVDs
@@ -177,17 +170,11 @@ jobs:
           echo "vm.heapSize=256" >> $AVD_CONFIG
           echo "showDeviceFrame=yes" >> $AVD_CONFIG
           
-          # Architecture-specific settings
-          if [[ "$ANDROID_ARCH" == "arm64-v8a" ]]; then
-            echo "hw.cpu.arch=arm64" >> $AVD_CONFIG
-            echo "hw.gpu.mode=swiftshader_indirect" >> $AVD_CONFIG
-            echo "hw.gpu.enabled=yes" >> $AVD_CONFIG
-            echo "hw.cpu.ncore=4" >> $AVD_CONFIG  # More cores for better performance on ARM
-          else
-            echo "hw.cpu.arch=x86_64" >> $AVD_CONFIG
-            echo "hw.gpu.mode=auto" >> $AVD_CONFIG
-            echo "hw.gpu.enabled=yes" >> $AVD_CONFIG
-          fi
+          # ARM64 specific settings
+          echo "hw.cpu.arch=arm64" >> $AVD_CONFIG
+          echo "hw.gpu.mode=swiftshader_indirect" >> $AVD_CONFIG
+          echo "hw.gpu.enabled=yes" >> $AVD_CONFIG
+          echo "hw.cpu.ncore=4" >> $AVD_CONFIG  # More cores for better performance on ARM
           
           # Additional performance settings for both architectures
           echo "disk.dataPartition.size=800M" >> $AVD_CONFIG
