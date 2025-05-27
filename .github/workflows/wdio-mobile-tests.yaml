@@ -69,10 +69,10 @@ env:
   ANDROID_IMAGE: google_apis
   ANDROID_BUILD_TOOLS_VERSION: 33.0.2
   
-  # Set architecture based on runner OS
-  ANDROID_ARCH: ${{ runner.arch == 'ARM64' && 'arm64-v8a' || 'x86_64' }}
-  ANDROID_SYSTEM_IMAGE: system-images;android-${{ github.event.inputs.androidVersion || '34' }};google_apis;${{ runner.arch == 'ARM64' && 'arm64-v8a' || 'x86_64' }}
-  ANDROID_SDK_PACKAGES: ${{ runner.arch == 'ARM64' && 'platforms;android-' || '' }}${{ github.event.inputs.androidVersion || '34' }} build-tools;33.0.2 platform-tools emulator ${{ runner.arch == 'ARM64' && 'system-images;android-' || '' }}${{ github.event.inputs.androidVersion || '34' }}${{ runner.arch == 'ARM64' && ';google_apis;arm64-v8a' || '' }}
+  # Default architecture settings (will be overridden by the setup step)
+  ANDROID_ARCH: x86_64
+  ANDROID_SYSTEM_IMAGE: system-images;android-${{ github.event.inputs.androidVersion || '34' }};google_apis;x86_64
+  ANDROID_SDK_PACKAGES: platforms;android-${{ github.event.inputs.androidVersion || '34' }} build-tools;33.0.2 platform-tools emulator system-images;android-${{ github.event.inputs.androidVersion || '34' }};google_apis;x86_64
   EMULATOR_TIMEOUT: 350
   
   # Android SDK paths
@@ -103,7 +103,21 @@ jobs:
           echo "${{ env.BASE_ANDROID_PATH }}" >> $GITHUB_PATH
           
       - name: Install Android SDK and tools
+        id: setup_android
         run: |
+          # Detect system architecture
+          if [[ $(uname -m) == "arm64" ]]; then
+            echo "ARM64 architecture detected"
+            echo "ANDROID_ARCH=arm64-v8a" >> $GITHUB_ENV
+            echo "ANDROID_SYSTEM_IMAGE=system-images;android-${{ env.ANDROID_VERSION }};google_apis;arm64-v8a" >> $GITHUB_ENV
+            echo "ANDROID_ABI=arm64-v8a" >> $GITHUB_ENV
+          else
+            echo "x86_64 architecture detected"
+            echo "ANDROID_ARCH=x86_64" >> $GITHUB_ENV
+            echo "ANDROID_SYSTEM_IMAGE=system-images;android-${{ env.ANDROID_VERSION }};google_apis;x86_64" >> $GITHUB_ENV
+            echo "ANDROID_ABI=x86_64" >> $GITHUB_ENV
+          fi
+          
           # Create Android SDK directory
           mkdir -p $ANDROID_HOME
           
@@ -113,27 +127,25 @@ jobs:
           unzip -q cmdline-tools.zip -d cmdline-tools
           mv cmdline-tools/cmdline-tools cmdline-tools/latest
           
+          # Add to PATH
+          echo "$ANDROID_HOME/cmdline-tools/latest" >> $GITHUB_PATH
+          echo "$ANDROID_HOME/emulator" >> $GITHUB_PATH
+          echo "$ANDROID_HOME/platform-tools" >> $GITHUB_PATH
+          
           # Accept licenses first
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
+          yes | sdkmanager --licenses
           
-          # Update the SDK manager and install platform tools first
-          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --update
-          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-${{ env.ANDROID_VERSION }}"
+          # Update the SDK manager and install platform tools
+          sdkmanager --update
+          sdkmanager "platform-tools" "platforms;android-${{ env.ANDROID_VERSION }}"
           
-          # Install emulator
-          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "emulator"
+          # Install emulator and build tools
+          sdkmanager "emulator"
+          sdkmanager "build-tools;${{ env.ANDROID_BUILD_TOOLS_VERSION }}"
           
-          # Install the correct system image based on architecture
-          if [[ "${{ runner.arch }}" == "ARM64" ]]; then
-            echo "Installing ARM64 system image..."
-            $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "system-images;android-${{ env.ANDROID_VERSION }};google_apis;arm64-v8a"
-          else
-            echo "Installing x86_64 system image..."
-            $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "system-images;android-${{ env.ANDROID_VERSION }};google_apis;x86_64"
-          fi
-          
-          # Install build tools
-          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "build-tools;${{ env.ANDROID_BUILD_TOOLS_VERSION }}"
+          # Install the appropriate system image
+          echo "Installing $ANDROID_ARCH system image..."
+          sdkmanager "$ANDROID_SYSTEM_IMAGE"
           
           # Verify installation
           $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --list
@@ -143,22 +155,13 @@ jobs:
           # Create AVD directory if it doesn't exist
           mkdir -p $HOME/.android/avd/
           
-          # Create AVD with architecture-specific settings
-          if [[ "${{ runner.arch }}" == "ARM64" ]]; then
-            # For ARM64 (M1/M2) - use arm64-v8a with hardware acceleration
-            echo "no" | avdmanager create avd \
-              --name ${{ env.ANDROID_EMULATOR }} \
-              --package "system-images;android-${{ env.ANDROID_VERSION }};google_apis;arm64-v8a" \
-              --abi "arm64-v8a" \
-              --force
-          else
-            # For x86_64
-            echo "no" | avdmanager create avd \
-              --name ${{ env.ANDROID_EMULATOR }} \
-              --package "system-images;android-${{ env.ANDROID_VERSION }};google_apis;x86_64" \
-              --abi "x86_64" \
-              --force
-          fi
+          # Create AVD with the detected architecture
+          echo "Creating AVD with $ANDROID_ARCH architecture..."
+          echo "no" | avdmanager create avd \
+            --name ${{ env.ANDROID_EMULATOR }} \
+            --package "$ANDROID_SYSTEM_IMAGE" \
+            --abi "$ANDROID_ABI" \
+            --force
           
           # List available AVDs
           echo "Available AVDs:"
@@ -175,7 +178,7 @@ jobs:
           echo "showDeviceFrame=yes" >> $AVD_CONFIG
           
           # Architecture-specific settings
-          if [[ "${{ runner.arch }}" == "ARM64" ]]; then
+          if [[ "$ANDROID_ARCH" == "arm64-v8a" ]]; then
             echo "hw.cpu.arch=arm64" >> $AVD_CONFIG
             echo "hw.gpu.mode=swiftshader_indirect" >> $AVD_CONFIG
             echo "hw.gpu.enabled=yes" >> $AVD_CONFIG
