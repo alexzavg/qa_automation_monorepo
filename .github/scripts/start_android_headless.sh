@@ -239,6 +239,12 @@ function wait_for_emulator() {
 function launch_emulator() {
     log "Starting emulator ${EMULATOR_NAME}..."
     
+    # Set environment variables to control emulator behavior
+    export QEMU_AUDIO_DRV=none
+    export QT_QPA_PLATFORM=offscreen
+    export ANDROID_EMU_HYPERVISOR=0  # Disable hypervisor
+    export ANDROID_EMU_HYPERVISOR_FEATURES=0
+    
     local emulator_cmd=(
         "$ANDROID_HOME/emulator/emulator"
         -avd "$EMULATOR_NAME"
@@ -255,10 +261,7 @@ function launch_emulator() {
         -netfast
         -verbose
         -no-accel
-        -accel off
-        -qemu -machine type=ranchu,accel=off
-        -qemu -cpu max
-        -feature -HVF
+        -feature HVF=0  # Explicitly disable HVF
     )
     
     # Export environment variables for better performance
