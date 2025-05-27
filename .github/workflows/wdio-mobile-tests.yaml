@@ -337,31 +337,79 @@ jobs:
           echo "=== Available AVDs ==="
           $ANDROID_HOME/emulator/emulator -list-avds || true
           
+          # Verify system image is installed
+          echo "=== Verifying system image installation ==="
+          if ! $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --list_installed 2>&1 | grep -q "$ANDROID_SYSTEM_IMAGE"; then
+              echo "System image not found: $ANDROID_SYSTEM_IMAGE"
+              echo "Installing system image..."
+              yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "$ANDROID_SYSTEM_IMAGE" || {
+                  echo "Failed to install system image"
+                  exit 1
+              }
+          fi
+          
           # Verify AVD exists
           if ! $ANDROID_HOME/emulator/emulator -list-avds | grep -q "^$EMULATOR_NAME$"; then
-            echo "AVD '$EMULATOR_NAME' not found. Creating it..."
-            echo "Using system image: $ANDROID_SYSTEM_IMAGE"
-            
-            # Accept licenses first
-            yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
-            
-            # Create the AVD
-            echo "Creating AVD with command:"
-            echo "avdmanager create avd -n $EMULATOR_NAME -k \"$ANDROID_SYSTEM_IMAGE\" --force"
-            echo "no" | $ANDROID_HOME/cmdline-tools/latest/bin/avdmanager create avd \
-              -n $EMULATOR_NAME \
-              -k "$ANDROID_SYSTEM_IMAGE" \
-              --force || {
-                echo "Failed to create AVD"
-                exit 1
-              }
+              echo "AVD '$EMULATOR_NAME' not found. Creating it..."
+              echo "Using system image: $ANDROID_SYSTEM_IMAGE"
               
-            # Verify AVD was created
-            if ! $ANDROID_HOME/emulator/emulator -list-avds | grep -q "^$EMULATOR_NAME$"; then
-              echo "Failed to verify AVD creation. Available AVDs:"
-              $ANDROID_HOME/emulator/emulator -list-avds || true
-              exit 1
-            fi
+              # Accept licenses first
+              yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
+              
+              # Create AVD directory if it doesn't exist
+              mkdir -p "$ANDROID_AVD_HOME"
+              
+              # Create the AVD with more detailed logging
+              echo "=== Creating AVD with command ==="
+              echo "avdmanager create avd -n $EMULATOR_NAME -k \"$ANDROID_SYSTEM_IMAGE\" --force"
+              
+              # Run avdmanager with full path and capture output
+              AVD_OUTPUT=$(
+                  $ANDROID_HOME/cmdline-tools/latest/bin/avdmanager create avd \
+                  -n "$EMULATOR_NAME" \
+                  -k "$ANDROID_SYSTEM_IMAGE" \
+                  --force <<< "no" 2>&1
+              )
+              AVD_EXIT_CODE=$?
+              
+              # Log the output
+              echo "=== AVD Creation Output ==="
+              echo "$AVD_OUTPUT"
+              
+              if [ $AVD_EXIT_CODE -ne 0 ]; then
+                  echo "=== Failed to create AVD. Exit code: $AVD_EXIT_CODE ==="
+                  echo "=== Available system images ==="
+                  $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --list_installed | grep 'system-images' || true
+                  echo "=== AVD directory contents ==="
+                  ls -la "$ANDROID_AVD_HOME" || true
+                  exit 1
+              fi
+              
+              # Verify AVD was created
+              if ! $ANDROID_HOME/emulator/emulator -list-avds | grep -q "^$EMULATOR_NAME$"; then
+                  echo "=== Failed to verify AVD creation ==="
+                  echo "=== Available AVDs ==="
+                  $ANDROID_HOME/emulator/emulator -list-avds || true
+                  echo "=== AVD directory contents ==="
+                  ls -la "$ANDROID_AVD_HOME" || true
+                  exit 1
+              fi
+              
+              # Configure AVD settings
+              AVD_CONFIG="$ANDROID_AVD_HOME/${EMULATOR_NAME}.avd/config.ini"
+              if [ -f "$AVD_CONFIG" ]; then
+                  echo "=== Configuring AVD settings ==="
+                  # Ensure disk.dataPartition.size is set for ARM64
+                  if ! grep -q "disk.dataPartition.size" "$AVD_CONFIG"; then
+                      echo "disk.dataPartition.size=4G" >> "$AVD_CONFIG"
+                  fi
+                  # Set hw.ramSize to 4GB
+                  sed -i '' 's/hw.ramSize=.*/hw.ramSize=4096/' "$AVD_CONFIG"
+              else
+                  echo "=== WARNING: AVD config file not found: $AVD_CONFIG ==="
+                  echo "=== Contents of $ANDROID_AVD_HOME ==="
+                  ls -la "$ANDROID_AVD_HOME" || true
+              fi
           fi
           
           # Verify SDK root before starting emulator
