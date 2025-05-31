@@ -58,13 +58,10 @@ env:
   ANDROID_EMULATOR: ${{ github.event.inputs.emulatorName }}
   ANDROID_IMAGE: google_apis
   ANDROID_ARCH: x86_64
-  ANDROID_ABI: x86_64
   ANDROID_SDK_ROOT: ${{ github.workspace }}/android-sdk
   ANDROID_HOME: ${{ github.workspace }}/android-sdk
   ANDROID_BUILD_TOOLS_VERSION: 34.0.0
   EMULATOR_TIMEOUT: 350
-  BASE_ANDROID_PATH: ${{ github.workspace }}/android-sdk/emulator:${{ github.workspace }}/android-sdk/platform-tools:${{ github.workspace }}/android-sdk/cmdline-tools/latest/bin
-
   SLACK_CHANNEL: ${{ vars.WDIO_SLACK_CHANNEL }}
   SLACK_WEBHOOK: ${{ vars.WDIO_SLACK_WEBHOOK }}
   SLACK_USER: ${{ vars.SLACK_USER }}
@@ -87,46 +84,53 @@ jobs:
           cache: 'npm'
           cache-dependency-path: '**/package-lock.json'
 
-      - name: Setup Android SDK
+      - name: Install Android SDK & Emulator
         run: |
           mkdir -p $ANDROID_HOME/cmdline-tools
           cd $ANDROID_HOME/cmdline-tools
           curl -O https://dl.google.com/android/repository/commandlinetools-linux-10406996_latest.zip
           unzip -q commandlinetools-linux-*.zip
           mv cmdline-tools latest
+
           yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_HOME --licenses
           $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_HOME \
             "platform-tools" \
             "platforms;android-${ANDROID_VERSION}" \
-            "system-images;android-${ANDROID_VERSION};${ANDROID_IMAGE};${ANDROID_ABI}" \
+            "system-images;android-${ANDROID_VERSION};${ANDROID_IMAGE};${ANDROID_ARCH}" \
             "emulator" \
             "build-tools;${ANDROID_BUILD_TOOLS_VERSION}"
 
-      - name: Create Android emulator
+      - name: Create and Start Android Emulator
         run: |
-          echo "y" | $ANDROID_HOME/cmdline-tools/latest/bin/avdmanager create avd \
-            -n test_emulator \
-            -k "system-images;android-${ANDROID_VERSION};${ANDROID_IMAGE};${ANDROID_ABI}" \
+          mkdir -p $HOME/.android/avd
+
+          echo "Creating emulator named: $ANDROID_EMULATOR"
+          echo "no" | $ANDROID_HOME/cmdline-tools/latest/bin/avdmanager create avd \
+            -n "$ANDROID_EMULATOR" \
+            -k "system-images;android-${ANDROID_VERSION};${ANDROID_IMAGE};${ANDROID_ARCH}" \
             -d "${ANDROID_EMULATOR}" \
             --force
 
-      - name: Start Android emulator
-        run: |
-          nohup $ANDROID_HOME/emulator/emulator -avd test_emulator -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect &
+          nohup $ANDROID_HOME/emulator/emulator -avd "$ANDROID_EMULATOR" -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect &
+
+          echo "Waiting for emulator to boot..."
           $ANDROID_HOME/platform-tools/adb wait-for-device
+
           boot_completed=""
           retry=0
           while [ "$boot_completed" != "1" ] && [ $retry -lt 30 ]; do
             boot_completed=$($ANDROID_HOME/platform-tools/adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')
-            echo "Waiting for emulator to boot... ($retry)"
+            echo "⏳ boot_completed=$boot_completed (attempt $retry)"
             sleep 10
             retry=$((retry+1))
           done
+
           if [ "$boot_completed" != "1" ]; then
-            echo "Emulator failed to boot."
+            echo "❌ Emulator failed to boot in time"
             exit 1
           fi
-          echo "Emulator booted successfully."
+
+          echo "✅ Emulator booted successfully"
 
       - name: Install dependencies
         working-directory: ./wdio
