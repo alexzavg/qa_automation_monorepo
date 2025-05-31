@@ -22,27 +22,28 @@ on:
         type: choice
         options: [all, e2e]
       androidVersion:
-        description: 'Android API Version'
+        description: 'Android Version'
         required: true
         default: '34'
         type: choice
         options: ['35', '34', '33', '32', '31', '30']
       emulatorName:
-        description: 'Emulator Name'
+        description: 'Device Profile'
         required: true
-        default: 'pixel_6'
+        default: 'pixel'
         type: choice
-        options: ['pixel_6', 'pixel_5', 'pixel_4', 'pixel_xl', 'pixel', 'Nexus 5X', 'Nexus 6P', 'Nexus 6']
+        options: ['pixel', 'pixel_4', 'pixel_5', 'pixel_6', 'pixel_7', 'pixel_xl', 'Nexus 5X']
 
 env:
   NODE_VERSION: 20.x
   ANDROID_VERSION: ${{ github.event.inputs.androidVersion }}
   DEVICE_PROFILE: ${{ github.event.inputs.emulatorName }}
   ANDROID_IMAGE: google_apis
-  ANDROID_ABI: x86_64
+  ANDROID_ABI: arm64-v8a
   ANDROID_SDK_ROOT: ${{ github.workspace }}/android-sdk
   ANDROID_HOME: ${{ github.workspace }}/android-sdk
   ANDROID_BUILD_TOOLS_VERSION: 34.0.0
+  AVD_HOME: ${{ github.workspace }}/avd-home
 
 jobs:
   mobile_tests:
@@ -69,53 +70,43 @@ jobs:
           $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_HOME \
             "platform-tools" \
             "platforms;android-${ANDROID_VERSION}" \
-            "system-images;android-${ANDROID_VERSION};${ANDROID_IMAGE};${ANDROID_ABI}" \
+            "system-images;android-${ANDROID_VERSION};${ANDROID_IMAGE};arm64-v8a" \
             "emulator" \
             "build-tools;${ANDROID_BUILD_TOOLS_VERSION}"
 
-      - name: Debug available devices
+      - name: Create and Boot ARM Emulator
         run: |
-          echo "📱 Available device profiles:"
-          $ANDROID_HOME/cmdline-tools/latest/bin/avdmanager list device
-
-      - name: Create & Boot Emulator
-        env:
-          AVD_HOME: ${{ github.workspace }}/avd-home
-        run: |
-          mkdir -p $AVD_HOME
           export ANDROID_AVD_HOME=$AVD_HOME
-          AVD_NAME="mobile_avd"
+          mkdir -p $ANDROID_AVD_HOME
+          AVD_NAME="mobile_arm"
 
-          echo "🛠 Creating emulator: $AVD_NAME using device profile: $DEVICE_PROFILE"
+          echo "Creating AVD: $AVD_NAME with profile: $DEVICE_PROFILE"
           echo "no" | $ANDROID_HOME/cmdline-tools/latest/bin/avdmanager create avd \
             -n $AVD_NAME \
-            -k "system-images;android-${ANDROID_VERSION};${ANDROID_IMAGE};${ANDROID_ABI}" \
+            -k "system-images;android-${ANDROID_VERSION};${ANDROID_IMAGE};arm64-v8a" \
             -d "$DEVICE_PROFILE" \
             --force
 
-          echo "📂 AVD contents:"
-          ls -la $AVD_HOME
-
-          echo "📋 Available AVDs:"
+          echo "Available AVDs:"
           $ANDROID_HOME/emulator/emulator -list-avds
 
-          echo "🚀 Starting emulator..."
-          nohup $ANDROID_HOME/emulator/emulator -avd $AVD_NAME -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect &
+          echo "Starting emulator..."
+          nohup $ANDROID_HOME/emulator/emulator -avd $AVD_NAME -no-snapshot-save -no-boot-anim -no-window -gpu swiftshader_indirect -no-audio &
 
-          echo "⌛ Waiting for emulator to boot..."
+          echo "Waiting for device..."
           $ANDROID_HOME/platform-tools/adb wait-for-device
 
           for i in {1..30}; do
             booted=$($ANDROID_HOME/platform-tools/adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')
             if [[ "$booted" == "1" ]]; then echo "✅ Booted"; break; fi
-            echo "⏳ Waiting... ($i)"; sleep 10
+            echo "⏳ Waiting ($i)..."; sleep 10
           done
 
       - name: Install dependencies
         working-directory: ./wdio
         run: npm install
 
-      - name: Create .env
+      - name: Create .env file
         run: |
           cd wdio
           if [ "${{ github.event.inputs.environment }}" = "stage" ]; then
@@ -130,7 +121,7 @@ jobs:
           ENV=${{ github.event.inputs.environment }} npx wdio run wdio.android.conf.ts \
             --appName=${{ github.event.inputs.appName }} \
             --suiteName=${{ github.event.inputs.suiteName }} \
-            --emulatorName=mobile_avd \
+            --emulatorName=mobile_arm \
             --platformVersion=${{ env.ANDROID_VERSION }}
 
       - name: Get latest build number
