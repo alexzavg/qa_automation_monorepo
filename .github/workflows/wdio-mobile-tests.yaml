@@ -67,13 +67,13 @@ env:
   ANDROID_VERSION: ${{ github.event.inputs.androidVersion || '34' }}
   ANDROID_EMULATOR: ${{ github.event.inputs.emulatorName || 'pixel_6' }}
   ANDROID_IMAGE: google_apis
-  ANDROID_BUILD_TOOLS_VERSION: 33.0.2
+  ANDROID_BUILD_TOOLS_VERSION: 34.0.0
   
-  # ARM64 architecture settings for M1/M2 Macs
-  ANDROID_ARCH: arm64-v8a
-  ANDROID_ABI: arm64-v8a
-  ANDROID_SYSTEM_IMAGE: system-images;android-${{ github.event.inputs.androidVersion || '34' }};google_apis;arm64-v8a
-  ANDROID_SDK_PACKAGES: platforms;android-${{ github.event.inputs.androidVersion || '34' }} build-tools;33.0.2 platform-tools emulator system-images;android-${{ github.event.inputs.androidVersion || '34' }};google_apis;arm64-v8a
+  # x86_64 architecture with hardware acceleration (recommended)
+  ANDROID_ARCH: x86_64
+  ANDROID_ABI: x86_64
+  ANDROID_SYSTEM_IMAGE: system-images;android-${{ github.event.inputs.androidVersion || '34' }};google_apis;x86_64
+  ANDROID_SDK_PACKAGES: platforms;android-${{ github.event.inputs.androidVersion || '34' }} build-tools;34.0.0 platform-tools emulator system-images;android-${{ github.event.inputs.androidVersion || '34' }};google_apis;x86_64
   EMULATOR_TIMEOUT: 350
   
   # Android SDK paths
@@ -85,7 +85,7 @@ env:
 
 jobs:
   mobile_tests:
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     timeout-minutes: 60
     
     steps:
@@ -114,7 +114,31 @@ jobs:
             echo "Created .env.prod"
           fi
 
-      - name: Run mobile tests
+      - name: Enable KVM for hardware acceleration
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Setup Android Emulator
+        id: setup_emulator
+        uses: ReactiveCircus/android-emulator-runner@v2.34.0
+        with:
+          api-level: ${{ env.ANDROID_VERSION }}
+          arch: ${{ env.ANDROID_ARCH }}
+          profile: ${{ env.ANDROID_EMULATOR }}
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-spellchecker: true
+          disable-linux-hw-accel: false
+          script: |
+            # The emulator is now running in the background
+            adb devices
+            adb -s emulator-5554 emu avd name
+            echo "EMULATOR_READY=true" >> $GITHUB_ENV
+
+      - name: Run Mobile Tests
+        if: steps.setup_emulator.outcome == 'success' && env.EMULATOR_READY == 'true'
         working-directory: ./wdio
         run: |
           ENV=${{ github.event.inputs.environment }} npx wdio run wdio.android.conf.ts \
