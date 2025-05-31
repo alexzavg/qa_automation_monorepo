@@ -78,22 +78,23 @@ jobs:
           echo "📱 Available device profiles:"
           $ANDROID_HOME/cmdline-tools/latest/bin/avdmanager list device
 
-      - name: Create and Boot Emulator (with Debug)
+      - name: Create & Boot Emulator
+        env:
+          AVD_HOME: ${{ github.workspace }}/avd-home
         run: |
+          mkdir -p $AVD_HOME
+          export ANDROID_AVD_HOME=$AVD_HOME
           AVD_NAME="mobile_avd"
 
-          echo "📂 Current AVDs before creation:"
-          ls -la ~/.android/avd || echo "No AVDs yet"
-
-          echo "🛠 Creating emulator with AVD name: $AVD_NAME and device profile: $DEVICE_PROFILE"
+          echo "🛠 Creating emulator: $AVD_NAME using device profile: $DEVICE_PROFILE"
           echo "no" | $ANDROID_HOME/cmdline-tools/latest/bin/avdmanager create avd \
             -n $AVD_NAME \
             -k "system-images;android-${ANDROID_VERSION};${ANDROID_IMAGE};${ANDROID_ABI}" \
             -d "$DEVICE_PROFILE" \
             --force
 
-          echo "📂 Current AVDs after creation:"
-          ls -la ~/.android/avd || echo "No AVDs created"
+          echo "📂 AVD contents:"
+          ls -la $AVD_HOME
 
           echo "📋 Available AVDs:"
           $ANDROID_HOME/emulator/emulator -list-avds
