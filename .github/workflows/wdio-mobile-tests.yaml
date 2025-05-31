@@ -31,12 +31,12 @@ on:
         default: '34'
         type: choice
         options:
-          - '35'  # Android 15
-          - '34'  # Android 14
-          - '33'  # Android 13
-          - '32'  # Android 12L
-          - '31'  # Android 12
-          - '30'  # Android 11
+          - '35'
+          - '34'
+          - '33'
+          - '32'
+          - '31'
+          - '30'
       emulatorName:
         description: 'Name of the emulator profile to use'
         required: true
@@ -53,41 +53,29 @@ on:
           - 'Nexus 6'
 
 env:
-  # Slack and general environment variables
-  SLACK_CHANNEL: ${{vars.WDIO_SLACK_CHANNEL}}
-  SLACK_WEBHOOK: ${{vars.WDIO_SLACK_WEBHOOK}}
-  SLACK_USER: ${{vars.SLACK_USER}}
-  CI_PIPELINE_URL: "https://github.com/alexzavg/qa_automation_monorepo/actions/runs/${{github.run_id}}"
-  TZ: ${{vars.TZ}}
-  
-  # Node.js version
   NODE_VERSION: 20.x
-  
-  # Android configuration
-  ANDROID_VERSION: ${{ github.event.inputs.androidVersion || '34' }}
-  ANDROID_EMULATOR: ${{ github.event.inputs.emulatorName || 'pixel_6' }}
+  ANDROID_VERSION: ${{ github.event.inputs.androidVersion }}
+  ANDROID_EMULATOR: ${{ github.event.inputs.emulatorName }}
   ANDROID_IMAGE: google_apis
-  ANDROID_BUILD_TOOLS_VERSION: 34.0.0
-  
-  # x86_64 architecture with hardware acceleration (recommended)
   ANDROID_ARCH: x86_64
   ANDROID_ABI: x86_64
-  ANDROID_SYSTEM_IMAGE: system-images;android-${{ github.event.inputs.androidVersion || '34' }};google_apis;x86_64
-  ANDROID_SDK_PACKAGES: platforms;android-${{ github.event.inputs.androidVersion || '34' }} build-tools;34.0.0 platform-tools emulator system-images;android-${{ github.event.inputs.androidVersion || '34' }};google_apis;x86_64
-  EMULATOR_TIMEOUT: 350
-  
-  # Android SDK paths
-  ANDROID_HOME: ${{ github.workspace }}/android-sdk
   ANDROID_SDK_ROOT: ${{ github.workspace }}/android-sdk
-  
-  # Base PATH for Android tools (will be extended in the workflow step)
-  BASE_ANDROID_PATH: ${{ github.workspace }}/android-sdk/cmdline-tools/latest/bin:${{ github.workspace }}/android-sdk/emulator:${{ github.workspace }}/android-sdk/platform-tools:${{ github.workspace }}/android-sdk/tools/bin:${{ github.workspace }}/android-sdk/build-tools/33.0.2
+  ANDROID_HOME: ${{ github.workspace }}/android-sdk
+  ANDROID_BUILD_TOOLS_VERSION: 34.0.0
+  EMULATOR_TIMEOUT: 350
+  BASE_ANDROID_PATH: ${{ github.workspace }}/android-sdk/emulator:${{ github.workspace }}/android-sdk/platform-tools:${{ github.workspace }}/android-sdk/cmdline-tools/latest/bin
+
+  SLACK_CHANNEL: ${{ vars.WDIO_SLACK_CHANNEL }}
+  SLACK_WEBHOOK: ${{ vars.WDIO_SLACK_WEBHOOK }}
+  SLACK_USER: ${{ vars.SLACK_USER }}
+  CI_PIPELINE_URL: "https://github.com/alexzavg/qa_automation_monorepo/actions/runs/${{ github.run_id }}"
+  TZ: ${{ vars.TZ }}
 
 jobs:
   mobile_tests:
     runs-on: ubuntu-latest
     timeout-minutes: 60
-    
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -98,7 +86,48 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
           cache-dependency-path: '**/package-lock.json'
-          
+
+      - name: Setup Android SDK
+        run: |
+          mkdir -p $ANDROID_HOME/cmdline-tools
+          cd $ANDROID_HOME/cmdline-tools
+          curl -O https://dl.google.com/android/repository/commandlinetools-linux-10406996_latest.zip
+          unzip -q commandlinetools-linux-*.zip
+          mv cmdline-tools latest
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_HOME --licenses
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_HOME \
+            "platform-tools" \
+            "platforms;android-${ANDROID_VERSION}" \
+            "system-images;android-${ANDROID_VERSION};${ANDROID_IMAGE};${ANDROID_ABI}" \
+            "emulator" \
+            "build-tools;${ANDROID_BUILD_TOOLS_VERSION}"
+
+      - name: Create Android emulator
+        run: |
+          echo "y" | $ANDROID_HOME/cmdline-tools/latest/bin/avdmanager create avd \
+            -n test_emulator \
+            -k "system-images;android-${ANDROID_VERSION};${ANDROID_IMAGE};${ANDROID_ABI}" \
+            -d "${ANDROID_EMULATOR}" \
+            --force
+
+      - name: Start Android emulator
+        run: |
+          nohup $ANDROID_HOME/emulator/emulator -avd test_emulator -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect &
+          $ANDROID_HOME/platform-tools/adb wait-for-device
+          boot_completed=""
+          retry=0
+          while [ "$boot_completed" != "1" ] && [ $retry -lt 30 ]; do
+            boot_completed=$($ANDROID_HOME/platform-tools/adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')
+            echo "Waiting for emulator to boot... ($retry)"
+            sleep 10
+            retry=$((retry+1))
+          done
+          if [ "$boot_completed" != "1" ]; then
+            echo "Emulator failed to boot."
+            exit 1
+          fi
+          echo "Emulator booted successfully."
+
       - name: Install dependencies
         working-directory: ./wdio
         run: npm install
@@ -114,55 +143,7 @@ jobs:
             echo "Created .env.prod"
           fi
 
-      - name: Enable KVM for hardware acceleration
-        run: |
-          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
-          sudo udevadm control --reload-rules
-          sudo udevadm trigger --name-match=kvm
-
-      - name: Setup Android Emulator
-        id: setup_emulator
-        uses: ReactiveCircus/android-emulator-runner@v2.34.0
-        with:
-          api-level: ${{ env.ANDROID_VERSION }}
-          arch: ${{ env.ANDROID_ARCH }}
-          profile: ${{ env.ANDROID_EMULATOR }}
-          disable-animations: true
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -no-snapshot-save -no-snapshot-load -no-snapshot
-          disable-spellchecker: true
-          disable-linux-hw-accel: false
-          script: |
-            echo "Emulator is starting..."
-          
-      - name: Wait for emulator to be ready
-        if: steps.setup_emulator.outcome == 'success'
-        env:
-          PATH: ${{ env.PATH }}:${{ env.ANDROID_HOME }}/platform-tools
-        run: |
-          echo "Waiting for device to be fully booted..."
-          adb wait-for-device
-          echo "Waiting for boot completion..."
-          while [ "$(adb shell getprop sys.boot_completed | tr -d '\r')" != "1" ]; do
-            sleep 5
-            echo "Still waiting for boot..."
-          done
-          echo "Device booted, preparing for testing..."
-          adb shell input keyevent 82  # Unlock the device
-          adb shell settings put global window_animation_scale 0
-          adb shell settings put global transition_animation_scale 0
-          adb shell settings put global animator_duration_scale 0
-          
-          # Keep the emulator running
-          nohup sleep infinity >/dev/null 2>&1 &
-          
-          # Verify emulator is ready
-          echo "Verifying emulator is running..."
-          adb devices
-          adb shell getprop sys.boot_completed
-          echo "Emulator is ready for testing"
-
       - name: Run Mobile Tests
-        if: steps.setup_emulator.outcome == 'success' && env.EMULATOR_READY == 'true'
         working-directory: ./wdio
         run: |
           ENV=${{ github.event.inputs.environment }} npx wdio run wdio.android.conf.ts \
@@ -176,47 +157,18 @@ jobs:
         id: get_build_number
         run: |
           SLUG="${{ github.event.inputs.appName }}_${{ github.event.inputs.suiteName }}_${{ github.event.inputs.environment }}_mobile"
-          # Get the latest build number for this slug
-          echo "Checking for existing builds in ${SLUG}"
-          
-          # First, get the directory contents from gh-pages branch
-          echo "Checking contents of: ${SLUG}"
           curl_url="https://api.github.com/repos/${{ github.repository }}/contents/${SLUG}?ref=gh-pages"
-          echo "URL: $curl_url"
-          DIR_CONTENTS=$(curl -s "$curl_url" \
-            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}")
-          
-          # Add debug output
-          echo "Raw API response: $DIR_CONTENTS"
-          
+          DIR_CONTENTS=$(curl -s "$curl_url" -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}")
           if [ -z "$DIR_CONTENTS" ]; then
-            echo "No builds found yet, starting with 1"
             BUILD_NUMBER="1"
           else
-            # Check if the response is an array (directory exists)
             if echo "$DIR_CONTENTS" | grep -q '"name"'; then
-              echo "Directory exists, checking for builds..."
-              # Get the latest build number
-              LATEST_BUILD=$(echo "$DIR_CONTENTS" \
-                | jq -r '.[] | select(.name | test("^[0-9]+$")) | .name' \
-                | sort -nr \
-                | head -n 1)
-              
-              if [ -z "$LATEST_BUILD" ]; then
-                echo "No builds found yet, starting with 1"
-                BUILD_NUMBER="1"
-              else
-                echo "Latest build found: $LATEST_BUILD"
-                BUILD_NUMBER=$(($LATEST_BUILD + 1))
-                echo "New build number: $BUILD_NUMBER"
-              fi
+              LATEST_BUILD=$(echo "$DIR_CONTENTS" | jq -r '.[] | select(.name | test("^[0-9]+$")) | .name' | sort -nr | head -n 1)
+              if [ -z "$LATEST_BUILD" ]; then BUILD_NUMBER="1"; else BUILD_NUMBER=$(($LATEST_BUILD + 1)); fi
             else
-              # If it's not an array, it means the directory exists but is empty
-              echo "Directory exists but is empty, starting with 1"
               BUILD_NUMBER="1"
             fi
           fi
-          
           echo "SLUG=$SLUG" >> $GITHUB_OUTPUT
           echo "BUILD_NUMBER=$BUILD_NUMBER" >> $GITHUB_OUTPUT
 
@@ -243,17 +195,9 @@ jobs:
             COLOR="#808080"
             EMOJI=":black_square_for_stop:"
           fi
-
           SLUG=${{ steps.get_build_number.outputs.SLUG }}
           BUILD_NUMBER=${{ steps.get_build_number.outputs.BUILD_NUMBER }}
           REPORT_URL="https://alexzavg.github.io/qa_automation_monorepo/${SLUG}/${BUILD_NUMBER}"
-
-          echo ""
-          echo "🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥"
-          echo "🟩 REPORT URL FOR ${STATUS^^}: ${REPORT_URL}"
-          echo "🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥"
-          echo ""
-
           curl -X POST -H 'Content-type: application/json' --data "{
             \"channel\":\"$SLACK_CHANNEL\",
             \"username\":\"Github\",
