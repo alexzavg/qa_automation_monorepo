@@ -135,7 +135,7 @@ jobs:
             echo "Waiting for device to be fully booted..."
             adb wait-for-device
             echo "Waiting for boot completion..."
-            while ! adb shell getprop sys.boot_completed | grep -q '1'; do
+            while [ "$(adb shell getprop sys.boot_completed | tr -d '\r')" != "1" ]; do
               sleep 5
               echo "Still waiting for boot..."
             done
@@ -145,9 +145,9 @@ jobs:
             adb shell settings put global transition_animation_scale 0
             adb shell settings put global animator_duration_scale 0
             echo "EMULATOR_READY=true" >> $GITHUB_ENV
-          
-          # Keep the emulator running after this step
-          background: true
+            
+            # Keep this script running to prevent the emulator from terminating
+            while true; do sleep 1; done
           
       - name: Verify Emulator
         if: steps.setup_emulator.outcome == 'success' && env.EMULATOR_READY == 'true'
