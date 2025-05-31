@@ -131,9 +131,13 @@ jobs:
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -no-snapshot-save -no-snapshot-load -no-snapshot
           disable-spellchecker: true
           disable-linux-hw-accel: false
+          script: |
+            echo "Emulator is starting..."
           
       - name: Wait for emulator to be ready
         if: steps.setup_emulator.outcome == 'success'
+        env:
+          PATH: ${{ env.PATH }}:${{ env.ANDROID_HOME }}/platform-tools
         run: |
           echo "Waiting for device to be fully booted..."
           adb wait-for-device
