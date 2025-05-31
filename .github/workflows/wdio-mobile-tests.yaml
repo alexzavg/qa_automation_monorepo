@@ -22,7 +22,7 @@ on:
         type: choice
         options: [all, e2e]
       androidVersion:
-        description: 'Android Version'
+        description: 'Android API Version'
         required: true
         default: '34'
         type: choice
@@ -37,17 +37,12 @@ on:
 env:
   NODE_VERSION: 20.x
   ANDROID_VERSION: ${{ github.event.inputs.androidVersion }}
-  ANDROID_EMULATOR: ${{ github.event.inputs.emulatorName }}
+  DEVICE_PROFILE: ${{ github.event.inputs.emulatorName }}
   ANDROID_IMAGE: google_apis
   ANDROID_ABI: x86_64
   ANDROID_SDK_ROOT: ${{ github.workspace }}/android-sdk
   ANDROID_HOME: ${{ github.workspace }}/android-sdk
   ANDROID_BUILD_TOOLS_VERSION: 34.0.0
-  SLACK_CHANNEL: ${{ vars.WDIO_SLACK_CHANNEL }}
-  SLACK_WEBHOOK: ${{ vars.WDIO_SLACK_WEBHOOK }}
-  SLACK_USER: ${{ vars.SLACK_USER }}
-  CI_PIPELINE_URL: "https://github.com/alexzavg/qa_automation_monorepo/actions/runs/${{ github.run_id }}"
-  TZ: ${{ vars.TZ }}
 
 jobs:
   mobile_tests:
@@ -78,15 +73,35 @@ jobs:
             "emulator" \
             "build-tools;${ANDROID_BUILD_TOOLS_VERSION}"
 
-      - name: Create & Boot Emulator
+      - name: Debug available devices
         run: |
-          AVD_NAME="my_avd"
+          echo "📱 Available device profiles:"
+          $ANDROID_HOME/cmdline-tools/latest/bin/avdmanager list device
+
+      - name: Create and Boot Emulator (with Debug)
+        run: |
+          AVD_NAME="mobile_avd"
+
+          echo "📂 Current AVDs before creation:"
+          ls -la ~/.android/avd || echo "No AVDs yet"
+
+          echo "🛠 Creating emulator with AVD name: $AVD_NAME and device profile: $DEVICE_PROFILE"
           echo "no" | $ANDROID_HOME/cmdline-tools/latest/bin/avdmanager create avd \
             -n $AVD_NAME \
             -k "system-images;android-${ANDROID_VERSION};${ANDROID_IMAGE};${ANDROID_ABI}" \
-            -d "$ANDROID_EMULATOR" --force
+            -d "$DEVICE_PROFILE" \
+            --force
 
+          echo "📂 Current AVDs after creation:"
+          ls -la ~/.android/avd || echo "No AVDs created"
+
+          echo "📋 Available AVDs:"
+          $ANDROID_HOME/emulator/emulator -list-avds
+
+          echo "🚀 Starting emulator..."
           nohup $ANDROID_HOME/emulator/emulator -avd $AVD_NAME -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect &
+
+          echo "⌛ Waiting for emulator to boot..."
           $ANDROID_HOME/platform-tools/adb wait-for-device
 
           for i in {1..30}; do
@@ -95,7 +110,7 @@ jobs:
             echo "⏳ Waiting... ($i)"; sleep 10
           done
 
-      - name: Install deps
+      - name: Install dependencies
         working-directory: ./wdio
         run: npm install
 
@@ -108,13 +123,13 @@ jobs:
             echo "${{ secrets.WDIO_CONFIG_PROD }}" > .env.prod
           fi
 
-      - name: Run Tests
+      - name: Run WDIO Tests
         working-directory: ./wdio
         run: |
           ENV=${{ github.event.inputs.environment }} npx wdio run wdio.android.conf.ts \
             --appName=${{ github.event.inputs.appName }} \
             --suiteName=${{ github.event.inputs.suiteName }} \
-            --emulatorName=${{ env.ANDROID_EMULATOR }} \
+            --emulatorName=mobile_avd \
             --platformVersion=${{ env.ANDROID_VERSION }}
 
       - name: Get latest build number
