@@ -128,34 +128,33 @@ jobs:
           arch: ${{ env.ANDROID_ARCH }}
           profile: ${{ env.ANDROID_EMULATOR }}
           disable-animations: true
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -no-snapshot-save -no-snapshot-load
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -no-snapshot-save -no-snapshot-load -no-snapshot
           disable-spellchecker: true
           disable-linux-hw-accel: false
           script: |
-            echo "Emulator setup complete"
+            echo "Waiting for device to be fully booted..."
+            adb wait-for-device
+            echo "Waiting for boot completion..."
+            while ! adb shell getprop sys.boot_completed | grep -q '1'; do
+              sleep 5
+              echo "Still waiting for boot..."
+            done
+            echo "Device booted, preparing for testing..."
+            adb shell input keyevent 82  # Unlock the device
+            adb shell settings put global window_animation_scale 0
+            adb shell settings put global transition_animation_scale 0
+            adb shell settings put global animator_duration_scale 0
             echo "EMULATOR_READY=true" >> $GITHUB_ENV
-
-      - name: Wait for emulator to be ready
+          
+          # Keep the emulator running after this step
+          background: true
+          
+      - name: Verify Emulator
         if: steps.setup_emulator.outcome == 'success' && env.EMULATOR_READY == 'true'
         run: |
-          echo "Waiting for device to be fully booted..."
-          adb wait-for-device
-          
-          echo "Waiting for boot completion..."
-          while ! adb shell getprop sys.boot_completed | grep -q '1'; do
-            sleep 5
-            echo "Still waiting for boot..."
-          done
-          
-          echo "Device booted, waiting for services to be ready..."
-          sleep 10
-          
-          echo "Preparing device for testing..."
-          adb shell input keyevent 82  # Unlock the device
-          adb shell settings put global window_animation_scale 0
-          adb shell settings put global transition_animation_scale 0
-          adb shell settings put global animator_duration_scale 0
-          
+          echo "Verifying emulator is running..."
+          adb devices
+          adb shell getprop sys.boot_completed
           echo "Emulator is ready for testing"
 
       - name: Run Mobile Tests
