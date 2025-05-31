@@ -59,49 +59,6 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
 
-      - name: Setup Android SDK
-        run: |
-          mkdir -p $ANDROID_HOME/cmdline-tools
-          cd $ANDROID_HOME/cmdline-tools
-          curl -s -O https://dl.google.com/android/repository/commandlinetools-linux-10406996_latest.zip
-          unzip -q commandlinetools-linux-*.zip
-          mv cmdline-tools latest
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_HOME --licenses
-          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_HOME \
-            "platform-tools" \
-            "platforms;android-${ANDROID_VERSION}" \
-            "system-images;android-${ANDROID_VERSION};${ANDROID_IMAGE};arm64-v8a" \
-            "emulator" \
-            "build-tools;${ANDROID_BUILD_TOOLS_VERSION}"
-
-      - name: Create and Boot ARM Emulator
-        run: |
-          export ANDROID_AVD_HOME=$AVD_HOME
-          mkdir -p $ANDROID_AVD_HOME
-          AVD_NAME="mobile_arm"
-
-          echo "Creating AVD: $AVD_NAME with profile: $DEVICE_PROFILE"
-          echo "no" | $ANDROID_HOME/cmdline-tools/latest/bin/avdmanager create avd \
-            -n $AVD_NAME \
-            -k "system-images;android-${ANDROID_VERSION};${ANDROID_IMAGE};arm64-v8a" \
-            -d "$DEVICE_PROFILE" \
-            --force
-
-          echo "Available AVDs:"
-          $ANDROID_HOME/emulator/emulator -list-avds
-
-          echo "Starting emulator..."
-          nohup $ANDROID_HOME/emulator/emulator -avd $AVD_NAME -no-snapshot-save -no-boot-anim -no-window -gpu swiftshader_indirect -no-audio &
-
-          echo "Waiting for device..."
-          $ANDROID_HOME/platform-tools/adb wait-for-device
-
-          for i in {1..30}; do
-            booted=$($ANDROID_HOME/platform-tools/adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')
-            if [[ "$booted" == "1" ]]; then echo "✅ Booted"; break; fi
-            echo "⏳ Waiting ($i)..."; sleep 10
-          done
-
       - name: Install dependencies
         working-directory: ./wdio
         run: npm install
