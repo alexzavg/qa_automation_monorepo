@@ -5,63 +5,44 @@ on:
   workflow_dispatch:
     inputs:
       environment:
-        description: 'Environment to run the tests against'
+        description: 'Environment'
         required: true
         default: 'stage'
         type: choice
-        options:
-          - stage
-          - prod
+        options: [stage, prod]
       appName:
-        description: 'Name of the app to test (e.g. testApp)'
+        description: 'App Name'
         required: true
         default: 'testApp'
         type: string
       suiteName:
-        description: 'Test suite name (e.g. e2e, all)'
+        description: 'Suite Name'
         required: true
         default: 'all'
         type: choice
-        options:
-          - all
-          - e2e
+        options: [all, e2e]
       androidVersion:
-        description: 'Android API level to use for the emulator'
+        description: 'Android Version'
         required: true
         default: '34'
         type: choice
-        options:
-          - '35'
-          - '34'
-          - '33'
-          - '32'
-          - '31'
-          - '30'
+        options: ['35', '34', '33', '32', '31', '30']
       emulatorName:
-        description: 'Name of the emulator profile to use'
+        description: 'Emulator Name'
         required: true
         default: 'pixel_6'
         type: choice
-        options:
-          - 'pixel_6'
-          - 'pixel_5'
-          - 'pixel_4'
-          - 'pixel_xl'
-          - 'pixel'
-          - 'Nexus 5X'
-          - 'Nexus 6P'
-          - 'Nexus 6'
+        options: ['pixel_6', 'pixel_5', 'pixel_4', 'pixel_xl', 'pixel', 'Nexus 5X', 'Nexus 6P', 'Nexus 6']
 
 env:
   NODE_VERSION: 20.x
   ANDROID_VERSION: ${{ github.event.inputs.androidVersion }}
   ANDROID_EMULATOR: ${{ github.event.inputs.emulatorName }}
   ANDROID_IMAGE: google_apis
-  ANDROID_ARCH: x86_64
+  ANDROID_ABI: x86_64
   ANDROID_SDK_ROOT: ${{ github.workspace }}/android-sdk
   ANDROID_HOME: ${{ github.workspace }}/android-sdk
   ANDROID_BUILD_TOOLS_VERSION: 34.0.0
-  EMULATOR_TIMEOUT: 350
   SLACK_CHANNEL: ${{ vars.WDIO_SLACK_CHANNEL }}
   SLACK_WEBHOOK: ${{ vars.WDIO_SLACK_WEBHOOK }}
   SLACK_USER: ${{ vars.SLACK_USER }}
@@ -77,77 +58,57 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-          cache-dependency-path: '**/package-lock.json'
 
-      - name: Install Android SDK & Emulator
+      - name: Setup Android SDK
         run: |
           mkdir -p $ANDROID_HOME/cmdline-tools
           cd $ANDROID_HOME/cmdline-tools
-          curl -O https://dl.google.com/android/repository/commandlinetools-linux-10406996_latest.zip
+          curl -s -O https://dl.google.com/android/repository/commandlinetools-linux-10406996_latest.zip
           unzip -q commandlinetools-linux-*.zip
           mv cmdline-tools latest
-
           yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_HOME --licenses
           $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_HOME \
             "platform-tools" \
             "platforms;android-${ANDROID_VERSION}" \
-            "system-images;android-${ANDROID_VERSION};${ANDROID_IMAGE};${ANDROID_ARCH}" \
+            "system-images;android-${ANDROID_VERSION};${ANDROID_IMAGE};${ANDROID_ABI}" \
             "emulator" \
             "build-tools;${ANDROID_BUILD_TOOLS_VERSION}"
 
-      - name: Create and Start Android Emulator
+      - name: Create & Boot Emulator
         run: |
-          mkdir -p $HOME/.android/avd
-
-          echo "Creating emulator named: $ANDROID_EMULATOR"
           echo "no" | $ANDROID_HOME/cmdline-tools/latest/bin/avdmanager create avd \
-            -n "$ANDROID_EMULATOR" \
-            -k "system-images;android-${ANDROID_VERSION};${ANDROID_IMAGE};${ANDROID_ARCH}" \
-            -d "${ANDROID_EMULATOR}" \
-            --force
+            -n $ANDROID_EMULATOR \
+            -k "system-images;android-${ANDROID_VERSION};${ANDROID_IMAGE};${ANDROID_ABI}" \
+            -d "$ANDROID_EMULATOR" --force
 
-          nohup $ANDROID_HOME/emulator/emulator -avd "$ANDROID_EMULATOR" -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect &
-
-          echo "Waiting for emulator to boot..."
+          nohup $ANDROID_HOME/emulator/emulator -avd $ANDROID_EMULATOR -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect &
           $ANDROID_HOME/platform-tools/adb wait-for-device
-
-          boot_completed=""
-          retry=0
-          while [ "$boot_completed" != "1" ] && [ $retry -lt 30 ]; do
-            boot_completed=$($ANDROID_HOME/platform-tools/adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')
-            echo "⏳ boot_completed=$boot_completed (attempt $retry)"
-            sleep 10
-            retry=$((retry+1))
+          
+          for i in {1..30}; do
+            booted=$($ANDROID_HOME/platform-tools/adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')
+            if [[ "$booted" == "1" ]]; then echo "✅ Booted"; break; fi
+            echo "⏳ Waiting... ($i)"; sleep 10
           done
 
-          if [ "$boot_completed" != "1" ]; then
-            echo "❌ Emulator failed to boot in time"
-            exit 1
-          fi
-
-          echo "✅ Emulator booted successfully"
-
-      - name: Install dependencies
+      - name: Install deps
         working-directory: ./wdio
         run: npm install
 
-      - name: Create .env file
+      - name: Create .env
         run: |
           cd wdio
           if [ "${{ github.event.inputs.environment }}" = "stage" ]; then
             echo "${{ secrets.WDIO_CONFIG_STAGE }}" > .env.stage
-            echo "Created .env.stage"
-          elif [ "${{ github.event.inputs.environment }}" = "prod" ]; then
+          else
             echo "${{ secrets.WDIO_CONFIG_PROD }}" > .env.prod
-            echo "Created .env.prod"
           fi
 
-      - name: Run Mobile Tests
+      - name: Run Tests
         working-directory: ./wdio
         run: |
           ENV=${{ github.event.inputs.environment }} npx wdio run wdio.android.conf.ts \
