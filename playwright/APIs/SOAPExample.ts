@@ -2,6 +2,11 @@ import { APIRequestContext, expect } from '@playwright/test'
 import { RequestLogger } from './RequestLogger'
 import { XMLParser } from 'fast-xml-parser'
 
+interface AdditionData {
+    a: number,
+    b: number
+}
+
 export class SOAPExample extends RequestLogger {
   readonly request: APIRequestContext
   readonly baseUrl: string
@@ -12,17 +17,17 @@ export class SOAPExample extends RequestLogger {
     this.request = request
     this.baseUrl = process.env.SOAP_BASE_URL!
     this.actionBaseUrl = process.env.SOAP_ACTION_BASE_URL!
-  }
+  } 
 
-  async add(a: number, b: number): Promise<number> {
+  async add(data: AdditionData): Promise<number> {
     const body = `<?xml version="1.0" encoding="utf-8"?>
 <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
     <soap:Body>
         <Add xmlns="${this.actionBaseUrl}/">
-            <intA>${a}</intA>
-            <intB>${b}</intB>
+            <intA>${data.a}</intA>
+            <intB>${data.b}</intB>
         </Add>
     </soap:Body>
 </soap:Envelope>`
