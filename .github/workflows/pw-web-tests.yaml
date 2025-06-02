@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
     inputs:
       test_suite:
-        description: 'Test suite(s) to run (comma-separated, e.g. CHAT_TESTS, SOFTSERVE_TESTS, BOOKRETREATS_TESTS, or ALL). Available suites: CHAT_TESTS, SOFTSERVE_TESTS, BOOKRETREATS_TESTS, BLOCKCHAIN_TESTS, GMAIL_TESTS, AUTHENTICATION_TESTS'
+        description: 'Test suite(s) to run (comma-separated, e.g. CHAT_TESTS, SOFTSERVE_TESTS, BOOKRETREATS_TESTS, or ALL). Available suites: CHAT_TESTS, SOFTSERVE_TESTS, BOOKRETREATS_TESTS, BLOCKCHAIN_TESTS, GMAIL_TESTS, AUTHENTICATION_TESTS, APIS_TESTS'
         required: true
         default: 'ALL'
         type: string
@@ -37,6 +37,7 @@ env:
   BOOKRETREATS_TESTS:     ${{vars.PW_BOOKRETREATS_TESTS}}
   BLOCKCHAIN_TESTS:       ${{vars.PW_BLOCKCHAIN_TESTS}}
   GMAIL_TESTS:            ${{vars.PW_GMAIL_TESTS}}
+  APIS_TESTS:             ${{vars.PW_APIS_TESTS}}
   AUTHENTICATION_TESTS:   ${{vars.PW_AUTHENTICATION_TESTS}}
   SLACK_CHANNEL:          ${{vars.PW_SLACK_CHANNEL}}
   SLACK_WEBHOOK:          ${{vars.PW_SLACK_WEBHOOK}}
@@ -60,6 +61,7 @@ jobs:
             "BLOCKCHAIN_TESTS"
             "GMAIL_TESTS"
             "AUTHENTICATION_TESTS"
+            "APIS_TESTS"
           )
           if [[ "${{ github.event.inputs.test_suite }}" == "ALL" ]]; then
             SUITES_JSON=$(printf '%s\n' "${ALL_SUITES[@]}" | jq -R . | jq -c -s .)

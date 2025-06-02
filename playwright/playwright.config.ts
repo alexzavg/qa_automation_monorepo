@@ -44,6 +44,11 @@ const config: PlaywrightTestConfig = {
       testMatch: ['/tests/authentication/*.spec.ts'],
       testIgnore: [],
     },
+    {
+      name: 'apis',
+      testMatch: ['/tests/apis/*.spec.ts'],
+      testIgnore: [],
+    },
   ],
   timeout: globTimeout,
   expect: {

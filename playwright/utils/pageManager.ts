@@ -5,6 +5,7 @@ import { SoftServePage } from '../Pages/softserve.page'
 import { BookRetreatsPage } from '../Pages/bookretreats.page'
 import { GmailApi } from '../APIs/gmailApi'
 import { OTPSignInPage } from '../Pages/otpSignIn.page'
+import { SOAPExample } from '../APIs/SOAPExample'
 
 export class PageManager {
   page: Page
@@ -28,5 +29,8 @@ export class PageManager {
   }
   get otpSignInPage(): OTPSignInPage {
     return new OTPSignInPage(this.page)
+  }
+  get soapExampleApi(): SOAPExample {
+    return new SOAPExample(this.page.request)
   }
 }

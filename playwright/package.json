@@ -20,6 +20,8 @@
     "gmail:tests:prod": "node run-playwright.js chrome gmail prod",
     "authentication:tests:stage": "node run-playwright.js chrome authentication stage",
     "authentication:tests:prod": "node run-playwright.js chrome authentication prod",
+    "apis:tests:stage": "node run-playwright.js chrome apis stage",
+    "apis:tests:prod": "node run-playwright.js chrome apis prod",
     "all:tests:stage": "node run-playwright.js chrome all stage",
     "all:tests:prod": "node run-playwright.js chrome all prod",
     "show:report": "npx playwright show-report html_report"
@@ -39,6 +41,7 @@
     "chalk": "^4.1.2",
     "cross-env": "^7.0.3",
     "dotenv": "^16.3.1",
+    "fast-xml-parser": "^5.2.3",
     "fs": "^0.0.1-security",
     "ganache": "^7.9.2",
     "googleapis": "^148.0.0",
