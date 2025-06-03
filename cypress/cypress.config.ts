@@ -2,6 +2,7 @@ import { defineConfig } from 'cypress'
 import * as dotenv from 'dotenv'
 import * as path from 'path'
 import * as fs from 'fs'
+import mochawesome from 'cypress-mochawesome-reporter/plugin'
 
 // Get environment variables with defaults
 const env = process.env.ENV
@@ -49,6 +50,15 @@ export default defineConfig({
   screenshotOnRunFailure: true,
   screenshotsFolder: 'screenshots',
   trashAssetsBeforeRuns: true,
+  reporter: 'cypress-mochawesome-reporter',
+  reporterOptions: {
+    reportDir: 'reports',
+    overwrite: false,
+    html: false,
+    json: true,
+    embeddedScreenshots: true,
+    inlineAssets: true,
+  },
   e2e: {
     specPattern: `tests/${appName}/${suiteName}/**/*.spec.ts`,
     supportFile: 'support/e2e.ts',
@@ -69,6 +79,58 @@ export default defineConfig({
     },
 
     setupNodeEvents(on, config: Cypress.PluginConfigOptions) {
+      console.log('Setting up cleanup hooks...')
+      
+      // Clean up before each spec runs
+      on('before:spec', (spec) => {
+        console.log('\n=== Starting cleanup before spec ===')
+        console.log(`Current working directory: ${process.cwd()}`)
+        
+        const filesToRemove = [
+          'mochawesome.json',
+          'mochawesome-report',
+          'cypress/mochawesome.json',
+          'cypress/reports',
+          'reports',
+          'cypress/screenshots',
+          'cypress/videos'
+        ]
+        
+        for (const file of filesToRemove) {
+          const fullPath = path.resolve(process.cwd(), file)
+          console.log(`\nChecking: ${fullPath}`)
+          
+          try {
+            if (fs.existsSync(fullPath)) {
+              const stat = fs.lstatSync(fullPath)
+              if (stat.isDirectory()) {
+                console.log(`Removing directory: ${fullPath}`)
+                fs.rmSync(fullPath, { recursive: true, force: true })
+                console.log(`Successfully removed directory: ${fullPath}`)
+              } else {
+                console.log(`Removing file: ${fullPath}`)
+                fs.unlinkSync(fullPath)
+                console.log(`Successfully removed file: ${fullPath}`)
+              }
+            } else {
+              console.log(`Path does not exist: ${fullPath}`)
+            }
+          } catch (err) {
+            console.error(`Error processing ${fullPath}:`, err)
+          }
+        }
+        
+          // Ensure reports directory exists
+          const reportsDir = path.resolve(process.cwd(), 'reports')
+          if (!fs.existsSync(reportsDir)) {
+            fs.mkdirSync(reportsDir, { recursive: true })
+          }
+        
+        console.log('=== Cleanup completed ===\n')
+      })
+      
+      mochawesome(on)
+
       // Set environment variables
       config.env = {
         ...config.env,

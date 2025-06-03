@@ -5,9 +5,8 @@
 // This is a great place to put global configuration and
 // behavior that modifies Cypress.
 // ***********************************************************
-
-// Import commands
 import './commands'
+import 'cypress-mochawesome-reporter/register'
 
 // Configure screenshots to be taken on test failure
 Cypress.Screenshot.defaults({
