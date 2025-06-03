@@ -5,13 +5,10 @@ describe('E2E Example', () => {
     cy.log(`Specific value: ${Cypress.env('CYPRESS_ENV_SPECIFIC_VALUE')}`)
     
     cy.visit('/')
-      .then(() => {
-        cy.title().should('exist')
-        return cy.url()
-      })
-      .then((url) => {
-        cy.log(`Current URL: ${url}`)
-        expect(true).to.be.false
-      })
+    cy.title().should('exist')
+  })
+
+  it('should fail on purpose', () => {
+    expect(true).to.be.false
   })
 })

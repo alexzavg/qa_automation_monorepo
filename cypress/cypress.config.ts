@@ -2,6 +2,7 @@ import { defineConfig } from 'cypress'
 import * as dotenv from 'dotenv'
 import * as path from 'path'
 import * as fs from 'fs'
+import mochawesome from 'cypress-mochawesome-reporter/plugin'
 
 // Get environment variables with defaults
 const env = process.env.ENV
@@ -42,15 +43,27 @@ Object.entries(envVars).forEach(([key, value]) => {
 })
 
 export default defineConfig({
+  // Global settings
+  video: true,
+  videoCompression: 16,
+  videosFolder: 'videos',
+  screenshotOnRunFailure: true,
+  screenshotsFolder: 'screenshots',
+  trashAssetsBeforeRuns: true,
+  reporter: 'cypress-mochawesome-reporter',
+  reporterOptions: {
+    reportDir: 'reports',
+    overwrite: false,
+    html: false,
+    json: true,
+    embeddedScreenshots: true,
+    inlineAssets: true,
+  },
   e2e: {
-    // Set the spec pattern based on app name and suite name
-    specPattern: `cypress/tests/${appName}/${suiteName}/**/*.spec.ts`,
-    supportFile: 'cypress/support/e2e.ts',
-    fixturesFolder: 'cypress/fixtures',
+    specPattern: `tests/${appName}/${suiteName}/**/*.spec.ts`,
+    supportFile: 'support/e2e.ts',
+    fixturesFolder: 'fixtures',
     baseUrl: envVars.CYPRESS_BASE_URL,
-    video: true,
-    screenshotOnRunFailure: true,
-    trashAssetsBeforeRuns: true,
     viewportWidth: 1920,
     viewportHeight: 1080,
     defaultCommandTimeout: 10000,
@@ -65,29 +78,42 @@ export default defineConfig({
       openMode: 0,
     },
 
-    setupNodeEvents(on, config) {
-      // Set all CYPRESS_* environment variables in Cypress config
-      config.env = {
-        ...config.env,
-        ...cypressEnvVars
-      }
+    setupNodeEvents(on, config: Cypress.PluginConfigOptions) {
+      console.log('Setting up Cypress...')
       
-      // Configure Chrome launch options
+      // Run cleanup before the browser launches
       on('before:browser:launch', (browser, launchOptions) => {
         if (browser.family === 'chromium' && browser.name !== 'electron') {
-          launchOptions.args.push('--disable-dev-shm-usage')
+          launchOptions.args.push(
+            '--disable-dev-shm-usage',
+            '--disable-gpu',
+            '--window-size=1920,1080'
+          )
         }
         return launchOptions
       })
       
+      // Set environment variables
+      config.env = {
+        ...config.env,
+        ...cypressEnvVars 
+      }
+      
+      mochawesome(on)
+      
+      // Add Chrome launch options
+      on('before:browser:launch', (browser, launchOptions) => {
+        if (browser.family === 'chromium' && browser.name !== 'electron') {
+          launchOptions.args.push(
+            '--disable-dev-shm-usage',
+            '--disable-gpu',
+            '--window-size=1920,1080'
+          )
+        }
+        return launchOptions
+      })
+
       return config
     },
-  },
-
-  video: true,
-  videoCompression: 16,
-  videosFolder: 'cypress/videos',
-  screenshotsFolder: 'cypress/screenshots',
-  screenshotOnRunFailure: true,
-  trashAssetsBeforeRuns: true,
+  }
 })

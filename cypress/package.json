@@ -1,10 +1,15 @@
 {
   "devDependencies": {
+    "@types/cypress": "^1.1.6",
     "@types/dotenv": "^8.2.3",
     "@types/fs-extra": "^11.0.4",
     "@types/mocha": "^10.0.10",
     "cypress": "^14.4.0",
+    "cypress-mochawesome-reporter": "^3.8.2",
     "dotenv": "^16.5.0",
+    "mochawesome": "^7.1.3",
+    "mochawesome-merge": "^5.0.0",
+    "mochawesome-report-generator": "^6.2.0",
     "typescript": "^5.7.2"
   },
   "scripts": {
@@ -12,9 +17,11 @@
     "cy:open:testApp:e2e:prod": "ENV=prod APP_NAME=testApp SUITE_NAME=e2e cypress open --e2e --browser chrome",
     "cy:open:testApp:api:stage": "ENV=stage APP_NAME=testApp SUITE_NAME=api cypress open --e2e --browser chrome",
     "cy:open:testApp:api:prod": "ENV=prod APP_NAME=testApp SUITE_NAME=api cypress open --e2e --browser chrome",
-    "cy:run:testApp:e2e:stage": "ENV=stage APP_NAME=testApp SUITE_NAME=e2e cypress run --e2e --browser chrome",
-    "cy:run:testApp:e2e:prod": "ENV=prod APP_NAME=testApp SUITE_NAME=e2e cypress run --e2e --browser chrome",
-    "cy:run:testApp:api:stage": "ENV=stage APP_NAME=testApp SUITE_NAME=api cypress run --e2e --browser chrome",
-    "cy:run:testApp:api:prod": "ENV=prod APP_NAME=testApp SUITE_NAME=api cypress run --e2e --browser chrome"
+    "cy:run:testApp:e2e:stage": "npm run clean:reports && ENV=stage APP_NAME=testApp SUITE_NAME=e2e cypress run --e2e --browser chrome",
+    "cy:run:testApp:e2e:prod": "npm run clean:reports && ENV=prod APP_NAME=testApp SUITE_NAME=e2e cypress run --e2e --browser chrome",
+    "cy:run:testApp:api:stage": "npm run clean:reports && ENV=stage APP_NAME=testApp SUITE_NAME=api cypress run --e2e --browser chrome",
+    "cy:run:testApp:api:prod": "npm run clean:reports && ENV=prod APP_NAME=testApp SUITE_NAME=api cypress run --e2e --browser chrome",
+    "clean:reports": "node ./scripts/clean-reports.js",
+    "report:open": "open reports/index.html"
   }
 }
