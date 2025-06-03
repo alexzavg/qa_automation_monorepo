@@ -1,24 +1,34 @@
-import { defineConfig } from 'cypress';
-import * as dotenv from 'dotenv';
-import * as path from 'path';
-import * as fs from 'fs';
+import { defineConfig } from 'cypress'
+import * as dotenv from 'dotenv'
+import * as path from 'path'
+import * as fs from 'fs'
 
-// Determine the environment (default to 'stage')
-const env = process.env.CYPRESS_ENV || 'stage';
-const envFilePath = path.resolve(process.cwd(), `.env.${env}`);
+// Get environment variables with defaults
+const env = process.env.ENV
+const appName = process.env.APP_NAME
 
-// Load environment variables
+// Load environment specific .env file
+const envFilePath = path.resolve(process.cwd(), `.env.${env}`)
 if (fs.existsSync(envFilePath)) {
-  dotenv.config({ path: envFilePath });
-  console.log(`Loaded environment variables from ${envFilePath}`);
+  dotenv.config({ path: envFilePath })
+  console.log(`Loaded environment variables from ${envFilePath}`)
 } else {
-  console.warn(`No .env.${env} file found, using default environment variables`);
+  console.warn(`No .env.${env} file found, using default environment variables`)
+}
+
+console.log(`Running tests for app: ${appName} in ${env} environment`)
+
+// Validate required environment variables
+if (!appName) {
+  throw new Error('APP_NAME environment variable is required')
 }
 
 export default defineConfig({
   e2e: {
-    baseUrl: process.env.CYPRESS_BASE_URL || 'https://example.cypress.io',
-    // Test configuration
+    specPattern: `cypress/tests/${appName}/e2e/**/*.spec.ts`,
+    supportFile: 'cypress/support/e2e.ts',
+    fixturesFolder: 'cypress/fixtures',
+    baseUrl: process.env.CYPRESS_BASE_URL,
     video: true,
     screenshotOnRunFailure: true,
     trashAssetsBeforeRuns: true,
@@ -29,26 +39,22 @@ export default defineConfig({
     responseTimeout: 15000,
     pageLoadTimeout: 90000,
     chromeWebSecurity: false,
-    
+
     setupNodeEvents(on, config) {
       // Set environment variables in Cypress
       config.env = {
         ...config.env,
-        envName: process.env.CYPRESS_ENV_NAME || 'Development',
-        baseUrl: process.env.CYPRESS_BASE_URL
-      };
+        envName: process.env.CYPRESS_ENV_NAME
+      }
       
-      return config;
+      return config
     },
   },
   
-  // Video configuration
   video: true,
   videoCompression: 16,
   videosFolder: 'cypress/videos',
-  
-  // Screenshot configuration
   screenshotsFolder: 'cypress/screenshots',
   screenshotOnRunFailure: true,
   trashAssetsBeforeRuns: true,
-});
+})
