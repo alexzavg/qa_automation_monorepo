@@ -2,7 +2,6 @@ import { defineConfig } from 'cypress'
 import * as dotenv from 'dotenv'
 import * as path from 'path'
 import * as fs from 'fs'
-import allureWriter from '@shelex/cypress-allure-plugin/writer'
 
 // Get environment variables with defaults
 const env = process.env.ENV
@@ -44,7 +43,6 @@ Object.entries(envVars).forEach(([key, value]) => {
 
 export default defineConfig({
   e2e: {
-    // Set the spec pattern based on app name and suite name
     specPattern: `cypress/tests/${appName}/${suiteName}/**/*.spec.ts`,
     supportFile: 'cypress/support/e2e.ts',
     fixturesFolder: 'cypress/fixtures',
@@ -67,9 +65,6 @@ export default defineConfig({
     },
 
     setupNodeEvents(on, config: Cypress.PluginConfigOptions) {
-      // Add Allure writer
-      allureWriter(on, config)
-      
       // Set environment variables
       config.env = {
         ...config.env,
@@ -82,21 +77,6 @@ export default defineConfig({
           launchOptions.args.push('--disable-dev-shm-usage')
         }
         return launchOptions
-      })
-
-      // Generate Allure report after test run
-      on('after:run', async () => {
-        const { exec } = require('child_process')
-        const util = require('util')
-        const execPromise = util.promisify(exec)
-        
-        try {
-          console.log('Generating Allure report...')
-          await execPromise('npx allure generate cypress/allure-results --clean -o cypress/allure-reports')
-          console.log('Allure report generated successfully')
-        } catch (error) {
-          console.error('Error generating Allure report:', error)
-        }
       })
       
       return config
