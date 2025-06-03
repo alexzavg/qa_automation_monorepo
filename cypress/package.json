@@ -8,9 +8,9 @@
     "typescript": "^5.7.2"
   },
   "scripts": {
-    "cy:open:stage": "ENV=stage APP_NAME=testApp cypress open --e2e",
-    "cy:open:prod": "ENV=prod APP_NAME=testApp cypress open --e2e",
-    "test:stage": "ENV=stage APP_NAME=testApp cypress run --e2e",
-    "test:prod": "ENV=prod APP_NAME=testApp cypress run --e2e"
+    "cy:open:stage": "ENV=stage APP_NAME=testApp SUITE_NAME=e2e cypress open --e2e",
+    "cy:open:prod": "ENV=prod APP_NAME=testApp SUITE_NAME=e2e cypress open --e2e",
+    "test:stage": "ENV=stage APP_NAME=testApp SUITE_NAME=e2e cypress run --e2e",
+    "test:prod": "ENV=prod APP_NAME=testApp SUITE_NAME=e2e cypress run --e2e"
   }
 }

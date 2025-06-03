@@ -6,26 +6,28 @@ import * as fs from 'fs'
 // Get environment variables with defaults
 const env = process.env.ENV
 const appName = process.env.APP_NAME
+const suiteName = process.env.SUITE_NAME
 
 // Load environment specific .env file
-const envFilePath = path.resolve(process.cwd(), `.env.${env}`)
+const envFilePath = path.resolve(process.cwd(), `.env.${env}`);
 if (fs.existsSync(envFilePath)) {
-  dotenv.config({ path: envFilePath })
-  console.log(`Loaded environment variables from ${envFilePath}`)
+  dotenv.config({ path: envFilePath });
+  console.log(`Loaded environment variables from ${envFilePath}`);
 } else {
-  console.warn(`No .env.${env} file found, using default environment variables`)
+  console.warn(`No .env.${env} file found, using default environment variables`);
 }
-
-console.log(`Running tests for app: ${appName} in ${env} environment`)
 
 // Validate required environment variables
 if (!appName) {
-  throw new Error('APP_NAME environment variable is required')
+  throw new Error('APP_NAME environment variable is required');
 }
+
+console.log(`Running ${suiteName} tests for app: ${appName} in ${env} environment`);
 
 export default defineConfig({
   e2e: {
-    specPattern: `cypress/tests/${appName}/e2e/**/*.spec.ts`,
+    // Set the spec pattern based on app name and suite name
+    specPattern: `cypress/tests/${appName}/${suiteName}/**/*.spec.ts`,
     supportFile: 'cypress/support/e2e.ts',
     fixturesFolder: 'cypress/fixtures',
     baseUrl: process.env.CYPRESS_BASE_URL,
