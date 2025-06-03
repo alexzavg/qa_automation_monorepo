@@ -66,7 +66,7 @@ export default defineConfig({
         ...config.env,
         ...cypressEnvVars
       }
-
+      
       // Configure Chrome launch options
       on('before:browser:launch', (browser, launchOptions) => {
         if (browser.family === 'chromium' && browser.name !== 'electron') {
