@@ -32,9 +32,9 @@ This project provides a flexible testing framework using Cypress with support fo
 ### Environment Variables
 
 #### Core Configuration
-- `ENV`: The target environment (e.g., `stage`, `prod`). Defaults to `stage`.
+- `ENV`: The target environment (e.g., `stage`, `prod`).
 - `APP_NAME`: The name of the application under test (e.g., `testApp`).
-- `SUITE_NAME`: The type of tests to run (e.g., `e2e`, `api`). Defaults to `e2e`.
+- `SUITE_NAME`: The type of tests to run (e.g., `e2e`, `api`).
 
 #### Custom Environment Variables
 All variables prefixed with `CYPRESS_` in your `.env` files will be automatically loaded and made available in your tests via `Cypress.env()`.
