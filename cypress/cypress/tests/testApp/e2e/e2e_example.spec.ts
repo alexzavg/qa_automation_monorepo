@@ -2,7 +2,7 @@ describe('E2E Example', () => {
   it('should load the correct environment configuration', () => {
     // Log environment information
     cy.log(`Environment: ${Cypress.env('CYPRESS_ENV_NAME')}`)
-    cy.log(`Base URL: ${Cypress.config('baseUrl')}`)
+    cy.log(`Base URL: ${Cypress.env('CYPRESS_BASE_URL')}`)
     cy.log(`Specific value: ${Cypress.env('CYPRESS_ENV_SPECIFIC_VALUE')}`)
     
     // Verify the base URL is set correctly
