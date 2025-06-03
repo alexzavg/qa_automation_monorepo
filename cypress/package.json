@@ -8,9 +8,13 @@
     "typescript": "^5.7.2"
   },
   "scripts": {
-    "open:testApp:e2e:stage": "ENV=stage APP_NAME=testApp SUITE_NAME=e2e cypress open --e2e",
-    "open:testApp:e2e:prod": "ENV=prod APP_NAME=testApp SUITE_NAME=e2e cypress open --e2e",
-    "run:testApp:e2e:stage": "ENV=stage APP_NAME=testApp SUITE_NAME=e2e cypress run --e2e",
-    "run:testApp:e2e:prod": "ENV=prod APP_NAME=testApp SUITE_NAME=e2e cypress run --e2e"
+    "cy:open:testApp:e2e:stage": "ENV=stage APP_NAME=testApp SUITE_NAME=e2e cypress open --e2e",
+    "cy:open:testApp:e2e:prod": "ENV=prod APP_NAME=testApp SUITE_NAME=e2e cypress open --e2e",
+    "cy:open:testApp:api:stage": "ENV=stage APP_NAME=testApp SUITE_NAME=api cypress open --e2e",
+    "cy:open:testApp:api:prod": "ENV=prod APP_NAME=testApp SUITE_NAME=api cypress open --e2e",
+    "cy:run:testApp:e2e:stage": "ENV=stage APP_NAME=testApp SUITE_NAME=e2e cypress run --e2e",
+    "cy:run:testApp:e2e:prod": "ENV=prod APP_NAME=testApp SUITE_NAME=e2e cypress run --e2e",
+    "cy:run:testApp:api:stage": "ENV=stage APP_NAME=testApp SUITE_NAME=api cypress run --e2e",
+    "cy:run:testApp:api:prod": "ENV=prod APP_NAME=testApp SUITE_NAME=api cypress run --e2e"
   }
 }
