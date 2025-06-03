@@ -1,4 +1,4 @@
-describe('Environment Configuration', () => {
+describe('API Example', () => {
   it('should load the correct environment configuration', () => {
     // Log environment information
     cy.log(`Environment: ${Cypress.env('envName')}`);
