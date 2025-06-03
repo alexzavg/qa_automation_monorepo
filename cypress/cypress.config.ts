@@ -9,20 +9,32 @@ const appName = process.env.APP_NAME
 const suiteName = process.env.SUITE_NAME
 
 // Load environment specific .env file
-const envFilePath = path.resolve(process.cwd(), `.env.${env}`);
+const envFilePath = path.resolve(process.cwd(), `.env.${env}`)
+const envVars = {}
+
 if (fs.existsSync(envFilePath)) {
-  dotenv.config({ path: envFilePath });
-  console.log(`Loaded environment variables from ${envFilePath}`);
+  const envConfig = dotenv.parse(fs.readFileSync(envFilePath))
+  Object.assign(envVars, envConfig)
+  console.log(`Loaded environment variables from ${envFilePath}`)
 } else {
-  console.warn(`No .env.${env} file found, using default environment variables`);
+  console.warn(`No .env.${env} file found, using default environment variables`)
 }
 
 // Validate required environment variables
 if (!appName) {
-  throw new Error('APP_NAME environment variable is required');
+  throw new Error('APP_NAME environment variable is required')
 }
 
-console.log(`Running ${suiteName} tests for app: ${appName} in ${env} environment`);
+console.log(`Running ${suiteName} tests for app: ${appName} in ${env} environment`)
+
+// Expose all CYPRESS_* environment variables to the browser
+// All env vars in .env files must start with CYPRESS_ in order for this to work
+const cypressEnvVars = {}
+Object.entries(envVars).forEach(([key, value]) => {
+  if (key.startsWith('CYPRESS_')) {
+    cypressEnvVars[key] = value
+  }
+})
 
 export default defineConfig({
   e2e: {
@@ -37,17 +49,31 @@ export default defineConfig({
     viewportWidth: 1920,
     viewportHeight: 1080,
     defaultCommandTimeout: 10000,
-    requestTimeout: 15000,
     responseTimeout: 15000,
     pageLoadTimeout: 90000,
+    blockHosts: ['securepubads.g.doubleclick.net'],
     chromeWebSecurity: false,
+    experimentalMemoryManagement: true,
+    watchForFileChanges: false,
+    retries: {
+      runMode: 1,
+      openMode: 0,
+    },
 
     setupNodeEvents(on, config) {
-      // Set environment variables in Cypress
+      // Set all CYPRESS_* environment variables in Cypress config
       config.env = {
         ...config.env,
-        envName: process.env.CYPRESS_ENV_NAME
+        ...cypressEnvVars
       }
+
+      // Configure Chrome launch options
+      on('before:browser:launch', (browser, launchOptions) => {
+        if (browser.family === 'chromium' && browser.name !== 'electron') {
+          launchOptions.args.push('--disable-dev-shm-usage')
+        }
+        return launchOptions
+      })
       
       return config
     },
