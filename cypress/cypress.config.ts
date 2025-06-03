@@ -79,70 +79,36 @@ export default defineConfig({
     },
 
     setupNodeEvents(on, config: Cypress.PluginConfigOptions) {
-      console.log('Setting up cleanup hooks...')
+      console.log('Setting up Cypress...')
       
-      // Clean up once before any tests run
-      on('before:run', () => {
-        console.log('\n=== Starting cleanup before test run ===')
-        console.log(`Current working directory: ${process.cwd()}`)
-        
-        const filesToRemove = [
-          'mochawesome.json',
-          'mochawesome-report',
-          'cypress/mochawesome.json',
-          'cypress/reports',
-          'reports',
-          'cypress/screenshots',
-          'cypress/videos'
-        ]
-        
-        for (const file of filesToRemove) {
-          const fullPath = path.resolve(process.cwd(), file)
-          console.log(`\nChecking: ${fullPath}`)
-          
-          try {
-            if (fs.existsSync(fullPath)) {
-              const stat = fs.lstatSync(fullPath)
-              if (stat.isDirectory()) {
-                console.log(`Removing directory: ${fullPath}`)
-                fs.rmSync(fullPath, { recursive: true, force: true })
-                console.log(`Successfully removed directory: ${fullPath}`)
-              } else {
-                console.log(`Removing file: ${fullPath}`)
-                fs.unlinkSync(fullPath)
-                console.log(`Successfully removed file: ${fullPath}`)
-              }
-            } else {
-              console.log(`Path does not exist: ${fullPath}`)
-            }
-          } catch (err) {
-            console.error(`Error processing ${fullPath}:`, err)
-          }
+      // Run cleanup before the browser launches
+      on('before:browser:launch', (browser, launchOptions) => {
+        if (browser.family === 'chromium' && browser.name !== 'electron') {
+          launchOptions.args.push(
+            '--disable-dev-shm-usage',
+            '--disable-gpu',
+            '--window-size=1920,1080'
+          )
         }
-        
-          // Ensure reports directory exists
-          const reportsDir = path.resolve(process.cwd(), 'reports')
-          if (!fs.existsSync(reportsDir)) {
-            fs.mkdirSync(reportsDir, { recursive: true })
-          }
-        
-        console.log('=== Cleanup completed ===\n')
+        return launchOptions
       })
       
-      mochawesome(on)
-
       // Set environment variables
       config.env = {
         ...config.env,
         ...cypressEnvVars 
       }
-
+      
+      mochawesome(on)
+      
       // Add Chrome launch options
       on('before:browser:launch', (browser, launchOptions) => {
         if (browser.family === 'chromium' && browser.name !== 'electron') {
-          launchOptions.args.push('--disable-dev-shm-usage')
-          launchOptions.args.push('--disable-gpu')
-          launchOptions.args.push('--window-size=1920,1080')
+          launchOptions.args.push(
+            '--disable-dev-shm-usage',
+            '--disable-gpu',
+            '--window-size=1920,1080'
+          )
         }
         return launchOptions
       })
