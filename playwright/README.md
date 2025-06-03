@@ -27,12 +27,6 @@ npm run chat:e2e:tests:prod
 
 # Run tests in stage environment
 npm run chat:e2e:tests:stage
-
-# Run specific test file with UI mode
-npx playwright test tests/example.spec.ts --ui
-
-# Run tests in debug mode
-DEBUG=pw:api npm run chat:e2e:tests:prod
 ```
 
 # TEST REPORTS
@@ -70,16 +64,15 @@ Example suites:
 
 To view the most recent report for a suite, use:
 ```
-https://alexzavg.github.io/playwright_retreat/{SUITE_NAME}/latest
+https://alexzavg.github.io/playwright_retreat/{SUITE_NAME}/1
 ```
 
-Example: [Latest Chat E2E Prod Report](https://alexzavg.github.io/playwright_retreat/CHAT_E2E_TESTS_PROD/latest)
+Example: [Latest Chat E2E Prod Report](https://alexzavg.github.io/playwright_retreat/CHAT_E2E_TESTS_PROD/1)
 
 ## Build Numbers and History
 
 - Each CI run generates a new build number (auto-incremented)
 - Reports are preserved with their build numbers for historical reference
-- The `latest` directory always points to the most recent successful build
 - Build history is maintained in the `gh-pages` branch of the repository
 
 ### Viewing Build History
@@ -89,15 +82,12 @@ Example: [Latest Chat E2E Prod Report](https://alexzavg.github.io/playwright_ret
 3. Check the "Deploy to GitHub Pages" job for the published report URL
 
 ### Example Report URLs
-
-- Latest production report for Chat E2E tests:
-  `https://alexzavg.github.io/playwright_retreat/CHAT_E2E_TESTS_PROD/latest`
   
-- Specific build number (e.g., build #42) for Stage environment:
-  `https://alexzavg.github.io/playwright_retreat/CHAT_E2E_TESTS_STAGE/42`
+- Specific build number (e.g., build #1) for Stage environment:
+  `https://alexzavg.github.io/playwright_retreat/CHAT_E2E_TESTS_STAGE/1`
 
 ## Troubleshooting Reports
 
 - If a report fails to load, check the GitHub Actions workflow for any deployment errors
-- Ensure the build completed successfully before trying to view the report
+- Ensure the build completed and wait for a couple minutes for the report to upload before trying to view it
 - Clear your browser cache if you're not seeing the latest report updates
