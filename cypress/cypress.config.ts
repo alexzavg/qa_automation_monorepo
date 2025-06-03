@@ -81,9 +81,9 @@ export default defineConfig({
     setupNodeEvents(on, config: Cypress.PluginConfigOptions) {
       console.log('Setting up cleanup hooks...')
       
-      // Clean up before each spec runs
-      on('before:spec', (spec) => {
-        console.log('\n=== Starting cleanup before spec ===')
+      // Clean up once before any tests run
+      on('before:run', () => {
+        console.log('\n=== Starting cleanup before test run ===')
         console.log(`Current working directory: ${process.cwd()}`)
         
         const filesToRemove = [
