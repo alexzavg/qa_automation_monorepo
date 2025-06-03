@@ -8,9 +8,14 @@ const env = process.env.ENV
 const appName = process.env.APP_NAME
 const suiteName = process.env.SUITE_NAME
 
+// Environment variables type
+interface EnvVars {
+  [key: string]: string | undefined
+}
+
 // Load environment specific .env file
 const envFilePath = path.resolve(process.cwd(), `.env.${env}`)
-const envVars = {}
+const envVars: EnvVars = {}
 
 if (fs.existsSync(envFilePath)) {
   const envConfig = dotenv.parse(fs.readFileSync(envFilePath))
@@ -42,7 +47,7 @@ export default defineConfig({
     specPattern: `cypress/tests/${appName}/${suiteName}/**/*.spec.ts`,
     supportFile: 'cypress/support/e2e.ts',
     fixturesFolder: 'cypress/fixtures',
-    baseUrl: process.env.CYPRESS_BASE_URL,
+    baseUrl: envVars.CYPRESS_BASE_URL,
     video: true,
     screenshotOnRunFailure: true,
     trashAssetsBeforeRuns: true,
