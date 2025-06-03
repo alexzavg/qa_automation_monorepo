@@ -49,7 +49,7 @@ Test reports from CI runs are automatically published to GitHub Pages. Reports a
 
 ### Accessing Reports
 
-Base URL: `https://alexzavg.github.io/playwright_retreat/{SUITE_NAME}/{BUILD_NUMBER}`
+Base URL: `https://alexzavg.github.io/qa_automation_monorepo/{SUITE_NAME}/{BUILD_NUMBER}`
 
 Example suites:
 - `CHAT_E2E_TESTS_PROD`
@@ -64,10 +64,10 @@ Example suites:
 
 To view the most recent report for a suite, use:
 ```
-https://alexzavg.github.io/playwright_retreat/{SUITE_NAME}/1
+https://alexzavg.github.io/qa_automation_monorepo/{SUITE_NAME}/1
 ```
 
-Example: [Latest Chat E2E Prod Report](https://alexzavg.github.io/playwright_retreat/CHAT_E2E_TESTS_PROD/1)
+Example: [Latest Chat E2E Prod Report](https://alexzavg.github.io/qa_automation_monorepo/CHAT_E2E_TESTS_PROD/1)
 
 ## Build Numbers and History
 
