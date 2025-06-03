@@ -1,11 +1,12 @@
 cypress/node_modules
-cypress/cypress/screenshots
-cypress/cypress/videos
-cypress/cypress/reports
+cypress/screenshots
+cypress/videos
+cypress/reports
 cypress/.env.*
-cypress/cypress/allure-results
-cypress/cypress/allure-reports
-cypress/cypress/results
+cypress/allure-results
+cypress/allure-reports
+cypress/results
+cypress/mochawesome.json
 
 playwright/node_modules
 playwright/playwright-report

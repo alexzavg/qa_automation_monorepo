@@ -10,15 +10,15 @@
     "baseUrl": ".",
     "typeRoots": [
       "./node_modules/@types",
-      "./cypress/support/types"
+      "support/types"
     ],
     "paths": {
-      "*": ["node_modules/*", "./cypress/support/types/*"]
+      "*": ["node_modules/*", "support/types/*"]
     }
   },
   "include": [
     "**/*.ts",
-    "cypress/support/**/*.ts"
+    "support/**/*.ts"
   ],
   "exclude": ["node_modules"]
 }
