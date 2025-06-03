@@ -5,15 +5,20 @@ describe('E2E Example', () => {
     cy.log(`Base URL: ${Cypress.config('baseUrl')}`)
     cy.log(`Specific value: ${Cypress.env('CYPRESS_ENV_SPECIFIC_VALUE')}`)
     
-    // Verify the base URL is set correctly
+    // Visit the page and perform all assertions first
     cy.visit('/')
-    
-    // Simple assertion that we're on a page with a valid title
-    cy.title().should('exist')
-    
-    // Log the current URL (for debugging)
-    cy.url().then(url => {
-      cy.log(`Current URL: ${url}`)
-    })
+      .then(() => {
+        // Verify the page loaded correctly
+        cy.title().should('exist')
+        
+        // Log the current URL (for debugging)
+        return cy.url()
+      })
+      .then((url) => {
+        cy.log(`Current URL: ${url}`)
+        
+        // Deliberate test failure - this will run last
+        expect(true).to.be.false
+      })
   })
 })
