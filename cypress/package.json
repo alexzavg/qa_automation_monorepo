@@ -1,0 +1,17 @@
+{
+  "devDependencies": {
+    "@types/dotenv": "^8.2.3",
+    "@types/fs-extra": "^11.0.4",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^20.11.0",
+    "cypress": "^14.4.0",
+    "dotenv": "^16.5.0",
+    "typescript": "^5.7.2"
+  },
+  "scripts": {
+    "cy:open:stage": "CYPRESS_ENV=stage cypress open",
+    "cy:open:prod": "CYPRESS_ENV=prod cypress open",
+    "test:stage": "CYPRESS_ENV=stage cypress run",
+    "test:prod": "CYPRESS_ENV=prod cypress run"
+  }
+}
