@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "💣 Killing all Playwright & WebDriverIO-related processes"
+echo "💣 Killing all automation frameworks-related processes"
 
 MASKS=("playwright" "npm exec playwright" "playwright_chromiumdev_profile" "node.*playwright" "node.*ganache" "ganache" "wdio" "node.*wdio" "chromedriver" "geckodriver" "safaridriver" "node.*mocha" "node.*testrunner" "node.*selenium" "node.*webdriver" "cypress" "Cypress" "node.*cypress")
 
@@ -14,4 +14,4 @@ for MASK in "${MASKS[@]}"; do
   fi
 done
 
-echo "✅ All matching Playwright & WebDriverIO processes killed."
+echo "✅ All matching automation frameworks processes killed."
