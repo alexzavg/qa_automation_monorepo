@@ -24,7 +24,7 @@ This project provides a flexible testing framework using Cypress with support fo
    ```
 
 3. **Environment Setup**
-   - Copy `.env.example` to `.env.stage` and `.env.prod`
+   - Get `.env.stage` and `.env.prod` from the project lead
    - Update the environment variables in each file as needed
 
 ## Configuration
