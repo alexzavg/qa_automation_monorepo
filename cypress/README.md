@@ -148,6 +148,28 @@ ENV=prod APP_NAME=testApp SUITE_NAME=e2e cypress run --e2e --browser firefox
 - `cypress open` launches the interactive test runner
 - `cypress run` runs tests headlessly (useful for CI/CD)
 
+### 5. Local HTML Reporter
+
+This project uses `mochawesome` for generating HTML test reports. Reports are automatically generated after each test run.
+
+#### Key Features:
+- Detailed test execution results
+- Screenshots of failed tests
+- Test timing information
+- Stack traces for failed assertions
+
+#### Accessing Reports:
+1. After running tests with `cy:run` commands, reports are generated in the `reports` directory
+2. To view the latest report, run:
+   ```bash
+   npm run report:open
+   ```
+   This will open the HTML report in your default browser
+
+#### Report Cleanup:
+- The `clean:reports` script automatically removes previous report artifacts before each test run
+- This ensures you always see the latest test results without manual cleanup
+
 ## Best Practices
 1. Keep environment-specific configurations in their respective `.env` files
 2. Use `Cypress.env()` to access environment variables in tests
