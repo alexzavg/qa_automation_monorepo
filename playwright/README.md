@@ -49,25 +49,25 @@ Test reports from CI runs are automatically published to GitHub Pages. Reports a
 
 ### Accessing Reports
 
-Base URL: `https://alexzavg.github.io/qa_automation_monorepo/{SUITE_NAME}/{BUILD_NUMBER}`
+Base URL: `https://alexzavg.github.io/qa_automation_monorepo/{SUITE_NAME}_{BROWSER_NAME}_{ENV_NAME}/{BUILD_NUMBER}`
 
 Example suites:
-- `CHAT_E2E_TESTS_PROD`
-- `CHAT_E2E_TESTS_STAGE`
-- `SOFTSERVE_BULLIES_TESTS_PROD`
-- `BOOKRETREATS_E2E_TESTS_PROD`
-- `BLOCKCHAIN_TESTS_PROD`
-- `GMAIL_TESTS_PROD`
-- `AUTHENTICATION_TESTS_PROD`
+- `CHAT_TESTS`
+- `SOFTSERVE_TESTS`
+- `BOOKRETREATS_TESTS`
+- `BLOCKCHAIN_TESTS`
+- `GMAIL_TESTS`
+- `AUTHENTICATION_TESTS`
+- `APIS_TESTS`
 
 ### Latest Build Reports
 
 To view the most recent report for a suite, use:
 ```
-https://alexzavg.github.io/qa_automation_monorepo/{SUITE_NAME}/1
+https://alexzavg.github.io/qa_automation_monorepo/{SUITE_NAME}_{BROWSER_NAME}_{ENV_NAME}/{BUILD_NUMBER}
 ```
 
-Example: [Latest Chat E2E Prod Report](https://alexzavg.github.io/qa_automation_monorepo/CHAT_E2E_TESTS_PROD/1)
+Example: [Latest Chat E2E Prod Report](https://alexzavg.github.io/qa_automation_monorepo/CHAT_TESTS_chrome_stage/2)
 
 ## Build Numbers and History
 
@@ -84,7 +84,7 @@ Example: [Latest Chat E2E Prod Report](https://alexzavg.github.io/qa_automation_
 ### Example Report URLs
   
 - Specific build number (e.g., build #1) for Stage environment:
-  `https://alexzavg.github.io/playwright_retreat/CHAT_E2E_TESTS_STAGE/1`
+  `https://alexzavg.github.io/qa_automation_monorepo/CHAT_TESTS_chrome_stage/2`
 
 ## Troubleshooting Reports
 
