@@ -7,6 +7,10 @@
 - [Android Tests Setup](#android-tests-setup)
   - [Android Emulator Setup - MacOS](#android-emulator-setup---macos)
 
+## Demo Videos
+[WDIO Setup](https://youtu.be/B2jjoS394z8?si=8yWxeqn6W1l8X--M&t=2954)
+[Android Tests Local Setup](https://youtu.be/PDMqDAFAg5s?si=wv1c-X2N2etjweaS)
+
 ## General Setup
 1. Install jdk https://www.oracle.com/java/technologies/downloads
 2. Install Android Studio https://developer.android.com/studio
