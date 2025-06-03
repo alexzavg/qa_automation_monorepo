@@ -2,7 +2,7 @@
 
 echo "💣 Killing all Playwright & WebDriverIO-related processes"
 
-MASKS=("playwright" "npm exec playwright" "playwright_chromiumdev_profile" "node.*playwright" "node.*ganache" "ganache" "wdio" "node.*wdio" "chromedriver" "geckodriver" "safaridriver" "node.*mocha" "node.*testrunner" "node.*selenium" "node.*webdriver")
+MASKS=("playwright" "npm exec playwright" "playwright_chromiumdev_profile" "node.*playwright" "node.*ganache" "ganache" "wdio" "node.*wdio" "chromedriver" "geckodriver" "safaridriver" "node.*mocha" "node.*testrunner" "node.*selenium" "node.*webdriver" "cypress" "Cypress" "node.*cypress")
 
 for MASK in "${MASKS[@]}"; do
   PIDS=$(pgrep -f "$MASK")
