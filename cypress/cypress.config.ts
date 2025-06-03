@@ -2,6 +2,7 @@ import { defineConfig } from 'cypress'
 import * as dotenv from 'dotenv'
 import * as path from 'path'
 import * as fs from 'fs'
+import allureWriter from '@shelex/cypress-allure-plugin/writer'
 
 // Get environment variables with defaults
 const env = process.env.ENV
@@ -65,19 +66,37 @@ export default defineConfig({
       openMode: 0,
     },
 
-    setupNodeEvents(on, config) {
-      // Set all CYPRESS_* environment variables in Cypress config
+    setupNodeEvents(on, config: Cypress.PluginConfigOptions) {
+      // Add Allure writer
+      allureWriter(on, config)
+      
+      // Set environment variables
       config.env = {
         ...config.env,
-        ...cypressEnvVars
+        ...cypressEnvVars 
       }
       
-      // Configure Chrome launch options
+      // Add Chrome launch options
       on('before:browser:launch', (browser, launchOptions) => {
         if (browser.family === 'chromium' && browser.name !== 'electron') {
           launchOptions.args.push('--disable-dev-shm-usage')
         }
         return launchOptions
+      })
+
+      // Generate Allure report after test run
+      on('after:run', async () => {
+        const { exec } = require('child_process')
+        const util = require('util')
+        const execPromise = util.promisify(exec)
+        
+        try {
+          console.log('Generating Allure report...')
+          await execPromise('npx allure generate cypress/allure-results --clean -o cypress/allure-reports')
+          console.log('Allure report generated successfully')
+        } catch (error) {
+          console.error('Error generating Allure report:', error)
+        }
       })
       
       return config

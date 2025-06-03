@@ -3,6 +3,9 @@ cypress/cypress/screenshots
 cypress/cypress/videos
 cypress/cypress/reports
 cypress/.env.*
+cypress/cypress/allure-results
+cypress/cypress/allure-reports
+cypress/cypress/results
 
 playwright/node_modules
 playwright/playwright-report

@@ -13,8 +13,11 @@
 // https://on.cypress.io/configuration
 // ***********************************************************
 
-// Import commands.js or other support files
+// Import commands.js using ES2015 syntax:
 import './commands';
+
+// Import Allure plugin
+import '@shelex/cypress-allure-plugin';
 
 // Extend Cypress types
 declare global {
