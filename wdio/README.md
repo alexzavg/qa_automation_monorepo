@@ -74,7 +74,53 @@ Before & after running tests, it's recommended to kill all processes & ports tha
 5. Mobile tests, as any other tests, use the same logic with Allure reporter, which gets generated after tests finished running, and can be opened with `npm run allure:open`
 
 ## CI / CD Setup
-TBD
+
+### Web Tests
+
+#### Running Web Tests in CI
+
+Web tests are executed in the CI pipeline using GitHub Actions. The workflow is defined in `.github/workflows/wdio-web-tests.yaml`.
+
+Key features of the web test workflow:
+- Runs by workflow on demand (can be configured for scheduled or conditional runs)
+- Supports multiple environments (stage, prod)
+- Supports different test suites (e2e, all)
+- Generates and publishes Allure reports
+
+#### Test Reports
+
+Test reports are automatically generated and published to GitHub Pages after each CI run. Reports include:
+- Test execution results
+- Screenshots for failed tests
+- Test execution videos
+- Environment information
+
+#### Accessing Reports
+
+Reports are available at:
+```
+https://alexzavg.github.io/qa_automation_monorepo/{APP_NAME}_{SUITE_NAME}_{ENV_NAME}/{BUILD_NUMBER}
+```
+
+Example URL for testApp E2E tests in stage environment (build #1):
+```
+https://alexzavg.github.io/qa_automation_monorepo/testApp_e2e_stage/1/
+```
+
+Reports include:
+- Test execution results
+- Screenshots for failed tests
+- Test execution videos
+- Environment information
+
+#### Triggering Tests Manually
+
+You can manually trigger web tests through GitHub Actions:
+1. Go to the "Actions" tab in the repository
+2. Select the "Web Tests" workflow
+3. Click "Run workflow"
+4. Select the environment and test suite
+5. Click "Run workflow"
 
 ### Android Emulator Setup - MacOS
 In Android Studio:
