@@ -7,7 +7,6 @@ import * as fs from 'fs'
 const env = process.env.ENV
 const appName = process.env.APP_NAME
 const suiteName = process.env.SUITE_NAME
-const browserName = process.env.BROWSER
 
 // Environment variables type
 interface EnvVars {
@@ -67,17 +66,6 @@ export default defineConfig({
     },
 
     setupNodeEvents(on, config) {
-      // Set the browser from environment variable
-      if (browserName) {
-        // Find the browser with the specified name
-        const foundBrowser = config.browsers?.find(b => b.name === browserName || b.displayName === browserName);
-        if (foundBrowser) {
-          config.browser = foundBrowser;
-        } else {
-          console.warn(`Could not find browser: ${browserName}. Available browsers: ${config.browsers?.map(b => b.name).join(', ')}`);
-        }
-      }
-
       // Set all CYPRESS_* environment variables in Cypress config
       config.env = {
         ...config.env,

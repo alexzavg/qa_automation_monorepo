@@ -8,13 +8,13 @@
     "typescript": "^5.7.2"
   },
   "scripts": {
-    "cy:open:testApp:e2e:stage": "ENV=stage APP_NAME=testApp SUITE_NAME=e2e BROWSER=chrome cypress open --e2e --browser chrome",
-    "cy:open:testApp:e2e:prod": "ENV=prod APP_NAME=testApp SUITE_NAME=e2e BROWSER=chrome cypress open --e2e --browser chrome",
-    "cy:open:testApp:api:stage": "ENV=stage APP_NAME=testApp SUITE_NAME=api BROWSER=chrome cypress open --e2e --browser chrome",
-    "cy:open:testApp:api:prod": "ENV=prod APP_NAME=testApp SUITE_NAME=api BROWSER=chrome cypress open --e2e --browser chrome",
-    "cy:run:testApp:e2e:stage": "ENV=stage APP_NAME=testApp SUITE_NAME=e2e BROWSER=chrome cypress run --e2e --browser chrome",
-    "cy:run:testApp:e2e:prod": "ENV=prod APP_NAME=testApp SUITE_NAME=e2e BROWSER=chrome cypress run --e2e --browser chrome",
-    "cy:run:testApp:api:stage": "ENV=stage APP_NAME=testApp SUITE_NAME=api BROWSER=chrome cypress run --e2e --browser chrome",
-    "cy:run:testApp:api:prod": "ENV=prod APP_NAME=testApp SUITE_NAME=api BROWSER=chrome cypress run --e2e --browser chrome"
+    "cy:open:testApp:e2e:stage": "ENV=stage APP_NAME=testApp SUITE_NAME=e2e cypress open --e2e --browser chrome",
+    "cy:open:testApp:e2e:prod": "ENV=prod APP_NAME=testApp SUITE_NAME=e2e cypress open --e2e --browser chrome",
+    "cy:open:testApp:api:stage": "ENV=stage APP_NAME=testApp SUITE_NAME=api cypress open --e2e --browser chrome",
+    "cy:open:testApp:api:prod": "ENV=prod APP_NAME=testApp SUITE_NAME=api cypress open --e2e --browser chrome",
+    "cy:run:testApp:e2e:stage": "ENV=stage APP_NAME=testApp SUITE_NAME=e2e cypress run --e2e --browser chrome",
+    "cy:run:testApp:e2e:prod": "ENV=prod APP_NAME=testApp SUITE_NAME=e2e cypress run --e2e --browser chrome",
+    "cy:run:testApp:api:stage": "ENV=stage APP_NAME=testApp SUITE_NAME=api cypress run --e2e --browser chrome",
+    "cy:run:testApp:api:prod": "ENV=prod APP_NAME=testApp SUITE_NAME=api cypress run --e2e --browser chrome"
   }
 }
