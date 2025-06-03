@@ -63,6 +63,20 @@ export default defineConfig({
       runMode: 1,
       openMode: 0,
     },
+    reporter: 'mochawesome',
+    reporterOptions: {
+      reportDir: 'cypress/results',
+      overwrite: true,
+      html: true,
+      json: false,
+      reportFilename: 'report',
+      reportTitle: 'Cypress Test Results',
+      reportPageTitle: 'Cypress Test Results',
+      charts: true,
+      embeddedScreenshots: true,
+      inlineAssets: true,
+      saveAllAttempts: true
+    },
 
     setupNodeEvents(on, config: Cypress.PluginConfigOptions) {
       // Set environment variables
