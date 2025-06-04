@@ -158,7 +158,10 @@ jobs:
 
       - name: Run tests
         run: |
-          npm run clean:reports && ENV=${{ github.event.inputs.environment }} APP_NAME=${{ github.event.inputs.appName }} SUITE_NAME=${{ matrix.suite }} cypress run --e2e --browser ${{ github.event.inputs.browser }}
+          # Get the actual test directory from the environment variable
+          SUITE_DIR=$(eval echo \$${{ matrix.suite }})
+          echo "Running tests in directory: $SUITE_DIR"
+          npm run clean:reports && ENV=${{ github.event.inputs.environment }} APP_NAME=${{ github.event.inputs.appName }} SUITE_NAME=$SUITE_DIR cypress run --e2e --browser ${{ github.event.inputs.browser }}
 
       - name: Get latest build number
         if: always()
