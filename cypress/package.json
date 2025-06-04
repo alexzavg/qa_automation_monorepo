@@ -20,10 +20,14 @@
     "cy:open:testApp:e2e:prod": "ENV=prod APP_NAME=testApp SUITE_NAME=e2e cypress open --e2e --browser chrome",
     "cy:open:testApp:api:stage": "ENV=stage APP_NAME=testApp SUITE_NAME=api cypress open --e2e --browser chrome",
     "cy:open:testApp:api:prod": "ENV=prod APP_NAME=testApp SUITE_NAME=api cypress open --e2e --browser chrome",
+
+    "cy:run:testApp:all:stage": "ENV=stage APP_NAME=testApp SUITE_NAME=all cypress run --e2e --browser chrome",
+    "cy:run:testApp:all:prod": "ENV=prod APP_NAME=testApp SUITE_NAME=all cypress run --e2e --browser chrome",
     "cy:run:testApp:e2e:stage": "npm run clean:reports && ENV=stage APP_NAME=testApp SUITE_NAME=e2e cypress run --e2e --browser chrome",
     "cy:run:testApp:e2e:prod": "npm run clean:reports && ENV=prod APP_NAME=testApp SUITE_NAME=e2e cypress run --e2e --browser chrome",
     "cy:run:testApp:api:stage": "npm run clean:reports && ENV=stage APP_NAME=testApp SUITE_NAME=api cypress run --e2e --browser chrome",
     "cy:run:testApp:api:prod": "npm run clean:reports && ENV=prod APP_NAME=testApp SUITE_NAME=api cypress run --e2e --browser chrome",
+    
     "clean:reports": "node ./scripts/clean-reports.js",
     "report:open": "open reports/index.html"
   }
