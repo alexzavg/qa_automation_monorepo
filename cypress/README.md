@@ -148,6 +148,73 @@ ENV=prod APP_NAME=testApp SUITE_NAME=e2e cypress run --e2e --browser firefox
 - `cypress open` launches the interactive test runner
 - `cypress run` runs tests headlessly (useful for CI/CD)
 
+## Page Object Model (POM) Organization
+
+The test automation framework follows the Page Object Model (POM) design pattern to enhance test maintenance and reduce code duplication. Here's how it's structured:
+
+### Page Object Structure
+
+1. **Page Manager**
+   - Location: `cypress/support/pageManager.ts`
+   - Central registry for all page objects and API operations
+   - Provides a single entry point to access all pages and API operations globally
+   - Example usage: `pages.testApp.testPage.methodName()`
+
+2. **Base Page**
+   - Location: `cypress/pages/testApp/base.page.ts`
+   - Contains common elements and methods shared across all pages
+   - Should be extended by all page objects
+   - Example:
+     ```typescript
+     export default class BasePage {
+       elements = {
+         testElement: () => cy.get('[data-cy="test-element"]'),
+       }
+     }
+     ```
+
+3. **Page Objects**
+   - Location: `cypress/pages/{appName}/*.page.ts`
+   - Each page/component has its own class that extends `BasePage`
+   - Contains element selectors and page-specific methods
+   - Example: `test.page.ts` for the test page
+
+4. **API Operations**
+   - Location: `cypress/apis/{appName}/**/*.operations.ts`
+   - Organized by application and functionality
+   - Contains API request methods and related utilities
+   - Example: `gql.operations.ts` for GraphQL operations
+
+### Best Practices
+
+- **Naming Conventions**:
+  - Page object files: `*.page.ts`
+  - API operation files: `*.operations.ts`
+  - Test files: `*.spec.ts`
+
+- **Element Selection**:
+  - If possible, use custom attributes for element selection (e.g. `data-cy`)
+  - Keep selectors in the `elements` object
+
+- **Method Organization**:
+  - Group related methods together
+  - Keep methods small and focused on a single responsibility
+  - Return `this` for method chaining where appropriate
+
+### Example Usage
+
+```typescript
+// In your test file
+describe('Example Test Suite', () => {
+  it('should perform some action', () => {
+    pages.testApp.testPage
+      .visit()
+      .someAction()
+      .assertSomething()
+  })
+})
+```
+
 ### 5. Local HTML Reporter
 
 This project uses `mochawesome` for generating HTML test reports. Reports are automatically generated after each test run.
