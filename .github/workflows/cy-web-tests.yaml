@@ -116,8 +116,6 @@ jobs:
       matrix:
         suite: ${{ fromJson(needs.set-matrix.outputs.suite-matrix) }}
       fail-fast: false
-    env:
-      REPORT_URL: https://alexzavg.github.io/qa_automation_monorepo/${{ matrix.suite }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -201,32 +199,14 @@ jobs:
           
           echo "SLUG=$SLUG" >> $GITHUB_OUTPUT
           echo "BUILD_NUMBER=$BUILD_NUMBER" >> $GITHUB_OUTPUT
-
-      - name: 🚡 Prepare reports for deployment
-        if: always()
-        run: |
-          # Go to the repository root
-          cd $GITHUB_WORKSPACE
-          
-          # Create the destination directory structure
-          mkdir -p ./cypress/deploy_reports
-          
-          # Copy all report files
-          echo "Copying reports from: $GITHUB_WORKSPACE/cypress/reports/"
-          cp -r ./cypress/reports/* ./cypress/deploy_reports/ || echo "No files to copy"
-          
-          # List what we're about to deploy
-          echo "Files to be deployed:"
-          find ./cypress/deploy_reports -type f | sort
           
       - name: 🚀 Deploy suite report to GitHub Pages
         if: always()
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./cypress/deploy_reports
-          destination_dir: cypress_reports/${{ steps.get_build_number.outputs.SLUG }}/${{ steps.get_build_number.outputs.BUILD_NUMBER }}
-          keep_files: true
+          publish_dir: ./cypress/reports
+          destination_dir: ${{ steps.get_build_number.outputs.SLUG }}/${{ steps.get_build_number.outputs.BUILD_NUMBER }}
 
       - name: Notify Slack
         if: always()
