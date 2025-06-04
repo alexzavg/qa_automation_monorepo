@@ -221,14 +221,26 @@ jobs:
             exit 1
           fi
 
-      - name: 🚡 Deploy suite report to GitHub Pages
+      - name: 🚡 Prepare reports for deployment
+        if: always()
+        run: |
+          # Create the destination directory structure in a temporary location
+          mkdir -p ./deploy_reports
+          
+          # Copy all report files (including hidden ones if any)
+          cp -r ./reports/* ./deploy_reports/ 2>/dev/null || true
+          
+          # List what we're about to deploy
+          echo "Files to be deployed:"
+          find ./deploy_reports -type f | sort
+          
+      - name: 🚀 Deploy suite report to GitHub Pages
         if: always()
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: cypress/reports
+          publish_dir: ./deploy_reports
           destination_dir: cypress_reports/${{ steps.get_build_number.outputs.SLUG }}/${{ steps.get_build_number.outputs.BUILD_NUMBER }}
-          keep_files: true
 
       - name: Notify Slack
         if: always()
