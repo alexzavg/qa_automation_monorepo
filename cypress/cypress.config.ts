@@ -8,6 +8,12 @@ import mochawesome from 'cypress-mochawesome-reporter/plugin'
 const env = process.env.ENV
 const appName = process.env.APP_NAME
 const suiteName = process.env.SUITE_NAME
+let specPattern: string
+if(suiteName === 'all') {
+  specPattern = `tests/${appName}/**/*.spec.ts`
+} else {
+  specPattern = `tests/${appName}/${suiteName}/**/*.spec.ts`
+}
 
 // Environment variables type
 interface EnvVars {
@@ -60,7 +66,7 @@ export default defineConfig({
     inlineAssets: true,
   },
   e2e: {
-    specPattern: `tests/${appName}/${suiteName}/**/*.spec.ts`,
+    specPattern: specPattern,
     supportFile: 'support/e2e.ts',
     fixturesFolder: 'fixtures',
     baseUrl: envVars.CYPRESS_BASE_URL,
