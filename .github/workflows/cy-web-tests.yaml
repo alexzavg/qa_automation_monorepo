@@ -116,6 +116,8 @@ jobs:
       matrix:
         suite: ${{ fromJson(needs.set-matrix.outputs.suite-matrix) }}
       fail-fast: false
+    env:
+      REPORT_URL: https://alexzavg.github.io/qa_automation_monorepo/${{ matrix.suite }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -200,47 +202,31 @@ jobs:
           echo "SLUG=$SLUG" >> $GITHUB_OUTPUT
           echo "BUILD_NUMBER=$BUILD_NUMBER" >> $GITHUB_OUTPUT
 
-      - name: 📄 Verify reports directory
-        if: always()
-        run: |
-          echo "Current directory: $(pwd)"
-          echo "\nChecking reports directory: ./reports/"
-          if [ -d "./reports" ]; then
-            echo "Reports directory exists. Contents:"
-            ls -la ./reports/
-            
-            # Check for HTML files
-            echo "\nHTML files in reports directory:"
-            find ./reports -name '*.html' -o -name '*.htm' | sort
-            
-            # Count total files
-            echo "\nTotal files in reports directory:"
-            find ./reports -type f | wc -l
-          else
-            echo "ERROR: Reports directory not found at ./reports/"
-            exit 1
-          fi
-
       - name: 🚡 Prepare reports for deployment
         if: always()
         run: |
-          # Create the destination directory structure in a temporary location
-          mkdir -p ./deploy_reports
+          # Go to the repository root
+          cd $GITHUB_WORKSPACE
           
-          # Copy all report files (including hidden ones if any)
-          cp -r ./reports/* ./deploy_reports/ 2>/dev/null || true
+          # Create the destination directory structure
+          mkdir -p ./cypress/deploy_reports
+          
+          # Copy all report files
+          echo "Copying reports from: $GITHUB_WORKSPACE/cypress/reports/"
+          cp -r ./cypress/reports/* ./cypress/deploy_reports/ || echo "No files to copy"
           
           # List what we're about to deploy
           echo "Files to be deployed:"
-          find ./deploy_reports -type f | sort
+          find ./cypress/deploy_reports -type f | sort
           
       - name: 🚀 Deploy suite report to GitHub Pages
         if: always()
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./deploy_reports
+          publish_dir: ./cypress/deploy_reports
           destination_dir: cypress_reports/${{ steps.get_build_number.outputs.SLUG }}/${{ steps.get_build_number.outputs.BUILD_NUMBER }}
+          keep_files: true
 
       - name: Notify Slack
         if: always()
