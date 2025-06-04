@@ -204,20 +204,20 @@ jobs:
         if: always()
         run: |
           echo "Current directory: $(pwd)"
-          echo "\nChecking reports directory: cypress/reports/"
-          if [ -d "cypress/reports" ]; then
+          echo "\nChecking reports directory: ./reports/"
+          if [ -d "./reports" ]; then
             echo "Reports directory exists. Contents:"
-            ls -la cypress/reports/
+            ls -la ./reports/
             
             # Check for HTML files
             echo "\nHTML files in reports directory:"
-            find cypress/reports -name '*.html' -o -name '*.htm' | sort
+            find ./reports -name '*.html' -o -name '*.htm' | sort
             
             # Count total files
             echo "\nTotal files in reports directory:"
-            find cypress/reports -type f | wc -l
+            find ./reports -type f | wc -l
           else
-            echo "ERROR: Reports directory not found at cypress/reports/"
+            echo "ERROR: Reports directory not found at ./reports/"
             exit 1
           fi
 
@@ -226,8 +226,9 @@ jobs:
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: cypress/reports
+          publish_dir: ./reports
           destination_dir: cypress_reports/${{ steps.get_build_number.outputs.SLUG }}/${{ steps.get_build_number.outputs.BUILD_NUMBER }}
+          keep_files: true
 
       - name: Notify Slack
         if: always()
