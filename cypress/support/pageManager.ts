@@ -1,9 +1,11 @@
 // cypress/support/pageManager.ts
 import TestPage from '../pages/testApp/test.page'
+import GQLTestOperations from '../apis/testApp/gql/test.operations'
 
 class PageManager {
   testApp = {
-    testPage: new TestPage()
+    testPage: new TestPage(),
+    gqlTestOperations: new GQLTestOperations()
   }
 
   // Add other apps here when needed

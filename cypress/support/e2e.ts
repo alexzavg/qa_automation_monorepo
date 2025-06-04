@@ -8,8 +8,13 @@
 import './commands'
 import 'cypress-mochawesome-reporter/register'
 import pageManager from './pageManager'
+import { slowCypressDown } from 'cypress-slow-down'
 
+// Add pages to cy.pages
 globalThis.pages = pageManager
+
+// Slow down test execution by 100ms between commands
+slowCypressDown(100)
 
 // Configure screenshots to be taken on test failure
 Cypress.Screenshot.defaults({
