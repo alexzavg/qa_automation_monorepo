@@ -13,4 +13,6 @@ class PageManager {
   // }
 }
 
-export default new PageManager()
+// Create and export the instance
+const pageManager = new PageManager()
+export default pageManager

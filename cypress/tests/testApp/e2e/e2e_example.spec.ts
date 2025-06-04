@@ -7,9 +7,9 @@ describe('E2E Example', () => {
   })
 
   it('visits the page and checks the title', () => {
-    cy.page.testApp.testPage.visit()
-    cy.page.testApp.testPage.checkPageTitle()
-    cy.page.testApp.testPage.checkBannerText(headerBanner.title)
+    pages.testApp.testPage.visit()
+    pages.testApp.testPage.checkPageTitle()
+    pages.testApp.testPage.checkBannerText(headerBanner.title)
   })
 
   it('fails on purpose', () => {

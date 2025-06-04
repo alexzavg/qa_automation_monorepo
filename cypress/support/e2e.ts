@@ -7,6 +7,9 @@
 // ***********************************************************
 import './commands'
 import 'cypress-mochawesome-reporter/register'
+import pageManager from './pageManager'
+
+globalThis.pages = pageManager
 
 // Configure screenshots to be taken on test failure
 Cypress.Screenshot.defaults({

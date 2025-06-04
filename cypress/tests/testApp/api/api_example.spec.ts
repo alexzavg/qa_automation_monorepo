@@ -3,7 +3,6 @@ describe('API Example', () => {
     // Log environment information
     cy.log(`Environment: ${Cypress.env('envName')}`)
     cy.log(`Base URL: ${Cypress.config('baseUrl')}`)
-    cy.log(`Specific value: ${Cypress.env('CYPRESS_ENV_SPECIFIC_VALUE')}`)
     
     // Verify the base URL is set correctly
     cy.visit('/')

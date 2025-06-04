@@ -18,7 +18,8 @@
   },
   "include": [
     "**/*.ts",
-    "support/**/*.ts"
+    "support/**/*.ts",
+    "global.d.ts"
   ],
   "exclude": ["node_modules"]
 }

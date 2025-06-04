@@ -1,15 +1,15 @@
 /// <reference types="cypress" />
 
+// cypress/support/commands.ts
 import pageManager from './pageManager'
 
 declare global {
   namespace Cypress {
     interface Chainable {
-      page: {
-        testApp: typeof pageManager.testApp
-      }
+      pages: typeof pageManager
     }
   }
 }
 
-Cypress.Commands.add('page', () => pageManager)
+// Add pages to cy.pages
+Cypress.Commands.add('pages', { prevSubject: false }, () => pageManager)
