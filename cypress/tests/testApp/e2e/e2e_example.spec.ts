@@ -1,14 +1,18 @@
+import { headerBanner } from '../../../testData/testApp/test.page.data'
+
 describe('E2E Example', () => {
-  it('should load the correct environment configuration', () => {
+  before(() => {
     cy.log(`Environment: ${Cypress.env('CYPRESS_ENV_NAME')}`)
     cy.log(`Base URL: ${Cypress.config('baseUrl')}`)
-    cy.log(`Specific value: ${Cypress.env('CYPRESS_ENV_SPECIFIC_VALUE')}`)
-    
-    cy.visit('/')
-    cy.title().should('exist')
   })
 
-  it('should fail on purpose', () => {
+  it('visits the page and checks the title', () => {
+    cy.page.testApp.testPage.visit()
+    cy.page.testApp.testPage.checkPageTitle()
+    cy.page.testApp.testPage.checkBannerText(headerBanner.title)
+  })
+
+  it('fails on purpose', () => {
     expect(true).to.be.false
   })
 })
