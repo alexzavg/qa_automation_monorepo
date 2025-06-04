@@ -5,7 +5,12 @@
 - [TEST REPORTS](#test-reports)
   - [Viewing Reports Locally](#viewing-reports-locally)
   - [Viewing Reports in CI](#viewing-reports-in-ci)
+    - [Accessing Reports](#accessing-reports)
+    - [Latest Build Reports](#latest-build-reports)
   - [Build Numbers and History](#build-numbers-and-history)
+    - [Viewing Build History](#viewing-build-history)
+    - [Example Report URLs](#example-report-urls)
+  - [Troubleshooting Reports](#troubleshooting-reports)
 
 # DEMO VIDEOS
 [Live Coding & Tech Demos](https://www.youtube.com/playlist?list=PLMYcjser4KJ39fYupgcr-0NuZyV_34PW3)

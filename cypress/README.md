@@ -3,11 +3,22 @@
 This project provides a flexible testing framework using Cypress with support for multiple environments, applications, and test suites.
 
 ## Table of Contents
+- [DEMO VIDEOS](#demo-videos)
 - [Setup](#setup)
 - [Configuration](#configuration)
   - [Environment Variables](#environment-variables)
   - [Test Structure](#test-structure)
   - [Running Tests](#running-tests)
+- [Page Object Model (POM) Organization](#page-object-model-pom-organization)
+- [Troubleshooting](#troubleshooting)
+- [CI/CD Integration](#cicd-integration)
+  - [Configuration Reference](#configuration-reference)
+  - [Workflow Overview](#workflow-overview)
+  - [Manual Workflow Trigger](#manual-workflow-trigger)
+  - [Accessing Test Reports](#accessing-test-reports)
+
+## DEMO VIDEOS
+[TBD]()
 
 ## Setup
 
@@ -248,3 +259,66 @@ This project uses `mochawesome` for generating HTML test reports. Reports are au
 - If tests fail to find the browser, ensure it's installed and the path is correct
 - Check the browser console logs for any errors during test execution
 - Verify environment variables are correctly set in the appropriate `.env` file
+
+## CI/CD Integration
+
+The project includes GitHub Actions workflows for running tests in CI/CD environments. The workflow is triggered on push to any branch, schedule, or manually.
+
+### Configuration Reference
+
+The workflow is configured in `.github/workflows/cy-web-tests.yaml`. Key configurations include:
+
+- **Dependency Caching**: Reduces build times by caching node_modules and browser binaries
+- **Matrix Strategy**: Runs tests across multiple browsers and test suites in parallel
+- **Artifact Retention**: Stores reports, screenshots, and videos for 7 days
+- **Timeout**: Individual test runs timeout after 30 minutes
+
+### Workflow Overview
+
+1. **Test Execution**
+   - Runs on Ubuntu latest
+   - Supports multiple test suites and browsers via matrix strategy
+   - Caches dependencies for faster builds
+   - Generates detailed test reports and screenshots
+
+2. **Test Reports**
+   - Mochawesome HTML reports are generated for each test run
+   - Screenshots are captured on test failures
+   - Videos are recorded for each test run
+
+3. **Report Publishing**
+   - Reports are published to GitHub Pages
+   - Each test run gets a unique URL based on the test configuration
+   - Historical reports are preserved for comparison
+
+### Manual Workflow Trigger
+
+You can manually trigger the workflow with custom parameters:
+
+1. Go to GitHub Actions
+2. Select "Cypress Tests" workflow
+3. Click "Run workflow"
+4. Configure the parameters:
+   - **Environment**: `stage` or `prod`
+   - **Application**: Name of the application (e.g., `testApp`)
+   - **Suite**: Test suite to run (e.g., `e2e`, `api`)
+   - **Browser**: Browser to run tests in (e.g., `chrome`, `firefox`)
+
+### Accessing Test Reports
+
+After a test run completes, you can access the reports in several ways:
+
+1. **GitHub Actions Artifacts**
+   - Navigate to the workflow run in GitHub Actions
+   - Check the `cypress/reports` directory to view the HTML report
+
+2. **GitHub Pages**
+   - Reports are published to: 
+     `https://{your-username}.github.io/qa_automation_monorepo/cy_{suite_name}_{browser}_{environment}/{build_number}/`
+   - Example: `https://alexzavg.github.io/qa_automation_monorepo/cy_E2E_TESTS_chrome_stage/1/`
+
+3. **Slack Notifications**
+   - A notification is sent to the configured Slack channel with:
+     - Test run status (pass/fail)
+     - Direct link to the test report
+     - Link to the GitHub Actions run

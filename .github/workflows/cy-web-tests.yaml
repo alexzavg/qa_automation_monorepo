@@ -2,6 +2,11 @@ name: Cypress Web Tests
 run-name: 🧪 Cypress Web Tests
 
 on:
+  # schedule:
+  #  - cron: '0 7 * * 1-5' # 9:00 AM Kyiv time (Kyiv is UTC+3, so 7:00 UTC)
+  # push:
+  #   branches:
+  #     - template
   workflow_dispatch:
     inputs:
       appName:

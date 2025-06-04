@@ -1,11 +1,20 @@
+# TABLE OF CONTENTS
+- [Demo Videos](#demo-videos)
 - [General Setup](#general-setup)
 - [Configuration](#configuration)
 - [Parametrized Test Runs](#parametrized-test-runs)
-- [Suite-based specs](#suite-based-specs)
-- [Page objects](#page-objects)
+- [Page Objects](#page-objects)
 - [Reporting](#reporting)
+- [Cleanup](#cleanup)
 - [Android Tests Setup](#android-tests-setup)
   - [Android Emulator Setup - MacOS](#android-emulator-setup---macos)
+  - [Android Test Development](#android-test-development)
+  - [Running Android Tests](#running-android-tests)
+- [CI/CD Setup](#ci--cd-setup)
+  - [Running Web Tests in CI](#running-web-tests-in-ci)
+  - [Test Reports](#test-reports)
+  - [Accessing Reports](#accessing-reports)
+  - [Triggering Tests Manually](#triggering-tests-manually)
 
 ## Demo Videos
 [WDIO Setup](https://youtu.be/B2jjoS394z8?si=8yWxeqn6W1l8X--M&t=2954)
