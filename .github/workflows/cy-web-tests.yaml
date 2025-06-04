@@ -226,7 +226,7 @@ jobs:
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./reports
+          publish_dir: cypress/reports
           destination_dir: cypress_reports/${{ steps.get_build_number.outputs.SLUG }}/${{ steps.get_build_number.outputs.BUILD_NUMBER }}
           keep_files: true
 
