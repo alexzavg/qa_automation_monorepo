@@ -116,8 +116,6 @@ jobs:
       matrix:
         suite: ${{ fromJson(needs.set-matrix.outputs.suite-matrix) }}
       fail-fast: false
-    env:
-      REPORT_URL: https://alexzavg.github.io/qa_automation_monorepo/cypress_reports/${{ matrix.suite }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -139,10 +137,14 @@ jobs:
 
       - name: Install dependencies
         run: |
-          if [ ! -d node_modules ] || [ -z "$(ls -A node_modules)" ]; then
+          if [ ! -d node_modules ] || [ -z "$(ls -A node_modules)" ] || ! command -v cypress &> /dev/null; then
+            echo "Installing dependencies..."
             npm install
+            # Ensure Cypress is installed globally for the runner
+            npm install -g cypress
           fi
-          npx cypress verify
+          # Verify Cypress is available
+          cypress --version
 
       - name: Create .env file
         run: |
@@ -162,7 +164,7 @@ jobs:
         if: always()
         id: get_build_number
         run: |
-          SLUG="/cypress_reports/${{ matrix.suite }}_${{ github.event.inputs.browser }}_${{ github.event.inputs.environment }}"
+          SLUG="${{ matrix.suite }}_${{ github.event.inputs.browser }}_${{ github.event.inputs.environment }}"
           echo "Checking for existing builds in ${SLUG}"
           
           curl_url="https://api.github.com/repos/${{ github.repository }}/contents/${SLUG}?ref=gh-pages"
