@@ -135,6 +135,7 @@ ENV=prod APP_NAME=testApp SUITE_NAME=e2e cypress run --e2e --browser firefox
 ### 2. Test Discovery
 - Tests are discovered based on the `APP_NAME` and `SUITE_NAME`
 - The pattern `cypress/tests/{APP_NAME}/{SUITE_NAME}/**/*.spec.ts` is used to find test files
+- If `{SUITE_NAME}` is `all`, all tests in the `{APP_NAME}` directory will run
 
 ### 3. Browser Configuration
 - **Always** use the `--browser` flag to explicitly specify the browser
