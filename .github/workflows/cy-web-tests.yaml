@@ -167,7 +167,7 @@ jobs:
         if: always()
         id: get_build_number
         run: |
-          SLUG="${{ matrix.suite }}_${{ github.event.inputs.browser }}_${{ github.event.inputs.environment }}"
+          SLUG="cy_${{ matrix.suite }}_${{ github.event.inputs.browser }}_${{ github.event.inputs.environment }}"
           echo "Checking for existing builds in ${SLUG}"
           
           curl_url="https://api.github.com/repos/${{ github.repository }}/contents/${SLUG}?ref=gh-pages"
@@ -200,13 +200,34 @@ jobs:
           echo "SLUG=$SLUG" >> $GITHUB_OUTPUT
           echo "BUILD_NUMBER=$BUILD_NUMBER" >> $GITHUB_OUTPUT
 
-      - name: 🛁 Deploy suite report to GitHub Pages
+      - name: 📄 Verify reports directory
+        if: always()
+        run: |
+          echo "Current directory: $(pwd)"
+          echo "\nChecking reports directory: cypress/reports/"
+          if [ -d "cypress/reports" ]; then
+            echo "Reports directory exists. Contents:"
+            ls -la cypress/reports/
+            
+            # Check for HTML files
+            echo "\nHTML files in reports directory:"
+            find cypress/reports -name '*.html' -o -name '*.htm' | sort
+            
+            # Count total files
+            echo "\nTotal files in reports directory:"
+            find cypress/reports -type f | wc -l
+          else
+            echo "ERROR: Reports directory not found at cypress/reports/"
+            exit 1
+          fi
+
+      - name: 🚡 Deploy suite report to GitHub Pages
         if: always()
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: cypress/reports
-          destination_dir: ${{ steps.get_build_number.outputs.SLUG }}/${{ steps.get_build_number.outputs.BUILD_NUMBER }}
+          destination_dir: cypress_reports/${{ steps.get_build_number.outputs.SLUG }}/${{ steps.get_build_number.outputs.BUILD_NUMBER }}
 
       - name: Notify Slack
         if: always()
@@ -226,7 +247,7 @@ jobs:
 
           SLUG=${{ steps.get_build_number.outputs.SLUG }}
           BUILD_NUMBER=${{ steps.get_build_number.outputs.BUILD_NUMBER }}
-          REPORT_URL="https://alexzavg.github.io/qa_automation_monorepo/cypress_reports/${SLUG}/${BUILD_NUMBER}"
+          REPORT_URL="https://alexzavg.github.io/qa_automation_monorepo/${SLUG}/${BUILD_NUMBER}"
           echo ""
           echo "🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥"
           echo "🟩 REPORT URL FOR ${STATUS^^}: ${REPORT_URL}"
