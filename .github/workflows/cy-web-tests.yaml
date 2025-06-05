@@ -3,8 +3,8 @@ run-name: 🧪 Cypress Web Tests
 
 on:
   schedule:
-    - cron: '0 7 * * 1-5' # for Stage env - 9:00 AM Kyiv time (Kyiv is UTC+3, so 7:00 UTC)
-    - cron: '0 8 * * 1-5' # for Prod env - 10:00 AM Kyiv time (Kyiv is UTC+3, so 8:00 UTC)
+    - cron: '0 7 * * 1-5' # for Stage env - 9:00 AM Kyiv time (Kyiv is UTC+3, so 10:00 UTC)
+    - cron: '0 8 * * 1-5' # for Prod env - 10:00 AM Kyiv time (Kyiv is UTC+3, so 11:00 UTC)
   push:
     branches:
       - template
@@ -18,10 +18,14 @@ on:
         options:
           - testApp
       test_suite:
-        description: 'Test suite(s) to run, comma-separated. Available suites: E2E_TESTS, API_TESTS, ALL'
+        description: 'Test suite(s) to run'
         required: true
         default: 'ALL'
-        type: string
+        type: choice
+        options:
+          - E2E_TESTS
+          - API_TESTS
+          - ALL
       browser:
         description: 'Browser to run the tests against'
         required: true

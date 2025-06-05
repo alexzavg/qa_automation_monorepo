@@ -3,18 +3,27 @@ run-name: 🧪 Playwright Web Tests
 
 on:
   schedule:
-    - cron: '0 7 30 * 1-5' # for Stage env - 9:30 AM Kyiv time (Kyiv is UTC+3, so 7:30 UTC)
-    - cron: '0 8 30 * 1-5' # for Prod env - 10:30 AM Kyiv time (Kyiv is UTC+3, so 8:30 UTC)
+    - cron: '0 7 30 * 1-5' # for Stage env - 9:30 AM Kyiv time (Kyiv is UTC+3, so 10:30 UTC)
+    - cron: '0 8 30 * 1-5' # for Prod env - 10:30 AM Kyiv time (Kyiv is UTC+3, so 11:30 UTC)
   push:
     branches:
       - template
   workflow_dispatch:
     inputs:
       test_suite:
-        description: 'Test suite(s) to run (comma-separated, e.g. CHAT_TESTS, SOFTSERVE_TESTS, BOOKRETREATS_TESTS, or ALL). Available suites: CHAT_TESTS, SOFTSERVE_TESTS, BOOKRETREATS_TESTS, BLOCKCHAIN_TESTS, GMAIL_TESTS, AUTHENTICATION_TESTS, APIS_TESTS'
+        description: 'Test suite(s) to run'
         required: true
         default: 'ALL'
-        type: string
+        type: choice
+        options:
+          - CHAT_TESTS
+          - SOFTSERVE_TESTS
+          - BOOKRETREATS_TESTS
+          - BLOCKCHAIN_TESTS
+          - GMAIL_TESTS
+          - AUTHENTICATION_TESTS
+          - APIS_TESTS
+          - ALL
       browser:
         description: 'Browser to run the tests against'
         required: true
