@@ -2,11 +2,12 @@ name: Playwright Web Tests
 run-name: 🧪 Playwright Web Tests
 
 on:
-  #schedule:
-  #  - cron: '0 7 * * 1-5' # 9:00 AM Kyiv time (Kyiv is UTC+3, so 7:00 UTC)
-  # push:
-  #   branches:
-  #     - template
+  schedule:
+    - cron: '0 7 30 * 1-5' # for Stage env - 9:30 AM Kyiv time (Kyiv is UTC+3, so 7:30 UTC)
+    - cron: '0 8 30 * 1-5' # for Prod env - 10:30 AM Kyiv time (Kyiv is UTC+3, so 8:30 UTC)
+  push:
+    branches:
+      - template
   workflow_dispatch:
     inputs:
       test_suite:
@@ -47,7 +48,40 @@ env:
   NODE_VERSION:           22.x
 
 jobs:
+  set-run-params:
+    runs-on: ubuntu-22.04
+    outputs:
+      environment: ${{ steps.set-params.outputs.environment }}
+      browser: ${{ steps.set-params.outputs.browser }}
+      test_suite: ${{ steps.set-params.outputs.test_suite }}
+    steps:
+      - id: set-params
+        run: |
+          # For scheduled runs
+          if [[ "${{ github.event_name }}" == "schedule" ]]; then
+            if [[ "${{ github.event.schedule }}" == "0 7 30 * 1-5" ]]; then
+              echo "environment=stage" >> $GITHUB_OUTPUT
+              echo "browser=chrome" >> $GITHUB_OUTPUT
+              echo "test_suite=ALL" >> $GITHUB_OUTPUT
+            elif [[ "${{ github.event.schedule }}" == "0 8 30 * 1-5" ]]; then
+              echo "environment=prod" >> $GITHUB_OUTPUT
+              echo "browser=chrome" >> $GITHUB_OUTPUT
+              echo "test_suite=ALL" >> $GITHUB_OUTPUT
+            fi
+          # For workflow_dispatch runs
+          else
+            echo "environment=${{ github.event.inputs.environment || 'stage' }}" >> $GITHUB_OUTPUT
+            echo "browser=${{ github.event.inputs.browser || 'chrome' }}" >> $GITHUB_OUTPUT
+            echo "test_suite=${{ github.event.inputs.test_suite || 'ALL' }}" >> $GITHUB_OUTPUT
+          fi
+          
+          echo "Using parameters:"
+          echo "- Environment: $(cat $GITHUB_OUTPUT | grep 'environment=' | cut -d= -f2)"
+          echo "- Browser: $(cat $GITHUB_OUTPUT | grep 'browser=' | cut -d= -f2)"
+          echo "- Test Suite: $(cat $GITHUB_OUTPUT | grep 'test_suite=' | cut -d= -f2)"
+
   set-matrix:
+    needs: set-run-params
     runs-on: ubuntu-22.04
     outputs:
       suite-matrix: ${{ steps.set-matrix.outputs.suite-matrix }}
@@ -63,16 +97,21 @@ jobs:
             "AUTHENTICATION_TESTS"
             "APIS_TESTS"
           )
-          if [[ "${{ github.event.inputs.test_suite }}" == "ALL" ]]; then
+          
+          if [[ "${{ needs.set-run-params.outputs.test_suite }}" == "ALL" ]]; then
+            # If ALL, use all suites
             SUITES_JSON=$(printf '%s\n' "${ALL_SUITES[@]}" | jq -R . | jq -c -s .)
-            echo "suite-matrix=$SUITES_JSON" >> $GITHUB_OUTPUT
           else
-            IFS=',' read -ra SELECTED <<< "${{ github.event.inputs.test_suite }}"
+            # Use the specified test suite(s)
+            IFS=',' read -ra SELECTED <<< "${{ needs.set-run-params.outputs.test_suite }}"
             SUITES_JSON=$(printf '%s\n' "${SELECTED[@]}" | jq -R . | jq -c -s .)
-            echo "suite-matrix=$SUITES_JSON" >> $GITHUB_OUTPUT
           fi
+          
+          echo "suite-matrix=$SUITES_JSON" >> $GITHUB_OUTPUT
+          echo "Using test suites: $(echo $SUITES_JSON | jq -r 'join(", ")')"
 
   cache-deps:
+    needs: set-run-params
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout
@@ -98,7 +137,7 @@ jobs:
             ${{ runner.os }}-node-browsers-
 
   run_tests:
-    needs: [set-matrix, cache-deps]
+    needs: [set-run-params, set-matrix, cache-deps]
     runs-on: ubuntu-22.04
     strategy:
       matrix:
@@ -137,12 +176,15 @@ jobs:
       - name: Create .env file
         run: |
           cd playwright
-          if [[ "${{ github.event.inputs.environment }}" == "prod" ]]; then
+          ENVIRONMENT="${{ needs.set-run-params.outputs.environment }}"
+          echo "Using environment: $ENVIRONMENT"
+          
+          if [[ "$ENVIRONMENT" == "prod" ]]; then
             echo "${{ secrets.PW_CONFIG_PROD }}" > .env.prod
-          elif [[ "${{ github.event.inputs.environment }}" == "stage" ]]; then
+          elif [[ "$ENVIRONMENT" == "stage" ]]; then
             echo "${{ secrets.PW_CONFIG_STAGE }}" > .env.stage
           else
-            echo "${{ secrets[format('PW_CONFIG_{0}', github.event.inputs.environment)] }}" > ".env.${{ github.event.inputs.environment }}"
+            echo "${{ secrets[format('PW_CONFIG_{0}', needs.set-run-params.outputs.environment)] }}" > ".env.$ENVIRONMENT"
           fi
 
       - name: Run tests
@@ -150,13 +192,23 @@ jobs:
           cd playwright
           export PATH=$PWD/node_modules/.bin:$PATH
           suite_value=$(eval echo \${${{ matrix.suite }}})
-          xvfb-run node run-playwright.js ${{ github.event.inputs.browser }} "$suite_value" ${{ github.event.inputs.environment }}
+          
+          echo "=== Test Configuration ==="
+          echo "Environment: ${{ needs.set-run-params.outputs.environment }}"
+          echo "Browser: ${{ needs.set-run-params.outputs.browser }}"
+          echo "Suite: $suite_value"
+          echo "=========================="
+          
+          xvfb-run node run-playwright.js \
+            ${{ needs.set-run-params.outputs.browser }} \
+            "$suite_value" \
+            ${{ needs.set-run-params.outputs.environment }}
 
       - name: Get latest build number
         if: always()
         id: get_build_number
         run: |
-          SLUG="${{ matrix.suite }}_${{ github.event.inputs.browser }}_${{ github.event.inputs.environment }}"
+          SLUG="${{ matrix.suite }}_${{ needs.set-run-params.outputs.browser }}_${{ needs.set-run-params.outputs.environment }}"
           echo "Checking for existing builds in ${SLUG}"
           
           curl_url="https://api.github.com/repos/${{ github.repository }}/contents/${SLUG}?ref=gh-pages"
