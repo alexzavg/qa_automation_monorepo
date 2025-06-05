@@ -3,6 +3,7 @@
 This project provides a flexible testing framework using Cypress with support for multiple environments, applications, and test suites.
 
 ## Table of Contents
+- [IMPORTANT](#important)
 - [DEMO VIDEOS](#demo-videos)
 - [Setup](#setup)
 - [Configuration](#configuration)
@@ -16,6 +17,9 @@ This project provides a flexible testing framework using Cypress with support fo
   - [Workflow Overview](#workflow-overview)
   - [Manual Workflow Trigger](#manual-workflow-trigger)
   - [Accessing Test Reports](#accessing-test-reports)
+  
+## IMPORTANT
+Don't forget to navigate to the `cypress` directory with `cd cypress` before running any commands, because this is the root directory for the cypress project.
 
 ## DEMO VIDEOS
 [TBD]()

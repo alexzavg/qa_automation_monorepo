@@ -1,4 +1,5 @@
 # TABLE OF CONTENTS
+- [IMPORTANT](#important)
 - [DEMO VIDEOS](#demo-videos)
 - [SETUP](#setup)
 - [RUNNING TESTS](#running-tests)
@@ -11,6 +12,9 @@
     - [Viewing Build History](#viewing-build-history)
     - [Example Report URLs](#example-report-urls)
   - [Troubleshooting Reports](#troubleshooting-reports)
+
+## IMPORTANT
+Don't forget to navigate to the `playwright` directory with `cd playwright` before running any commands, because this is the root directory for the playwright project.
 
 # DEMO VIDEOS
 [Live Coding & Tech Demos](https://www.youtube.com/playlist?list=PLMYcjser4KJ39fYupgcr-0NuZyV_34PW3)

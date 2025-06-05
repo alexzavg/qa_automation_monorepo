@@ -1,4 +1,5 @@
 # TABLE OF CONTENTS
+- [IMPORTANT](#important)
 - [Demo Videos](#demo-videos)
 - [General Setup](#general-setup)
 - [Configuration](#configuration)
@@ -15,6 +16,9 @@
   - [Test Reports](#test-reports)
   - [Accessing Reports](#accessing-reports)
   - [Triggering Tests Manually](#triggering-tests-manually)
+
+## IMPORTANT
+Don't forget to navigate to the `wdio` directory with `cd wdio` before running any commands, because this is the root directory for the wdio project.
 
 ## Demo Videos
 [WDIO Setup](https://youtu.be/B2jjoS394z8?si=8yWxeqn6W1l8X--M&t=2954)
