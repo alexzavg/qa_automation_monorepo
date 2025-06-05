@@ -87,18 +87,6 @@ export default defineConfig({
     setupNodeEvents(on, config: Cypress.PluginConfigOptions) {
       console.log('Setting up Cypress...')
       
-      // Run cleanup before the browser launches
-      on('before:browser:launch', (browser, launchOptions) => {
-        if (browser.family === 'chromium' && browser.name !== 'electron') {
-          launchOptions.args.push(
-            '--disable-dev-shm-usage',
-            '--disable-gpu',
-            '--window-size=1920,1080'
-          )
-        }
-        return launchOptions
-      })
-      
       // Set environment variables
       config.env = {
         ...config.env,
