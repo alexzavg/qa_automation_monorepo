@@ -2,11 +2,12 @@ name: Cypress Web Tests
 run-name: 🧪 Cypress Web Tests
 
 on:
-  # schedule:
-  #  - cron: '0 7 * * 1-5' # 9:00 AM Kyiv time (Kyiv is UTC+3, so 7:00 UTC)
-  # push:
-  #   branches:
-  #     - template
+  schedule:
+    - cron: '0 7 * * 1-5' # for Stage env - 9:00 AM Kyiv time (Kyiv is UTC+3, so 7:00 UTC)
+    - cron: '0 8 * * 1-5' # for Prod env - 10:00 AM Kyiv time (Kyiv is UTC+3, so 8:00 UTC)
+  push:
+    branches:
+      - template
   workflow_dispatch:
     inputs:
       appName:
@@ -49,7 +50,45 @@ env:
   NODE_VERSION:    22.x
 
 jobs:
+  set-run-params:
+    runs-on: ubuntu-22.04
+    outputs:
+      environment: ${{ steps.set-params.outputs.environment }}
+      app_name: ${{ steps.set-params.outputs.app_name }}
+      browser: ${{ steps.set-params.outputs.browser }}
+      test_suite: ${{ steps.set-params.outputs.test_suite }}
+    steps:
+      - id: set-params
+        run: |
+          # For scheduled runs
+          if [[ "${{ github.event_name }}" == "schedule" ]]; then
+            if [[ "${{ github.event.schedule }}" == "0 7 * * 1-5" ]]; then
+              echo "environment=stage" >> $GITHUB_OUTPUT
+              echo "app_name=testApp" >> $GITHUB_OUTPUT
+              echo "browser=chrome" >> $GITHUB_OUTPUT
+              echo "test_suite=ALL" >> $GITHUB_OUTPUT
+            elif [[ "${{ github.event.schedule }}" == "0 8 * * 1-5" ]]; then
+              echo "environment=prod" >> $GITHUB_OUTPUT
+              echo "app_name=testApp" >> $GITHUB_OUTPUT
+              echo "browser=chrome" >> $GITHUB_OUTPUT
+              echo "test_suite=ALL" >> $GITHUB_OUTPUT
+            fi
+          # For workflow_dispatch runs
+          else
+            echo "environment=${{ github.event.inputs.environment || 'stage' }}" >> $GITHUB_OUTPUT
+            echo "app_name=${{ github.event.inputs.appName || 'testApp' }}" >> $GITHUB_OUTPUT
+            echo "browser=${{ github.event.inputs.browser || 'chrome' }}" >> $GITHUB_OUTPUT
+            echo "test_suite=${{ github.event.inputs.test_suite || 'ALL' }}" >> $GITHUB_OUTPUT
+          fi
+          
+          echo "Using parameters:"
+          echo "- Environment: $(cat $GITHUB_OUTPUT | grep 'environment=' | cut -d= -f2)"
+          echo "- App Name: $(cat $GITHUB_OUTPUT | grep 'app_name=' | cut -d= -f2)"
+          echo "- Browser: $(cat $GITHUB_OUTPUT | grep 'browser=' | cut -d= -f2)"
+          echo "- Test Suite: $(cat $GITHUB_OUTPUT | grep 'test_suite=' | cut -d= -f2)"
+
   set-matrix:
+    needs: set-run-params
     runs-on: ubuntu-22.04
     outputs:
       suite-matrix: ${{ steps.set-matrix.outputs.suite-matrix }}
@@ -60,16 +99,21 @@ jobs:
             "E2E_TESTS"
             "API_TESTS"
           )
-          if [[ "${{ github.event.inputs.test_suite }}" == "ALL" ]]; then
+          
+          if [[ "${{ needs.set-run-params.outputs.test_suite }}" == "ALL" ]]; then
+            # If ALL, use all suites
             SUITES_JSON=$(printf '%s\n' "${ALL_SUITES[@]}" | jq -R . | jq -c -s .)
-            echo "suite-matrix=$SUITES_JSON" >> $GITHUB_OUTPUT
           else
-            IFS=',' read -ra SELECTED <<< "${{ github.event.inputs.test_suite }}"
+            # Use the specified test suite(s)
+            IFS=',' read -ra SELECTED <<< "${{ needs.set-run-params.outputs.test_suite }}"
             SUITES_JSON=$(printf '%s\n' "${SELECTED[@]}" | jq -R . | jq -c -s .)
-            echo "suite-matrix=$SUITES_JSON" >> $GITHUB_OUTPUT
           fi
+          
+          echo "suite-matrix=$SUITES_JSON" >> $GITHUB_OUTPUT
+          echo "Using test suites: $(echo $SUITES_JSON | jq -r 'join(", ")')"
 
   cache-deps:
+    needs: set-run-params
     runs-on: ubuntu-22.04
     defaults:
       run:
@@ -112,7 +156,7 @@ jobs:
         run: npx cypress verify
 
   run_tests:
-    needs: [set-matrix, cache-deps]
+    needs: [set-run-params, set-matrix, cache-deps]
     runs-on: ubuntu-22.04
     defaults:
       run:
@@ -153,26 +197,40 @@ jobs:
 
       - name: Create .env file
         run: |
-          if [[ "${{ github.event.inputs.environment }}" == "prod" ]]; then
+          ENVIRONMENT="${{ needs.set-run-params.outputs.environment }}"
+          echo "Using environment: $ENVIRONMENT"
+          
+          if [[ "$ENVIRONMENT" == "prod" ]]; then
             echo "${{ secrets.CY_CONFIG_PROD }}" > .env.prod
-          elif [[ "${{ github.event.inputs.environment }}" == "stage" ]]; then
+          elif [[ "$ENVIRONMENT" == "stage" ]]; then
             echo "${{ secrets.CY_CONFIG_STAGE }}" > .env.stage
           else
-            echo "${{ secrets[format('CY_CONFIG_{0}', github.event.inputs.environment)] }}" > ".env.${{ github.event.inputs.environment }}"
+            echo "${{ secrets[format('CY_CONFIG_{0}', needs.set-run-params.outputs.environment)] }}" > ".env.$ENVIRONMENT"
           fi
 
       - name: Run tests
         run: |
           # Get the actual test directory from the environment variable
           SUITE_DIR=$(eval echo \$${{ matrix.suite }})
-          echo "Running tests in directory: $SUITE_DIR"
-          npm run clean:reports && ENV=${{ github.event.inputs.environment }} APP_NAME=${{ github.event.inputs.appName }} SUITE_NAME=$SUITE_DIR cypress run --e2e --browser ${{ github.event.inputs.browser }}
+          
+          echo "=== Test Configuration ==="
+          echo "Environment: ${{ needs.set-run-params.outputs.environment }}"
+          echo "App Name: ${{ needs.set-run-params.outputs.app_name }}"
+          echo "Browser: ${{ needs.set-run-params.outputs.browser }}"
+          echo "Suite Directory: $SUITE_DIR"
+          echo "=========================="
+          
+          npm run clean:reports && \
+            ENV=${{ needs.set-run-params.outputs.environment }} \
+            APP_NAME=${{ needs.set-run-params.outputs.app_name }} \
+            SUITE_NAME=$SUITE_DIR \
+            cypress run --e2e --browser ${{ needs.set-run-params.outputs.browser }}
 
       - name: Get latest build number
         if: always()
         id: get_build_number
         run: |
-          SLUG="cy_${{ matrix.suite }}_${{ github.event.inputs.browser }}_${{ github.event.inputs.environment }}"
+          SLUG="cy_${{ matrix.suite }}_${{ needs.set-run-params.outputs.browser }}_${{ needs.set-run-params.outputs.environment }}"
           echo "Checking for existing builds in ${SLUG}"
           
           curl_url="https://api.github.com/repos/${{ github.repository }}/contents/${SLUG}?ref=gh-pages"
