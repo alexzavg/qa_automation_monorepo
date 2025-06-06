@@ -5,6 +5,9 @@ on:
   schedule:
     - cron: '0 9 * * 1-5' # for Stage env - 11:00 AM Kyiv time (Kyiv is UTC+3, so 12:00 UTC)
     - cron: '0 9 30 * 1-5' # for Prod env - 11:30 AM Kyiv time (Kyiv is UTC+3, so 12:30 UTC)
+  repository_dispatch:
+    types: 
+      - wdio-web-tests
   workflow_dispatch:
     inputs:
       environment:
@@ -50,6 +53,10 @@ jobs:
       app_name: ${{ steps.set-params.outputs.app_name }}
       suite_name: ${{ steps.set-params.outputs.suite_name }}
       max_instances: ${{ steps.set-params.outputs.max_instances }}
+      commit_id: ${{ steps.set-params.outputs.commit_id }}
+      commit_message: ${{ steps.set-params.outputs.commit_message }}
+      commit_author: ${{ steps.set-params.outputs.commit_author }}
+      commit_url: ${{ steps.set-params.outputs.commit_url || '' }}
     steps:
       - id: set-params
         run: |
@@ -67,11 +74,59 @@ jobs:
               echo "max_instances=1" >> $GITHUB_OUTPUT
             fi
           # For workflow_dispatch runs
-          else
+          elif [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             echo "environment=${{ github.event.inputs.environment || 'stage' }}" >> $GITHUB_OUTPUT
             echo "app_name=${{ github.event.inputs.appName || 'testApp' }}" >> $GITHUB_OUTPUT
             echo "suite_name=${{ github.event.inputs.suiteName || 'all' }}" >> $GITHUB_OUTPUT
             echo "max_instances=${{ github.event.inputs.max_instances || '1' }}" >> $GITHUB_OUTPUT
+            echo "commit_id=${{ github.sha }}" >> $GITHUB_OUTPUT
+            echo "commit_message=N/A" >> $GITHUB_OUTPUT
+            echo "commit_author=${{ github.actor }}" >> $GITHUB_OUTPUT
+            echo "commit_url=" >> $GITHUB_OUTPUT
+            
+          # For repository_dispatch runs
+          elif [[ "${{ github.event_name }}" == "repository_dispatch" ]]; then
+            # Verify the source repository from client_payload
+            if [[ -z "${{ github.event.client_payload.repository }}" || "${{ github.event.client_payload.repository }}" != "alexzavg/dev_repo" ]]; then
+              echo "::error::This workflow only accepts events from alexzavg/dev_repo"
+              exit 1
+            fi
+            
+            # Get branch and commit info from the client_payload
+            if [[ -z "${{ github.event.client_payload.branch }}" ]]; then
+              echo "::error::Branch parameter is required in client_payload"
+              exit 1
+            fi
+            
+            BRANCH="${{ github.event.client_payload.branch }}"
+            COMMIT_ID="${{ github.event.client_payload.commit_id || 'N/A' }}"
+            COMMIT_MESSAGE="${{ github.event.client_payload.commit_message || 'N/A' }}"
+            COMMIT_AUTHOR="${{ github.event.client_payload.commit_author || 'N/A' }}"
+            COMMIT_URL="${{ github.event.client_payload.commit_url || '' }}"
+            
+            echo "commit_id=$COMMIT_ID" >> $GITHUB_OUTPUT
+            echo "commit_message=$COMMIT_MESSAGE" >> $GITHUB_OUTPUT
+            echo "commit_author=$COMMIT_AUTHOR" >> $GITHUB_OUTPUT
+            echo "commit_url=$COMMIT_URL" >> $GITHUB_OUTPUT
+            
+            # Only process master and stage branches
+            if [[ "$BRANCH" == "master" ]]; then
+              ENVIRONMENT="prod"
+            elif [[ "$BRANCH" == "stage" ]]; then
+              ENVIRONMENT="stage"
+            else
+              echo "::notice::Skipping non-main branch: $BRANCH"
+              echo "environment=skip" >> $GITHUB_OUTPUT
+              echo "app_name=skip" >> $GITHUB_OUTPUT
+              echo "suite_name=skip" >> $GITHUB_OUTPUT
+              echo "max_instances=1" >> $GITHUB_OUTPUT
+              exit 0
+            fi
+            
+            echo "environment=$ENVIRONMENT" >> $GITHUB_OUTPUT
+            echo "app_name=testApp" >> $GITHUB_OUTPUT
+            echo "suite_name=all" >> $GITHUB_OUTPUT
+            echo "max_instances=1" >> $GITHUB_OUTPUT
           fi
           
           echo "Using parameters:"
@@ -202,9 +257,16 @@ jobs:
 
       - name: Notify Slack
         if: always()
+        env:
+          COMMIT_ID: ${{ needs.set-run-params.outputs.commit_id || 'N/A' }}
+          COMMIT_MESSAGE: ${{ needs.set-run-params.outputs.commit_message || 'N/A' }}
+          COMMIT_AUTHOR: ${{ needs.set-run-params.outputs.commit_author || 'N/A' }}
+          COMMIT_URL: ${{ needs.set-run-params.outputs.commit_url || 'N/A' }}
         run: |
           STATUS="${{ job.status }}"
           COLOR="#2EB67D"
+          EMOJI=":white_check_mark:"
+          SLACK_TAG=""
           EMOJI=":white_check_mark:"
           SLACK_TAG=""
           if [ "$STATUS" == "failure" ]; then
@@ -218,20 +280,63 @@ jobs:
 
           SLUG=${{ steps.get_build_number.outputs.SLUG }}
           BUILD_NUMBER=${{ steps.get_build_number.outputs.BUILD_NUMBER }}
-          REPORT_URL="https://alexzavg.github.io/qa_automation_monorepo/${SLUG}/${BUILD_NUMBER}"
+          REPORT_URL="https://alexzavg.github.io/qa_automation_monorepo/${{ steps.get_build_number.outputs.SLUG }}/${{ steps.get_build_number.outputs.BUILD_NUMBER }}"
 
+          echo ""
+          echo "🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥"
+          # Format commit message to be single line and escape quotes
+          COMMIT_MSG_ESCAPED=$(echo "$COMMIT_MESSAGE" | tr '\n' ' ' | sed 's/"/\\"/g')
+          
+          # Truncate commit message if too long
+          if [ ${#COMMIT_MSG_ESCAPED} -gt 100 ]; then
+            COMMIT_MSG_ESCAPED="${COMMIT_MSG_ESCAPED:0:100}..."
+          fi
+          
+          # Create trigger info text
+          TRIGGER_INFO=""
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            TRIGGER_INFO="\n*Triggered by*: 🧑 ${{ github.actor }}"
+          elif [ "${{ github.event_name }}" == "schedule" ]; then
+            TRIGGER_INFO="\n*Triggered by*: 🕰 Schedule"
+          fi
+          
+          # Create commit info text (for repository_dispatch)
+          COMMIT_INFO=""
+          if [ "$COMMIT_ID" != "N/A" ]; then
+            if [ -n "$COMMIT_URL" ] && [ "$COMMIT_URL" != "N/A" ]; then
+              # Format with URL if available
+              COMMIT_INFO="\n*Commit*: <$COMMIT_URL|${COMMIT_ID:0,7}>"
+            else
+              # Fallback to just the commit hash
+              COMMIT_INFO="\n*Commit*: ${COMMIT_ID:0,7}"
+            fi
+            # Always add author and message
+            COMMIT_INFO="$COMMIT_INFO\n*Author*: $COMMIT_AUTHOR\n*Message*: $COMMIT_MSG_ESCAPED"
+          fi
+          
           echo ""
           echo "🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥"
           echo "🟩 REPORT URL FOR ${STATUS^^}: ${REPORT_URL}"
+          echo "Commit: $COMMIT_ID"
+          echo "Author: $COMMIT_AUTHOR"
+          echo "Message: $COMMIT_MSG_ESCAPED"
           echo "🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥"
           echo ""
-
-          curl -X POST -H 'Content-type: application/json' --data "{
-            \"channel\":\"$SLACK_CHANNEL\",
-            \"username\":\"Github\",
-            \"attachments\":[{
-              \"color\":\"$COLOR\",
-              \"text\":\"$EMOJI Test suite *${{ needs.set-run-params.outputs.suite_name }}* for app *${{ needs.set-run-params.outputs.app_name }}* on environment *${{ needs.set-run-params.outputs.environment }}* finished with status *$STATUS*. :book: <${{ env.CI_PIPELINE_URL }}|LOGS>, :bar_chart: <$REPORT_URL|REPORT> $SLACK_TAG\",
-              \"footer\":\"Time: $(TZ=$TZ date)\"
-            }]
-          }" $SLACK_WEBHOOK
+          
+          # Combine all info parts, filtering out empty ones
+          MESSAGE_PARTS=(
+            "$EMOJI *WDIO* tests with suite *${{ needs.set-run-params.outputs.suite_name }}*"
+            "on browser *chrome*"
+            "and environment *${{ needs.set-run-params.outputs.environment }}*"
+            "finished with status *$STATUS*"
+            ":book: <${{ env.CI_PIPELINE_URL }}|LOGS>"
+            ":bar_chart: <${REPORT_URL}|REPORT>"
+            "$SLACK_TAG"
+            "$TRIGGER_INFO"
+            "$COMMIT_INFO"
+          )
+          
+          # Join non-empty parts with spaces
+          MESSAGE="$(printf '%s\n' "${MESSAGE_PARTS[@]}" | grep -v '^$' | tr '\n' ' ' | sed 's/ *$//')"
+          
+          curl -X POST -H 'Content-type: application/json' --data "{\n            \"channel\":\"$SLACK_CHANNEL\",\n            \"username\":\"Github\",\n            \"attachments\":[{\n              \"color\":\"$COLOR\",\n              \"text\":\"$MESSAGE\",\n              \"footer\":\"Time: $(TZ=$TZ date)\"\n            }]\n          }" $SLACK_WEBHOOK
