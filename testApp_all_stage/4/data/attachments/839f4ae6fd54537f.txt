@@ -1,0 +1,8 @@
+.........Console Logs.........
+
+2025-06-06T15:04:57.711Z INFO webdriver: BIDI RESULT {"id":3,"result":{"script":"e2a3fb5e-53b3-4a9c-8bd3-571361de04c1"},"type":"success"}
+2025-06-06T15:04:57.713Z INFO webdriver: BIDI COMMAND browsingContext.navigate {"context":"86F5647132D85636135A4D0502A4C44E","url":"https://the-internet.herokuapp.com/login","wait":"complete"}
+2025-06-06T15:04:57.713Z INFO webdriver: BIDI RESULT {"id":8,"result":{"realm":"2595499232404207420.-6663277236308020066","result":{"type":"undefined"},"type":"success"},"type":"success"}
+2025-06-06T15:04:57.714Z INFO webdriver: BIDI RESULT {"id":9,"result":{"script":"2fcbe548-467e-4681-9511-2353769883a7"},"type":"success"}
+2025-06-06T15:05:57.729Z INFO webdriver: COMMAND takeScreenshot()
+2025-06-06T15:05:57.730Z INFO webdriver: [GET] http://localhost:33257/session/74d5413ce258ec23da8ce5849b96201d/screenshot
