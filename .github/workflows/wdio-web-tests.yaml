@@ -202,7 +202,7 @@ jobs:
         if: always()
         id: get_build_number
         run: |
-          SLUG="${{ needs.set-run-params.outputs.app_name }}_${{ needs.set-run-params.outputs.suite_name }}_${{ needs.set-run-params.outputs.environment }}"
+          SLUG="wdio_${{ needs.set-run-params.outputs.app_name }}_${{ needs.set-run-params.outputs.suite_name }}_${{ needs.set-run-params.outputs.environment }}"
           # Get the latest build number for this slug
           echo "Checking for existing builds in ${SLUG}"
           
