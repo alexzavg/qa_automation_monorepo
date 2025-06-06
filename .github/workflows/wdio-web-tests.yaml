@@ -79,9 +79,10 @@ jobs:
             echo "app_name=${{ github.event.inputs.appName || 'testApp' }}" >> $GITHUB_OUTPUT
             echo "suite_name=${{ github.event.inputs.suiteName || 'all' }}" >> $GITHUB_OUTPUT
             echo "max_instances=${{ github.event.inputs.max_instances || '1' }}" >> $GITHUB_OUTPUT
-            echo "commit_id=${{ github.sha }}" >> $GITHUB_OUTPUT
-            echo "commit_message=N/A" >> $GITHUB_OUTPUT
-            echo "commit_author=${{ github.actor }}" >> $GITHUB_OUTPUT
+            # Don't include commit info for workflow_dispatch
+            echo "commit_id=" >> $GITHUB_OUTPUT
+            echo "commit_message=" >> $GITHUB_OUTPUT
+            echo "commit_author=" >> $GITHUB_OUTPUT
             echo "commit_url=" >> $GITHUB_OUTPUT
             
           # For repository_dispatch runs
