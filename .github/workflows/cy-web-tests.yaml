@@ -7,7 +7,7 @@ on:
     - cron: '0 8 * * 1-5' # for Prod env - 10:00 AM Kyiv time (Kyiv is UTC+3, so 11:00 UTC)
   repository_dispatch:
     types: 
-      - run_tests
+      - cy-web-tests
   workflow_dispatch:
     inputs:
       appName:
