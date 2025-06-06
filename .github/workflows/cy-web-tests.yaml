@@ -87,8 +87,8 @@ jobs:
             
           # For repository_dispatch runs
           elif [[ "${{ github.event_name }}" == "repository_dispatch" ]]; then
-            # Verify the event is from the correct repository
-            if [[ "${{ github.event.repository.full_name }}" != "alexzavg/dev_repo" ]]; then
+            # Verify the source repository from client_payload
+            if [[ -z "${{ github.event.client_payload.repository }}" || "${{ github.event.client_payload.repository }}" != "alexzavg/dev_repo" ]]; then
               echo "::error::This workflow only accepts events from alexzavg/dev_repo"
               exit 1
             fi
