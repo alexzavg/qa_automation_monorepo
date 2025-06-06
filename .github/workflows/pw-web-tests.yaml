@@ -390,10 +390,6 @@ jobs:
           MESSAGE="$(printf '%s\n' "${MESSAGE_PARTS[@]}" | grep -v '^$' | tr '\n' ' ' | sed 's/ *$//')"
           echo "🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥"
           echo ""
-
-          # Get browser and environment from set-run-params outputs
-          BROWSER="${{ needs.set-run-params.outputs.browser || 'chrome' }}"
-          ENVIRONMENT="${{ needs.set-run-params.outputs.environment || 'stage' }}"
           
           curl -X POST -H 'Content-type: application/json' --data "{
             \"channel\":\"$SLACK_CHANNEL\",

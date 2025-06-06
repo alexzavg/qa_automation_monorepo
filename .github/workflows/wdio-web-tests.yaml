@@ -267,8 +267,6 @@ jobs:
           COLOR="#2EB67D"
           EMOJI=":white_check_mark:"
           SLACK_TAG=""
-          EMOJI=":white_check_mark:"
-          SLACK_TAG=""
           if [ "$STATUS" == "failure" ]; then
             COLOR="#E01E5A"
             EMOJI=":x:"
@@ -305,10 +303,10 @@ jobs:
           if [ "$COMMIT_ID" != "N/A" ]; then
             if [ -n "$COMMIT_URL" ] && [ "$COMMIT_URL" != "N/A" ]; then
               # Format with URL if available
-              COMMIT_INFO="\n*Commit*: <$COMMIT_URL|${COMMIT_ID:0,7}>"
+              COMMIT_INFO="\n*Commit*: <$COMMIT_URL|${COMMIT_ID:0:7}>"
             else
               # Fallback to just the commit hash
-              COMMIT_INFO="\n*Commit*: ${COMMIT_ID:0,7}"
+              COMMIT_INFO="\n*Commit*: ${COMMIT_ID:0:7}"
             fi
             # Always add author and message
             COMMIT_INFO="$COMMIT_INFO\n*Author*: $COMMIT_AUTHOR\n*Message*: $COMMIT_MSG_ESCAPED"
@@ -338,5 +336,15 @@ jobs:
           
           # Join non-empty parts with spaces
           MESSAGE="$(printf '%s\n' "${MESSAGE_PARTS[@]}" | grep -v '^$' | tr '\n' ' ' | sed 's/ *$//')"
+          echo "🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥"
+          echo ""
           
-          curl -X POST -H 'Content-type: application/json' --data "{\n            \"channel\":\"$SLACK_CHANNEL\",\n            \"username\":\"Github\",\n            \"attachments\":[{\n              \"color\":\"$COLOR\",\n              \"text\":\"$MESSAGE\",\n              \"footer\":\"Time: $(TZ=$TZ date)\"\n            }]\n          }" $SLACK_WEBHOOK
+          curl -X POST -H 'Content-type: application/json' --data "{
+            \"channel\":\"$SLACK_CHANNEL\",
+            \"username\":\"Github\",
+            \"attachments\":[{
+              \"color\":\"$COLOR\",
+              \"text\":\"$MESSAGE\",
+              \"footer\":\"Time: $(TZ=$TZ date)\"
+            }]
+          }" $SLACK_WEBHOOK
