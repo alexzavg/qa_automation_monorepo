@@ -1,0 +1,6 @@
+.........Console Logs.........
+
+2025-06-06T15:09:45.980Z INFO webdriver: BIDI RESULT {"id":3,"result":{"script":"4f89fc81-3bb8-4d39-af2c-8bc1b746e0a6"},"type":"success"}
+2025-06-06T15:09:45.983Z INFO webdriver: BIDI COMMAND browsingContext.navigate {"context":"5C38594B781BC0E50521BEE3B387777C","url":"https://the-internet.herokuapp.com/login","wait":"complete"}
+2025-06-06T15:09:45.983Z INFO webdriver: BIDI RESULT {"id":8,"result":{"realm":"4425097424101949096.627492988256236585","result":{"type":"undefined"},"type":"success"},"type":"success"}
+2025-06-06T15:09:45.984Z INFO webdriver: BIDI RESULT {"id":9,"result":{"script":"098271c2-9d4e-40d8-8c9e-9bb0bf9eda2b"},"type":"success"}
