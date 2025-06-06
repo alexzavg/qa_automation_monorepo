@@ -319,8 +319,6 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./cypress/reports
           destination_dir: ${{ steps.get_build_number.outputs.SLUG }}/${{ steps.get_build_number.outputs.BUILD_NUMBER }}
-          force_orphan: true
-          keep_files: false
 
       - name: Notify Slack
         if: always()
