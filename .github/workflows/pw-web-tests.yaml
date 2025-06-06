@@ -267,7 +267,7 @@ jobs:
         if: always()
         id: get_build_number
         run: |
-          SLUG="${{ matrix.suite }}_${{ needs.set-run-params.outputs.browser }}_${{ needs.set-run-params.outputs.environment }}"
+          SLUG="pw_${{ matrix.suite }}_${{ needs.set-run-params.outputs.browser }}_${{ needs.set-run-params.outputs.environment }}"
           echo "Checking for existing builds in ${SLUG}"
           
           curl_url="https://api.github.com/repos/${{ github.repository }}/contents/${SLUG}?ref=gh-pages"
