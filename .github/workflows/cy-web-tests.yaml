@@ -371,11 +371,15 @@ jobs:
           # Create commit info text (for repository_dispatch)
           COMMIT_INFO=""
           if [ "$COMMIT_ID" != "N/A" ]; then
-            if [ "$COMMIT_URL" != "N/A" ]; then
-              COMMIT_INFO="\n*Commit*: <$COMMIT_URL|\`${COMMIT_ID:0:7}\`>\n*Author*: $COMMIT_AUTHOR\n*Message*: $COMMIT_MSG_ESCAPED"
+            if [ -n "$COMMIT_URL" ] && [ "$COMMIT_URL" != "N/A" ]; then
+              # Format with URL if available
+              COMMIT_INFO="\n*Commit*: <$COMMIT_URL|${COMMIT_ID:0:7}>"
             else
-              COMMIT_INFO="\n*Commit*: \`$COMMIT_ID\`\n*Author*: $COMMIT_AUTHOR\n*Message*: $COMMIT_MSG_ESCAPED"
+              # Fallback to just the commit hash
+              COMMIT_INFO="\n*Commit*: ${COMMIT_ID:0:7}"
             fi
+            # Always add author and message
+            COMMIT_INFO="$COMMIT_INFO\n*Author*: $COMMIT_AUTHOR\n*Message*: $COMMIT_MSG_ESCAPED"
           fi
           
           echo ""
