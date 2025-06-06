@@ -391,12 +391,16 @@ jobs:
           echo "🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥"
           echo ""
 
+          # Get browser and environment from set-run-params outputs
+          BROWSER="${{ needs.set-run-params.outputs.browser || 'chrome' }}"
+          ENVIRONMENT="${{ needs.set-run-params.outputs.environment || 'stage' }}"
+          
           curl -X POST -H 'Content-type: application/json' --data "{
             \"channel\":\"$SLACK_CHANNEL\",
             \"username\":\"Github\",
             \"attachments\":[{
               \"color\":\"$COLOR\",
-              \"text\":\"$EMOJI Test suite *${{ matrix.suite }}* with browser *${{ github.event.inputs.browser }}* and environment *${{ github.event.inputs.environment }}* finished with status *$STATUS*. :book: <${{ env.CI_PIPELINE_URL }}|LOGS>, :bar_chart: <$REPORT_URL|REPORT> $SLACK_TAG\",
+              \"text\":\"$MESSAGE\",
               \"footer\":\"Time: $(TZ=$TZ date)\"
             }]
           }" $SLACK_WEBHOOK
