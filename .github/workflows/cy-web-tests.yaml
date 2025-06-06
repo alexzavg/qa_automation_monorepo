@@ -5,9 +5,9 @@ on:
   schedule:
     - cron: '0 7 * * 1-5' # for Stage env - 9:00 AM Kyiv time (Kyiv is UTC+3, so 10:00 UTC)
     - cron: '0 8 * * 1-5' # for Prod env - 10:00 AM Kyiv time (Kyiv is UTC+3, so 11:00 UTC)
-  push:
-    branches:
-      - template
+  repository_dispatch:
+    types: 
+      - run_tests
   workflow_dispatch:
     inputs:
       appName:
@@ -77,12 +77,44 @@ jobs:
               echo "browser=chrome" >> $GITHUB_OUTPUT
               echo "test_suite=ALL" >> $GITHUB_OUTPUT
             fi
+
           # For workflow_dispatch runs
-          else
+          elif [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             echo "environment=${{ github.event.inputs.environment || 'stage' }}" >> $GITHUB_OUTPUT
             echo "app_name=${{ github.event.inputs.appName || 'testApp' }}" >> $GITHUB_OUTPUT
             echo "browser=${{ github.event.inputs.browser || 'chrome' }}" >> $GITHUB_OUTPUT
             echo "test_suite=${{ github.event.inputs.test_suite || 'ALL' }}" >> $GITHUB_OUTPUT
+            
+          # For repository_dispatch runs
+          elif [[ "${{ github.event_name }}" == "repository_dispatch" ]]; then
+            # Verify the event is from the correct repository
+            if [[ "${{ github.event.repository.full_name }}" != "alexzavg/dev_repo" ]]; then
+              echo "::error::This workflow only accepts events from alexzavg/dev_repo"
+              exit 1
+            fi
+            
+            # Get branch from the client_payload - this is required
+            if [[ -z "${{ github.event.client_payload.branch }}" ]]; then
+              echo "::error::Branch parameter is required in client_payload"
+              exit 1
+            fi
+            
+            BRANCH="${{ github.event.client_payload.branch }}"
+            
+            # Only process master and stage branches
+            if [[ "$BRANCH" == "master" ]]; then
+              ENVIRONMENT="prod"
+            elif [[ "$BRANCH" == "stage" ]]; then
+              ENVIRONMENT="stage"
+            else
+              echo "::notice::Skipping execution for branch '$BRANCH' as it's not in the allowed list (master, stage)"
+              exit 0  # Exit successfully without running tests
+            fi
+            
+            echo "environment=$ENVIRONMENT" >> $GITHUB_OUTPUT
+            echo "app_name=testApp" >> $GITHUB_OUTPUT
+            echo "browser=chrome" >> $GITHUB_OUTPUT
+            echo "test_suite=ALL" >> $GITHUB_OUTPUT
           fi
           
           echo "Using parameters:"

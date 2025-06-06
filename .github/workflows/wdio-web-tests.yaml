@@ -5,9 +5,6 @@ on:
   schedule:
     - cron: '0 9 * * 1-5' # for Stage env - 11:00 AM Kyiv time (Kyiv is UTC+3, so 12:00 UTC)
     - cron: '0 9 30 * 1-5' # for Prod env - 11:30 AM Kyiv time (Kyiv is UTC+3, so 12:30 UTC)
-  push:
-    branches:
-      - template
   workflow_dispatch:
     inputs:
       environment:
