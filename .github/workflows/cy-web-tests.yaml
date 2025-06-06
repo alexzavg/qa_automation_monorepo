@@ -61,6 +61,9 @@ jobs:
       app_name: ${{ steps.set-params.outputs.app_name }}
       browser: ${{ steps.set-params.outputs.browser }}
       test_suite: ${{ steps.set-params.outputs.test_suite }}
+      commit_id: ${{ steps.set-params.outputs.commit_id }}
+      commit_message: ${{ steps.set-params.outputs.commit_message }}
+      commit_author: ${{ steps.set-params.outputs.commit_author }}
     steps:
       - id: set-params
         run: |
@@ -93,13 +96,20 @@ jobs:
               exit 1
             fi
             
-            # Get branch from the client_payload - this is required
+            # Get branch and commit info from the client_payload
             if [[ -z "${{ github.event.client_payload.branch }}" ]]; then
               echo "::error::Branch parameter is required in client_payload"
               exit 1
             fi
             
             BRANCH="${{ github.event.client_payload.branch }}"
+            COMMIT_ID="${{ github.event.client_payload.commit_id || 'N/A' }}"
+            COMMIT_MESSAGE="${{ github.event.client_payload.commit_message || 'N/A' }}"
+            COMMIT_AUTHOR="${{ github.event.client_payload.commit_author || 'N/A' }}"
+            
+            echo "commit_id=$COMMIT_ID" >> $GITHUB_OUTPUT
+            echo "commit_message=$COMMIT_MESSAGE" >> $GITHUB_OUTPUT
+            echo "commit_author=$COMMIT_AUTHOR" >> $GITHUB_OUTPUT
             
             # Only process master and stage branches
             if [[ "$BRANCH" == "master" ]]; then
@@ -122,6 +132,9 @@ jobs:
           echo "- App Name: $(cat $GITHUB_OUTPUT | grep 'app_name=' | cut -d= -f2)"
           echo "- Browser: $(cat $GITHUB_OUTPUT | grep 'browser=' | cut -d= -f2)"
           echo "- Test Suite: $(cat $GITHUB_OUTPUT | grep 'test_suite=' | cut -d= -f2)"
+          echo "- Trigger Commit ID: $(cat $GITHUB_OUTPUT | grep 'commit_id=' | cut -d= -f2-)"
+          echo "- Commit Message: $(cat $GITHUB_OUTPUT | grep 'commit_message=' | cut -d= -f2-)"
+          echo "- Commit Author: $(cat $GITHUB_OUTPUT | grep 'commit_author=' | cut -d= -f2-)"
 
   set-matrix:
     needs: set-run-params
@@ -309,6 +322,10 @@ jobs:
 
       - name: Notify Slack
         if: always()
+        env:
+          COMMIT_ID: ${{ needs.set-run-params.outputs.commit_id || 'N/A' }}
+          COMMIT_MESSAGE: ${{ needs.set-run-params.outputs.commit_message || 'N/A' }}
+          COMMIT_AUTHOR: ${{ needs.set-run-params.outputs.commit_author || 'N/A' }}
         run: |
           STATUS="${{ job.status }}"
           COLOR="#2EB67D"
@@ -326,9 +343,27 @@ jobs:
           SLUG=${{ steps.get_build_number.outputs.SLUG }}
           BUILD_NUMBER=${{ steps.get_build_number.outputs.BUILD_NUMBER }}
           REPORT_URL="https://alexzavg.github.io/qa_automation_monorepo/${SLUG}/${BUILD_NUMBER}"
+          
+          # Format commit message to be single line and escape quotes
+          COMMIT_MSG_ESCAPED=$(echo "$COMMIT_MESSAGE" | tr '\n' ' ' | sed 's/"/\\"/g')
+          
+          # Truncate commit message if too long
+          if [ ${#COMMIT_MSG_ESCAPED} -gt 100 ]; then
+            COMMIT_MSG_ESCAPED="${COMMIT_MSG_ESCAPED:0:100}..."
+          fi
+          
+          # Create commit info text
+          COMMIT_INFO=""
+          if [ "$COMMIT_ID" != "N/A" ]; then
+            COMMIT_INFO="\n*Commit*: \`$COMMIT_ID\`\n*Author*: $COMMIT_AUTHOR\n*Message*: $COMMIT_MSG_ESCAPED"
+          fi
+          
           echo ""
           echo "🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥"
           echo "🟩 REPORT URL FOR ${STATUS^^}: ${REPORT_URL}"
+          echo "Commit: $COMMIT_ID"
+          echo "Author: $COMMIT_AUTHOR"
+          echo "Message: $COMMIT_MSG_ESCAPED"
           echo "🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥"
           echo ""
 
@@ -337,7 +372,7 @@ jobs:
             \"username\":\"Github\",
             \"attachments\":[{
               \"color\":\"$COLOR\",
-              \"text\":\"$EMOJI App *${{ github.event.inputs.appName }}* tests with test suite *${{ matrix.suite }}* and browser *${{ github.event.inputs.browser }}* on environment *${{ github.event.inputs.environment }}* finished with status *$STATUS*. :book: <${{ env.CI_PIPELINE_URL }}|LOGS>, :bar_chart: <$REPORT_URL|REPORT> $SLACK_TAG\",
+              \"text\":\"$EMOJI App *${{ needs.set-run-params.outputs.app_name }}* tests with test suite *${{ matrix.suite }}* and browser *${{ needs.set-run-params.outputs.browser }}* on environment *${{ needs.set-run-params.outputs.environment }}* finished with status *$STATUS*. :book: <${{ env.CI_PIPELINE_URL }}|LOGS>, :bar_chart: <$REPORT_URL|REPORT> $SLACK_TAG$COMMIT_INFO\",
               \"footer\":\"Time: $(TZ=$TZ date)\"
             }]
           }" $SLACK_WEBHOOK
