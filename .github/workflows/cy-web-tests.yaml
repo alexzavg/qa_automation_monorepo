@@ -352,7 +352,15 @@ jobs:
             COMMIT_MSG_ESCAPED="${COMMIT_MSG_ESCAPED:0:100}..."
           fi
           
-          # Create commit info text
+          # Create trigger info text
+          TRIGGER_INFO=""
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            TRIGGER_INFO="\n*Triggered by*: 🧑 ${{ github.actor }}"
+          elif [ "${{ github.event_name }}" == "schedule" ]; then
+            TRIGGER_INFO="\n*Triggered by*: 🕰 Schedule"
+          fi
+          
+          # Create commit info text (for repository_dispatch)
           COMMIT_INFO=""
           if [ "$COMMIT_ID" != "N/A" ]; then
             COMMIT_INFO="\n*Commit*: \`$COMMIT_ID\`\n*Author*: $COMMIT_AUTHOR\n*Message*: $COMMIT_MSG_ESCAPED"
@@ -367,12 +375,26 @@ jobs:
           echo "🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥"
           echo ""
 
+          # Combine all info parts, filtering out empty ones
+          MESSAGE_PARTS=(
+            "$EMOJI App *${{ needs.set-run-params.outputs.app_name }}* tests with test suite *${{ matrix.suite }}*"
+            "and browser *${{ needs.set-run-params.outputs.browser }}* on environment *${{ needs.set-run-params.outputs.environment }}*"
+            "finished with status *$STATUS*"
+            ":book: <${{ env.CI_PIPELINE_URL }}|LOGS>, :bar_chart: <$REPORT_URL|REPORT>"
+            "$SLACK_TAG"
+            "$TRIGGER_INFO"
+            "$COMMIT_INFO"
+          )
+          
+          # Join non-empty parts with spaces
+          MESSAGE="$(printf '%s\n' "${MESSAGE_PARTS[@]}" | grep -v '^$' | tr '\n' ' ' | sed 's/ *$//')"
+          
           curl -X POST -H 'Content-type: application/json' --data "{
             \"channel\":\"$SLACK_CHANNEL\",
             \"username\":\"Github\",
             \"attachments\":[{
               \"color\":\"$COLOR\",
-              \"text\":\"$EMOJI App *${{ needs.set-run-params.outputs.app_name }}* tests with test suite *${{ matrix.suite }}* and browser *${{ needs.set-run-params.outputs.browser }}* on environment *${{ needs.set-run-params.outputs.environment }}* finished with status *$STATUS*. :book: <${{ env.CI_PIPELINE_URL }}|LOGS>, :bar_chart: <$REPORT_URL|REPORT> $SLACK_TAG$COMMIT_INFO\",
+              \"text\":\"$MESSAGE\",
               \"footer\":\"Time: $(TZ=$TZ date)\"
             }]
           }" $SLACK_WEBHOOK
