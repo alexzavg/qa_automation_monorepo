@@ -319,7 +319,6 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./cypress/reports
           destination_dir: ${{ steps.get_build_number.outputs.SLUG }}/${{ steps.get_build_number.outputs.BUILD_NUMBER }}
-          # Add these to prevent any potential conflicts
           force_orphan: true
           keep_files: false
 
