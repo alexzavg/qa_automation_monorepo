@@ -8,6 +8,8 @@
     "ui:mode:prod": "cross-env test_env=prod npx playwright test --ui --project=phptravels:e2e",
     "template:prod": "node run-playwright.js chrome template prod",
     "pretify": "npx prettier --write './APIs' './Pages' './TestData' './tests'",
+    "template:tests:stage": "node run-playwright.js chrome template stage",
+    "template:tests:prod": "node run-playwright.js chrome template prod",
     "chat:tests:stage": "node run-playwright.js chrome chat stage",
     "chat:tests:prod": "node run-playwright.js chrome chat prod",
     "softserve:tests:stage": "node run-playwright.js chrome softserve stage",

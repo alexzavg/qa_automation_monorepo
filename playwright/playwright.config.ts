@@ -15,6 +15,11 @@ const config: PlaywrightTestConfig = {
       testIgnore: [],
     },
     {
+      name: 'template',
+      testMatch: ['/tests/template/*.spec.ts'],
+      testIgnore: [],
+    },
+    {
       name: 'chat',
       testMatch: ['/tests/chat/e2e/*.spec.ts'],
       testIgnore: [],

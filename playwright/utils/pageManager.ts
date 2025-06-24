@@ -6,6 +6,7 @@ import { BookRetreatsPage } from '../Pages/bookretreats.page'
 import { GmailApi } from '../APIs/gmailApi'
 import { OTPSignInPage } from '../Pages/otpSignIn.page'
 import { SOAPExample } from '../APIs/SOAPExample'
+import { TemplatePage } from '../Pages/template.page'
 
 export class PageManager {
   page: Page
@@ -32,5 +33,8 @@ export class PageManager {
   }
   get soapExampleApi(): SOAPExample {
     return new SOAPExample(this.page.request)
+  }
+  get templatePage(): TemplatePage {
+    return new TemplatePage(this.page)
   }
 }
