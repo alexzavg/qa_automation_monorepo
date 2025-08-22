@@ -1,0 +1,2 @@
+"DESCRIPTION","DURATION IN MS","NAME","PARENT SUITE","START TIME","STATUS","STOP TIME","SUB SUITE","SUITE","TEST CLASS","TEST METHOD"
+"","2020","should login with valid credentials","","Fri Aug 22 12:03:59 EEST 2025","failed","Fri Aug 22 12:04:01 EEST 2025","","My Web application on env: STAGE","",""
