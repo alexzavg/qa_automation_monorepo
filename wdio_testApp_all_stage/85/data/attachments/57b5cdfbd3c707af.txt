@@ -1,0 +1,118 @@
+.........Console Logs.........
+
+2025-10-01T09:04:59.367Z INFO webdriver: BIDI COMMAND browsingContext.navigate {"context":"D030D0B491EA994081F70BDDEA5D0857","url":"https://the-internet.herokuapp.com/login","wait":"complete"}
+2025-10-01T09:05:00.355Z INFO webdriver: BIDI RESULT {"id":10,"result":{"navigation":"bd517968-236e-4a04-a71e-a85cd397aaf1","url":"https://the-internet.herokuapp.com/login"},"type":"success"}
+2025-10-01T09:05:00.357Z INFO webdriver: BIDI COMMAND browsingContext.locateNodes {"locator":{"type":"css","value":"#username"},"context":"D030D0B491EA994081F70BDDEA5D0857"}
+2025-10-01T09:05:00.362Z INFO webdriver: BIDI RESULT {"id":11,"result":{"nodes":[{"sharedId":"f.D030D0B491EA994081F70BDDEA5D0857.d.2144622DF3D553C335CDB22DD737C0E9.e.3","type":"node","value":{"attributes":{"id":"username","name":"username","type":"text"},"childNodeCount":0,"localName":"input","namespaceURI":"http://www.w3.org/1999/xhtml","nodeType":1,"shadowRoot":{"sharedId":"f.D030D0B491EA994081F70BDDEA5D0857.d.2144622DF3D553C335CDB22DD737C0E9.e.9","type":"node","value":{"childNodeCount":1,"mode":"closed","nodeType":11}}}}]},"type":"success"}
+2025-10-01T09:05:00.368Z INFO webdriver: COMMAND elementClear("f.D030D0B491EA994081F70BDDEA5D0857.d.2144622DF3D553C335CDB22DD737C0E9.e.3")
+2025-10-01T09:05:00.369Z INFO webdriver: [POST] http://localhost:37729/session/c550e04d4de6911ed1c837e6bad218f4/element/f.D030D0B491EA994081F70BDDEA5D0857.d.2144622DF3D553C335CDB22DD737C0E9.e.3/clear
+2025-10-01T09:05:00.445Z INFO webdriver: RESULT null
+2025-10-01T09:05:00.446Z INFO webdriver: COMMAND getWindowHandle()
+2025-10-01T09:05:00.446Z INFO webdriver: [GET] http://localhost:37729/session/c550e04d4de6911ed1c837e6bad218f4/window
+2025-10-01T09:05:00.447Z INFO webdriver: COMMAND elementSendKeys("f.D030D0B491EA994081F70BDDEA5D0857.d.2144622DF3D553C335CDB22DD737C0E9.e.3", "<Screenshot[base64]>")
+2025-10-01T09:05:00.448Z INFO webdriver: [POST] http://localhost:37729/session/c550e04d4de6911ed1c837e6bad218f4/element/f.D030D0B491EA994081F70BDDEA5D0857.d.2144622DF3D553C335CDB22DD737C0E9.e.3/value
+2025-10-01T09:05:00.448Z INFO webdriver: DATA { text: 'tomsmith' }
+2025-10-01T09:05:00.455Z INFO webdriver: RESULT D030D0B491EA994081F70BDDEA5D0857
+2025-10-01T09:05:00.455Z INFO webdriver: BIDI COMMAND browsingContext.captureScreenshot {"context":"D030D0B491EA994081F70BDDEA5D0857","origin":"viewport","format":{"type":"image/png"}}
+2025-10-01T09:05:00.601Z INFO webdriver: RESULT null
+2025-10-01T09:05:00.601Z INFO webdriver: COMMAND getWindowHandle()
+2025-10-01T09:05:00.601Z INFO webdriver: [GET] http://localhost:37729/session/c550e04d4de6911ed1c837e6bad218f4/window
+2025-10-01T09:05:00.603Z INFO webdriver: BIDI COMMAND browsingContext.locateNodes {"locator":{"type":"css","value":"#password"},"context":"D030D0B491EA994081F70BDDEA5D0857"}
+2025-10-01T09:05:00.604Z INFO webdriver: RESULT D030D0B491EA994081F70BDDEA5D0857
+2025-10-01T09:05:00.604Z INFO webdriver: BIDI COMMAND browsingContext.captureScreenshot {"context":"D030D0B491EA994081F70BDDEA5D0857","origin":"viewport","format":{"type":"image/png"}}
+2025-10-01T09:05:00.608Z INFO webdriver: BIDI RESULT {"id":13,"result":{"nodes":[{"sharedId":"f.D030D0B491EA994081F70BDDEA5D0857.d.2144622DF3D553C335CDB22DD737C0E9.e.4","type":"node","value":{"attributes":{"id":"password","name":"password","type":"password"},"childNodeCount":0,"localName":"input","namespaceURI":"http://www.w3.org/1999/xhtml","nodeType":1,"shadowRoot":{"sharedId":"f.D030D0B491EA994081F70BDDEA5D0857.d.2144622DF3D553C335CDB22DD737C0E9.e.11","type":"node","value":{"childNodeCount":1,"mode":"closed","nodeType":11}}}}]},"type":"success"}
+2025-10-01T09:05:00.611Z INFO webdriver: COMMAND elementClear("f.D030D0B491EA994081F70BDDEA5D0857.d.2144622DF3D553C335CDB22DD737C0E9.e.4")
+2025-10-01T09:05:00.612Z INFO webdriver: [POST] http://localhost:37729/session/c550e04d4de6911ed1c837e6bad218f4/element/f.D030D0B491EA994081F70BDDEA5D0857.d.2144622DF3D553C335CDB22DD737C0E9.e.4/clear
+2025-10-01T09:05:00.637Z INFO webdriver: RESULT null
+2025-10-01T09:05:00.637Z INFO webdriver: COMMAND getWindowHandle()
+2025-10-01T09:05:00.637Z INFO webdriver: [GET] http://localhost:37729/session/c550e04d4de6911ed1c837e6bad218f4/window
+2025-10-01T09:05:00.638Z INFO webdriver: COMMAND elementSendKeys("f.D030D0B491EA994081F70BDDEA5D0857.d.2144622DF3D553C335CDB22DD737C0E9.e.4", "SuperSecretPassword!")
+2025-10-01T09:05:00.638Z INFO webdriver: [POST] http://localhost:37729/session/c550e04d4de6911ed1c837e6bad218f4/element/f.D030D0B491EA994081F70BDDEA5D0857.d.2144622DF3D553C335CDB22DD737C0E9.e.4/value
+2025-10-01T09:05:00.639Z INFO webdriver: DATA { text: 'SuperSecretPassword!' }
+2025-10-01T09:05:00.640Z INFO webdriver: RESULT D030D0B491EA994081F70BDDEA5D0857
+2025-10-01T09:05:00.641Z INFO webdriver: BIDI COMMAND browsingContext.captureScreenshot {"context":"D030D0B491EA994081F70BDDEA5D0857","origin":"viewport","format":{"type":"image/png"}}
+2025-10-01T09:05:00.693Z INFO webdriver: BIDI RESULT {"data":"Base64 string [56084 chars]"}
+2025-10-01T09:05:00.696Z INFO webdriver: BIDI RESULT {"data":"Base64 string [56084 chars]"}
+2025-10-01T09:05:00.725Z INFO webdriver: RESULT null
+2025-10-01T09:05:00.726Z INFO webdriver: COMMAND getWindowHandle()
+2025-10-01T09:05:00.726Z INFO webdriver: [GET] http://localhost:37729/session/c550e04d4de6911ed1c837e6bad218f4/window
+2025-10-01T09:05:00.727Z INFO webdriver: BIDI COMMAND browsingContext.locateNodes {"locator":{"type":"css","value":"button[type=\"submit\"]"},"context":"D030D0B491EA994081F70BDDEA5D0857"}
+2025-10-01T09:05:00.728Z INFO webdriver: RESULT D030D0B491EA994081F70BDDEA5D0857
+2025-10-01T09:05:00.728Z INFO webdriver: BIDI COMMAND browsingContext.captureScreenshot {"context":"D030D0B491EA994081F70BDDEA5D0857","origin":"viewport","format":{"type":"image/png"}}
+2025-10-01T09:05:00.731Z INFO webdriver: BIDI RESULT {"id":16,"result":{"nodes":[{"sharedId":"f.D030D0B491EA994081F70BDDEA5D0857.d.2144622DF3D553C335CDB22DD737C0E9.e.5","type":"node","value":{"attributes":{"class":"radius","type":"submit"},"childNodeCount":1,"localName":"button","namespaceURI":"http://www.w3.org/1999/xhtml","nodeType":1,"shadowRoot":null}}]},"type":"success"}
+2025-10-01T09:05:00.734Z INFO webdriver: COMMAND elementClick("f.D030D0B491EA994081F70BDDEA5D0857.d.2144622DF3D553C335CDB22DD737C0E9.e.5")
+2025-10-01T09:05:00.734Z INFO webdriver: [POST] http://localhost:37729/session/c550e04d4de6911ed1c837e6bad218f4/element/f.D030D0B491EA994081F70BDDEA5D0857.d.2144622DF3D553C335CDB22DD737C0E9.e.5/click
+2025-10-01T09:05:00.801Z INFO webdriver: BIDI RESULT {"data":"Base64 string [56604 chars]"}
+2025-10-01T09:05:00.804Z INFO webdriver: BIDI RESULT {"data":"Base64 string [56604 chars]"}
+2025-10-01T09:05:01.045Z INFO webdriver: RESULT null
+2025-10-01T09:05:01.045Z INFO webdriver: COMMAND getWindowHandle()
+2025-10-01T09:05:01.046Z INFO webdriver: [GET] http://localhost:37729/session/c550e04d4de6911ed1c837e6bad218f4/window
+2025-10-01T09:05:01.047Z INFO webdriver: BIDI COMMAND browsingContext.locateNodes {"locator":{"type":"css","value":"#flash"},"context":"D030D0B491EA994081F70BDDEA5D0857"}
+2025-10-01T09:05:01.049Z INFO webdriver: RESULT D030D0B491EA994081F70BDDEA5D0857
+2025-10-01T09:05:01.049Z INFO webdriver: BIDI COMMAND browsingContext.captureScreenshot {"context":"D030D0B491EA994081F70BDDEA5D0857","origin":"viewport","format":{"type":"image/png"}}
+2025-10-01T09:05:01.053Z INFO webdriver: BIDI RESULT {"id":18,"result":{"nodes":[{"sharedId":"f.D030D0B491EA994081F70BDDEA5D0857.d.A685B0D7A0F17E9A5511206340BB5C01.e.14","type":"node","value":{"attributes":{"class":"flash success","data-alert":"","id":"flash"},"childNodeCount":3,"localName":"div","namespaceURI":"http://www.w3.org/1999/xhtml","nodeType":1,"shadowRoot":null}}]},"type":"success"}
+2025-10-01T09:05:01.056Z INFO webdriver: BIDI COMMAND browsingContext.locateNodes {"locator":{"type":"css","value":"#flash"},"context":"D030D0B491EA994081F70BDDEA5D0857"}
+2025-10-01T09:05:01.059Z INFO webdriver: BIDI RESULT {"id":20,"result":{"nodes":[{"sharedId":"f.D030D0B491EA994081F70BDDEA5D0857.d.A685B0D7A0F17E9A5511206340BB5C01.e.14","type":"node","value":{"attributes":{"class":"flash success","data-alert":"","id":"flash"},"childNodeCount":3,"localName":"div","namespaceURI":"http://www.w3.org/1999/xhtml","nodeType":1,"shadowRoot":null}}]},"type":"success"}
+2025-10-01T09:05:01.064Z INFO webdriver: BIDI COMMAND browsingContext.locateNodes {"locator":{"type":"css","value":"#flash"},"context":"D030D0B491EA994081F70BDDEA5D0857"}
+2025-10-01T09:05:01.070Z INFO webdriver: BIDI RESULT {"id":21,"result":{"nodes":[{"sharedId":"f.D030D0B491EA994081F70BDDEA5D0857.d.A685B0D7A0F17E9A5511206340BB5C01.e.14","type":"node","value":{"attributes":{"class":"flash success","data-alert":"","id":"flash"},"childNodeCount":3,"localName":"div","namespaceURI":"http://www.w3.org/1999/xhtml","nodeType":1,"shadowRoot":null}}]},"type":"success"}
+2025-10-01T09:05:01.072Z INFO webdriver: COMMAND getElementText("f.D030D0B491EA994081F70BDDEA5D0857.d.A685B0D7A0F17E9A5511206340BB5C01.e.14")
+2025-10-01T09:05:01.073Z INFO webdriver: [GET] http://localhost:37729/session/c550e04d4de6911ed1c837e6bad218f4/element/f.D030D0B491EA994081F70BDDEA5D0857.d.A685B0D7A0F17E9A5511206340BB5C01.e.14/text
+2025-10-01T09:05:01.089Z INFO webdriver: RESULT You logged into a secure area!
+×
+2025-10-01T09:05:01.109Z INFO webdriver: COMMAND takeScreenshot()
+2025-10-01T09:05:01.109Z INFO webdriver: [GET] http://localhost:37729/session/c550e04d4de6911ed1c837e6bad218f4/screenshot
+2025-10-01T09:05:01.119Z INFO webdriver: BIDI RESULT {"data":"Base64 string [42436 chars]"}
+2025-10-01T09:05:01.163Z INFO webdriver: RESULT iVBORw0KGgoAAAANSUhEUgAAAyAAAAHNCAIAAABpV4hKAAAQAElEQVR4nOzdB...
+2025-10-01T09:05:01.164Z INFO webdriver: COMMAND getLogs("browser")
+2025-10-01T09:05:01.164Z INFO webdriver: [POST] http://localhost:37729/session/c550e04d4de6911ed1c837e6bad218f4/se/log
+2025-10-01T09:05:01.164Z INFO webdriver: DATA { type: 'browser' }
+2025-10-01T09:05:01.167Z INFO webdriver: RESULT [
+  {
+    level: 'INFO',
+    message: 'console-api 986:238 "Launching Mapper instance with selfTargetId:" "A8D3E790ED86271687B9685DAE3EB372"',
+    source: 'console-api',
+    timestamp: 1759309499244
+  },
+  {
+    level: 'SEVERE',
+    message: 'https://298279967.log.optimizely.com/event?a=298279967&d=298279967&y=false&n=https%3A%2F%2Fthe-internet.herokuapp.com%2Flogin&u=oeu1759309500062r0.8887604193757415&wxhr=true&t=1759309500065&f=298349752,318188263 - Failed to load resource: net::ERR_NAME_NOT_RESOLVED',
+    source: 'network',
+    timestamp: 1759309500150
+  },
+  {
+    level: 'DEBUG',
+    message: 'https://the-internet.herokuapp.com/login - [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o',
+    source: 'recommendation',
+    timestamp: 1759309500285
+  },
+  {
+    level: 'SEVERE',
+    message: 'https://the-internet.herokuapp.com/favicon.ico - Failed to load resource: the server responded with a status of 404 (Not Found)',
+    source: 'network',
+    timestamp: 1759309500428
+  },
+  {
+    level: 'SEVERE',
+    message: 'https://298279967.log.optimizely.com/event?a=298279967&d=298279967&y=false&n=engagement&g=298283957&u=oeu1759309500062r0.8887604193757415&wxhr=true&t=1759309500812&f=298349752,318188263 - Failed to load resource: net::ERR_NAME_NOT_RESOLVED',
+    source: 'network',
+    timestamp: 1759309500872
+  },
+  {
+    level: 'SEVERE',
+    message: 'https://298279967.log.optimizely.com/event?a=298279967&d=298279967&y=false&n=engagement&g=298283957&u=oeu1759309500062r0.8887604193757415&wxhr=true&t=1759309500812&f=298349752,318188263 - Failed to load resource: net::ERR_NAME_NOT_RESOLVED',
+    source: 'network',
+    timestamp: 1759309501040
+  },
+  {
+    level: 'SEVERE',
+    message: 'https://298279967.log.optimizely.com/event?a=298279967&d=298279967&y=false&n=https%3A%2F%2Fthe-internet.herokuapp.com%2Fsecure&u=oeu1759309500062r0.8887604193757415&wxhr=true&t=1759309500998&f=298349752,318188263 - Failed to load resource: net::ERR_NAME_NOT_RESOLVED',
+    source: 'network',
+    timestamp: 1759309501040
+  },
+  {
+    level: 'SEVERE',
+    message: 'https://298279967.log.optimizely.com/event?a=298279967&d=298279967&y=false&n=https%3A%2F%2Fthe-internet.herokuapp.com%2Flogin&u=oeu1759309500062r0.8887604193757415&wxhr=true&t=1759309500065&f=298349752,318188263 - Failed to load resource: net::ERR_NAME_NOT_RESOLVED',
+    source: 'network',
+    timestamp: 1759309501040
+  }
+]
