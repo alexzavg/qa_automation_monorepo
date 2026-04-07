@@ -1,0 +1,469 @@
+# Test info
+
+- Name: E2E Tests - Localization >> Validate categories for us
+- Location: /home/runner/work/qa_automation_monorepo/qa_automation_monorepo/playwright/tests/softserve/e2e/localization.spec.ts:8:9
+
+# Error details
+
+```
+Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: 13
+Received: 14
+    at /home/runner/work/qa_automation_monorepo/qa_automation_monorepo/playwright/tests/softserve/e2e/localization.spec.ts:15:31
+```
+
+# Page snapshot
+
+```yaml
+- region "Let’s talk about cookies":
+  - heading "Let’s talk about cookies" [level=2]
+  - paragraph:
+    - text: We use cookies to enhance your browsing experience, serve tailored ads or content, and analyze traffic. By clicking "Accept All" you consent to our use of cookies. If you wish to manage your preferences, click "Customize."
+    - link "See our Cookie Notice for more details.":
+      - /url: https://www.softserveinc.com/en-us/cookie-notice
+  - button "Customize"
+  - button "Reject All"
+  - button "Accept All"
+- banner:
+  - link "redirecting-to-home-page":
+    - /url: /en-us
+    - img "SoftServe"
+  - link "Careers open":
+    - /url: https://career.softserveinc.com/en-us/vacancies
+    - text: Careers
+  - link "Search":
+    - /url: /en-us/search
+    - img "Search"
+  - button "Contact us"
+  - button "Open menu"
+- main:
+  - heading "For The Future" [level=1]
+  - paragraph: We are advisors, engineers, and designers solving business challenges with innovative technology solutions
+  - button
+  - list:
+    - listitem:
+      - 'link "Generative AI: The Race Is On Start Now arrow banner image"':
+        - /url: /en-us/generative-ai
+        - heading "Generative AI:" [level=1]
+        - paragraph: The Race Is On
+        - text: Start Now
+        - img "arrow"
+        - img "banner image"
+    - listitem:
+      - link "SoftServe Wins NVIDIA 2026 Energy/Utilities Partner of the Year Read More arrow banner image":
+        - /url: https://blogs.nvidia.com/blog/gtc-2026-news/#npn-partner-awards
+        - heading "SoftServe Wins NVIDIA 2026 Energy/Utilities Partner of the Year" [level=1]
+        - paragraph
+        - text: Read More
+        - img "arrow"
+        - img "banner image"
+    - listitem:
+      - link "banner image The Day A Drone Took Banking Offline — And What It Means Read More arrow":
+        - /url: /en-us/news/drone-attack-took-banking-offline
+        - img "banner image"
+        - heading "The Day A Drone Took Banking Offline — And What It Means" [level=1]
+        - text: Read More
+        - img "arrow"
+    - listitem:
+      - link "SoftServe Gen AI Solutions Accelerated by Nvidia Drive new business value with our innovative offerings Discover Now arrow banner image":
+        - /url: /en-us/our-partners/nvidia#solutions
+        - heading "SoftServe Gen AI Solutions Accelerated by Nvidia" [level=1]
+        - paragraph: Drive new business value with our innovative offerings
+        - text: Discover Now
+        - img "arrow"
+        - img "banner image"
+    - listitem:
+      - 'link "Generative AI: The Race Is On Start Now arrow banner image"':
+        - /url: /en-us/generative-ai
+        - heading "Generative AI:" [level=1]
+        - paragraph: The Race Is On
+        - text: Start Now
+        - img "arrow"
+        - img "banner image"
+    - listitem:
+      - link "SoftServe Wins NVIDIA 2026 Energy/Utilities Partner of the Year Read More arrow banner image":
+        - /url: https://blogs.nvidia.com/blog/gtc-2026-news/#npn-partner-awards
+        - heading "SoftServe Wins NVIDIA 2026 Energy/Utilities Partner of the Year" [level=1]
+        - paragraph
+        - text: Read More
+        - img "arrow"
+        - img "banner image"
+  - button
+  - list:
+    - button
+    - button
+    - button
+    - button
+  - heading "What we do" [level=2]
+  - list:
+    - listitem:
+      - heading "01 Engineering Services" [level=2]
+      - paragraph: SoftServe drives innovation and digital transformation with industry-specific engineering services. Our top-tier software solutions guide your business through every project phase, adding value at each step.
+      - list:
+        - listitem: Software Development
+        - listitem: Software Testing
+        - listitem: Solution Architecture
+        - listitem: Business Analysis
+        - listitem: Operations Support
+        - listitem: Product Management
+        - listitem: Technical Communication
+    - listitem:
+      - heading "02 Cloud & DevOps" [level=2]
+    - listitem:
+      - heading "03 Big Data & Analytics" [level=2]
+    - listitem:
+      - heading "04 AI/ML" [level=2]
+    - listitem:
+      - heading "05 Generative AI" [level=2]
+    - listitem:
+      - heading "06 Internet of Things" [level=2]
+    - listitem:
+      - heading "07 Experience Design" [level=2]
+    - listitem:
+      - heading "08 Cybersecurity and Compliance Services" [level=2]
+    - listitem:
+      - heading "09 Experience Platforms" [level=2]
+    - listitem:
+      - heading "10 XR and Spatial Computing" [level=2]
+    - listitem:
+      - heading "11 Research & Development" [level=2]
+    - listitem:
+      - heading "12 Robotics & Advanced Automation" [level=2]
+    - listitem:
+      - heading "13 Physical AI" [level=2]
+    - listitem:
+      - heading "14 Quantum Computing" [level=2]
+  - link "Discover":
+    - /url: /en-us/services/engineering-services
+  - heading "Your digital journey" [level=2]
+  - paragraph: We help businesses (re)identify their strengths, accelerate solution development, and stay competitive, handling everything from strategic planning and design to launch and beyond.
+  - list:
+    - listitem:
+      - link "Reveal":
+        - /url: /en-us/your-journey/reveal
+        - img
+        - text: Reveal
+    - listitem:
+      - link "Transform":
+        - /url: /en-us/your-journey/transform
+        - img
+        - text: Transform
+    - listitem:
+      - link "Accelerate":
+        - /url: /en-us/your-journey/accelerate
+        - img
+        - text: Accelerate
+    - listitem:
+      - link "Optimize":
+        - /url: /en-us/your-journey/optimize
+        - img
+        - text: Optimize
+  - heading "Partner Ecosystem" [level=2]
+  - text: SoftServe collaborates with global technology leaders to deliver innovative IT services and solutions. Together, we help our clients achieve differentiation and succeed in their digital transformation.
+  - link "Amazon Web Services":
+    - /url: /en-us/our-partners/aws
+    - img "Amazon Web Services"
+  - link "Google Cloud":
+    - /url: /en-us/our-partners/google-cloud
+    - img "Google Cloud"
+  - link "Microsoft":
+    - /url: /en-us/our-partners/microsoft
+    - img "Microsoft"
+  - link "NVIDIA":
+    - /url: /en-us/our-partners/nvidia
+    - img "NVIDIA"
+  - link "Salesforce":
+    - /url: /en-us/our-partners/salesforce
+    - img "Salesforce"
+  - link "See All Partners":
+    - /url: /en-us/our-partners
+  - heading "Industry Focus" [level=2]
+  - paragraph: SoftServe reimagines traditional industry models with advanced technologies. We’ll help you tackle the toughest business challenges in your sector and find new ways to boost efficiency.
+  - button "Healthcare & Life Sciences":
+    - heading "Healthcare & Life Sciences" [level=3]
+  - button "Financial Services":
+    - heading "Financial Services" [level=3]
+  - button "Retail":
+    - heading "Retail" [level=3]
+  - button "Manufacturing":
+    - heading "Manufacturing" [level=3]
+  - text: SoftServe helps organizations innovate across the entire ecosystem while keeping compassionate care at the center. We streamline healthcare IT, operations, and regulatory compliance to lower costs and enable better patient value and outcomes.
+  - link "Learn more":
+    - /url: /en-us/industries/healthcare
+  - button "High Tech":
+    - heading "High Tech" [level=3]
+  - button "The Energy Sector":
+    - heading "The Energy Sector" [level=3]
+  - button "Agriculture":
+    - heading "Agriculture" [level=3]
+  - button "Automotive":
+    - heading "Automotive" [level=3]
+  - heading "Client testimonials" [level=2]
+  - paragraph:
+    - img "felix-obschonka-image-zoomed"
+  - heading "video-link":
+    - text: Felix Obschonka
+    - strong: Director, New Technologies, Montblanc
+  - paragraph:
+    - img "bill-unrue-image"
+  - heading "video-link":
+    - text: Bill Unrue
+    - strong: Chief Executive Officer, Ensight
+  - paragraph:
+    - img "daniel-perret-video-preview"
+  - heading "video-link":
+    - text: Daniel Perret
+    - strong: Director of Product, Quavo
+  - paragraph:
+    - img "rama-vykunta-image"
+  - heading "video-link":
+    - text: Rama Vykunta
+    - strong: Chief Technology Officer, Zenoss
+  - paragraph:
+    - img "ashok-vantipalli"
+  - heading "video-link":
+    - text: Ashok Vantipalli
+    - strong: Chief Information and Technology Officer, TireHub
+  - paragraph:
+    - img "michael-knight"
+  - heading "video-link":
+    - text: Michael Knight
+    - strong: VP of Technology Operations, DataScan
+  - heading "Trusted by Leading Brands" [level=2]
+  - img "Allscripts"
+  - img "Atlassian"
+  - img "Avery Dennision"
+  - img "BazaarVoice"
+  - img "Cisco"
+  - img "Coupa"
+  - img "Gotransverse"
+  - img "IBM"
+  - img "Inditex"
+  - img "Logitech"
+  - img "Mercedes Benz"
+  - img "Panasonic Corporation of North America"
+  - img "ServiceTrade"
+  - img "Tirehub"
+  - img "Vital Energy"
+  - img "Zilliant"
+  - heading "Events" [level=2]
+  - text: Engage with SoftServe’s industry and technology experts at meetups, conferences and online events
+  - 'link "shoptalk-spring-2026 Mar 24, 2026 Shoptalk Spring 2026: Retail, Elevated — with SoftServe + Optimiz... Las Vegas, NV"':
+    - /url: /en-us/events/shoptalk-spring-2026-softserve-optimizely
+    - img "shoptalk-spring-2026"
+    - time: Mar 24, 2026
+    - 'heading "Shoptalk Spring 2026: Retail, Elevated — with SoftServe + Optimiz..." [level=2]'
+    - paragraph: Las Vegas, NV
+  - link "nvidia-gtc-2026-tile Mar 16, 2026 NVIDIA GTC 2026 San Jose, CA":
+    - /url: /en-us/events/nvidia-gtc-2026
+    - img "nvidia-gtc-2026-tile"
+    - time: Mar 16, 2026
+    - heading "NVIDIA GTC 2026" [level=2]
+    - paragraph: San Jose, CA
+  - link "data-masterclass-tile Mar 11, 2026 Why Your AI Strategy Is Actually a Data Problem Online":
+    - /url: /en-us/events/why-ai-strategy-is-a-data-problem
+    - img "data-masterclass-tile"
+    - time: Mar 11, 2026
+    - heading "Why Your AI Strategy Is Actually a Data Problem" [level=2]
+    - paragraph: Online
+  - link "All Events":
+    - /url: /en-us/events
+  - heading "SoftServe Insights" [level=3]
+  - list:
+    - listitem:
+      - list:
+        - listitem:
+          - link "ChatGPT Apps for Retailers":
+            - /url: https://www.softserveinc.com/files/pdf/chatgpt-apps-for-retailer-powered-by-softserve.pdf
+        - listitem:
+          - link "Streamline Complex Research with AI Scientists":
+            - /url: https://info.softserveinc.com/ai-scientists-redefine-research-with-kosmos-sakana
+        - listitem:
+          - link "BCI & AI-Powered Digital Humans":
+            - /url: https://info.softserveinc.com/ai-enabled-bci-digital-humans-whitepaper
+    - listitem:
+      - list:
+        - listitem:
+          - link "Data Strategy & Governance Practice":
+            - /url: https://www.softserveinc.com/files/pdf/data-strategy-and-governance-practice.pdf
+        - listitem:
+          - link "Is Your Data Lake AI Ready?":
+            - /url: https://info.softserveinc.com/future-proofing-data-lakes-for-ai-at-enterprise-scale
+        - listitem:
+          - link "Robotics for Oil and Gas Operations":
+            - /url: https://www.softserveinc.com/files/pdf/robotics-for-oil-and-gas-operations.pdf
+  - link "More resources":
+    - /url: /en-us/resources
+- contentinfo:
+  - heading "Want to get in touch?" [level=2]
+  - link "Contact Us":
+    - /url: /en-us/contact
+  - text: Contacts Austin HQ
+  - paragraph: 201 W 5th Street Suite 1550 Austin, TX 78701
+  - paragraph:
+    - link "+1-512-516-8880":
+      - /url: tel:+1-512-516-8880
+  - paragraph:
+    - text: "Toll free:"
+    - link "+1-866-687-3588":
+      - /url: tel:+1-866-687-3588
+  - text: London
+  - paragraph: 30 Cannon Street London EC4M 6XH
+  - paragraph:
+    - link "+44-203-807-01-41":
+      - /url: tel:+44-203-807-01-41
+  - text: Hot Links
+  - list "Hot links":
+    - listitem:
+      - link "Home":
+        - /url: /en-us
+    - listitem:
+      - link "Your Journey":
+        - /url: /en-us/your-journey/reveal
+    - listitem:
+      - link "Industries":
+        - /url: /en-us/industries
+    - listitem:
+      - link "Services and Capabilities":
+        - /url: /en-us/services
+    - listitem:
+      - link "Resources":
+        - /url: /en-us/resources
+    - listitem:
+      - link "Newsroom":
+        - /url: /en-us/news
+    - listitem:
+      - link "About Us":
+        - /url: /en-us/about-us
+    - listitem:
+      - link "For suppliers":
+        - /url: /en-us/become-a-supplier
+    - listitem:
+      - link "Blog":
+        - /url: /en-us/blog
+    - listitem:
+      - link "Subscribe to Updates":
+        - /url: https://info.softserveinc.com/opt-in-subscription-page
+    - listitem:
+      - link "Contact":
+        - /url: /en-us/contact
+  - list "careers-links":
+    - listitem:
+      - link "University":
+        - /url: https://career.softserveinc.com/en-us/university
+    - listitem:
+      - link "Careers":
+        - /url: https://career.softserveinc.com/en-us/vacancies
+    - listitem:
+      - link "For Universities":
+        - /url: https://career.softserveinc.com/en-us/university-cooperation/global
+    - listitem:
+      - link "Learning & Certification":
+        - /url: https://career.softserveinc.com/en-us/learning-and-certification
+  - list "Terms&Conditions":
+    - listitem:
+      - link "Privacy Notice":
+        - /url: /en-us/privacy
+      - text: "-"
+    - listitem:
+      - link "Terms and Conditions":
+        - /url: /en-us/terms-and-conditions
+      - text: "-"
+    - listitem:
+      - link "Information Security":
+        - /url: /en-us/information-security
+      - text: "-"
+    - listitem:
+      - link "Sitemap":
+        - /url: /en-us/sitemap
+      - text: "-"
+    - listitem:
+      - link "Search":
+        - /url: /en-us/search
+      - text: "-"
+    - listitem:
+      - link "Accessibility Statement":
+        - /url: /en-us/web-accessibility-statement
+    - listitem:
+      - text: "-"
+      - button "Cookie Preferences"
+  - list "Social networks":
+    - listitem:
+      - link "LinkedIn":
+        - /url: https://www.linkedin.com/company/softserve/
+        - img "LinkedIn"
+    - listitem:
+      - link "Facebook":
+        - /url: https://www.facebook.com/SoftServeInc
+        - img "Facebook"
+    - listitem:
+      - link "Instagram":
+        - /url: https://www.instagram.com/softserve_people/
+        - img "Instagram"
+    - listitem:
+      - link "TikTok":
+        - /url: https://www.tiktok.com/@softserve_people
+        - img "TikTok"
+    - listitem:
+      - link "Twitter":
+        - /url: https://twitter.com/SoftServeInc
+        - img "Twitter"
+    - listitem:
+      - link "YouTube":
+        - /url: https://www.youtube.com/user/SoftServeInc
+        - img "YouTube"
+    - listitem:
+      - link "Podcast":
+        - /url: https://soundcloud.com/softserve-podcasts
+        - img "Podcast"
+    - listitem:
+      - link "Bluesky":
+        - /url: https://bsky.app/profile/softserveinc.com
+        - img "Bluesky"
+  - paragraph: © Copyright 2026 SoftServe Inc.
+- list:
+  - listitem: "01"
+  - listitem: "02"
+  - listitem: "03"
+  - listitem: "04"
+  - listitem: "05"
+  - listitem: "06"
+  - listitem: "07"
+  - listitem: "08"
+  - listitem: "09"
+  - listitem: "10"
+```
+
+# Test source
+
+```ts
+   1 | import { test } from "../../../utils/envName"
+   2 | import { expect } from "@playwright/test"
+   3 | import { urls, serviceCategories } from "../../../TestData/softserve.data"
+   4 |
+   5 | test.describe('E2E Tests - Localization', () => {
+   6 |
+   7 |   Object.entries(urls).forEach(([region, url]) => {
+   8 |     test(`Validate categories for ${region}`, async ({ page, pageManager }) => {
+   9 |
+  10 |       await pageManager.pageActions.openUrl(url)
+  11 |       const categories = serviceCategories[region]
+  12 |       const elements = await pageManager.softservePage.serviceItemContent.allTextContents()
+  13 |       console.log(`elements.length: ${elements.length}`)
+  14 |       console.log(`categories.length: ${categories.length}`)
+> 15 |       expect(elements.length).toBe(categories.length)
+     |                               ^ Error: expect(received).toBe(expected) // Object.is equality
+  16 |
+  17 |       for (let i = 0; i < elements.length; i++) {
+  18 |         const trimmedElement = elements[i].trim()
+  19 |         const trimmedCategory = categories[i].trim()
+  20 |         console.log(`Comparing: ${trimmedElement} with ${trimmedCategory}`)
+  21 |         expect(trimmedElement).toBe(trimmedCategory)
+  22 |         await page.waitForTimeout(500) // Small delay for readability
+  23 |       }
+  24 |     })
+  25 |   })
+  26 |
+  27 | })
+```
