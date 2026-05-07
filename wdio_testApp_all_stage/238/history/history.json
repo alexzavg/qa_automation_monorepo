@@ -1,0 +1,1 @@
+{"952db80ffbb7d2fdd4b24ec1e0b24d2f":{"statistic":{"failed":1,"broken":0,"skipped":0,"passed":0,"unknown":0,"total":1},"items":[{"uid":"cbd2bb129ae20c6e","status":"failed","statusDetails":"expect(received).toBe(expected) // Object.is equality\n\nExpected: false\nReceived: true","time":{"start":1778147485251,"stop":1778147486885,"duration":1634}}]}}
