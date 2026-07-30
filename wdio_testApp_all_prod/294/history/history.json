@@ -1,0 +1,1 @@
+{"b70c8eebb30dd34573a59661deb28fca":{"statistic":{"failed":1,"broken":0,"skipped":0,"passed":0,"unknown":0,"total":1},"items":[{"uid":"d83dce4d6c4537a4","status":"failed","statusDetails":"expect(received).toBe(expected) // Object.is equality\n\nExpected: false\nReceived: true","time":{"start":1785409877572,"stop":1785409878596,"duration":1024}}]}}
