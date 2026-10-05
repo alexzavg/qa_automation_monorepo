@@ -1,0 +1,13 @@
+1791222082363 [INFO] console-api 1065:238 "Launching Mapper instance with selfTargetId:" "C20D684E9A60D6A8E1952BFC69DA1D23"
+1791222112652 [SEVERE] https://the-internet.herokuapp.com/img/forkme_right_green_007200.png - Failed to load resource: the server responded with a status of 503 ()
+1791222112666 [SEVERE] https://the-internet.herokuapp.com/js/vendor/jquery-1.11.3.min.js - Failed to load resource: the server responded with a status of 503 ()
+1791222112668 [SEVERE] https://the-internet.herokuapp.com/js/foundation/foundation.alerts.js - Failed to load resource: the server responded with a status of 503 ()
+1791222112674 [SEVERE] https://the-internet.herokuapp.com/js/vendor/jquery-ui-1.11.4/jquery-ui.js 13:11 Uncaught ReferenceError: jQuery is not defined
+1791222112675 [SEVERE] https://the-internet.herokuapp.com/js/foundation/foundation.js 25:8 
+1791222112675 [SEVERE] https://the-internet.herokuapp.com/login 17:6 Uncaught ReferenceError: $ is not defined
+1791222112702 [DEBUG] https://the-internet.herokuapp.com/login - [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o
+1791222112772 [SEVERE] https://298279967.log.optimizely.com/event?a=298279967&d=298279967&y=false&n=https%3A%2F%2Fthe-internet.herokuapp.com%2Flogin&u=oeu1791222112640r0.02955614812144247&wxhr=true&t=1791222112643&f=298349752,318188263 - Failed to load resource: net::ERR_NAME_NOT_RESOLVED
+1791222112783 [SEVERE] https://the-internet.herokuapp.com/favicon.ico - Failed to load resource: the server responded with a status of 404 ()
+1791222113152 [SEVERE] https://298279967.log.optimizely.com/event?a=298279967&d=298279967&y=false&n=https%3A%2F%2Fthe-internet.herokuapp.com%2Fsecure&u=oeu1791222112640r0.02955614812144247&wxhr=true&t=1791222113072&f=298349752,318188263 - Failed to load resource: net::ERR_NAME_NOT_RESOLVED
+1791222113152 [SEVERE] https://298279967.log.optimizely.com/event?a=298279967&d=298279967&y=false&n=https%3A%2F%2Fthe-internet.herokuapp.com%2Flogin&u=oeu1791222112640r0.02955614812144247&wxhr=true&t=1791222112643&f=298349752,318188263 - Failed to load resource: net::ERR_NAME_NOT_RESOLVED
+1791222113152 [SEVERE] https://298279967.log.optimizely.com/event?a=298279967&d=298279967&y=false&n=engagement&g=298283957&u=oeu1791222112640r0.02955614812144247&wxhr=true&t=1791222112966&f=298349752,318188263 - Failed to load resource: net::ERR_NAME_NOT_RESOLVED
