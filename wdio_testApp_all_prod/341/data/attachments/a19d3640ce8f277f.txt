@@ -1,0 +1,48 @@
+.........Console Logs.........
+
+2026-10-05T18:10:30.797Z INFO webdriver: BIDI COMMAND browsingContext.navigate {"context":"DC02C34153CB8E8212E31655636EAE17","url":"https://the-internet.herokuapp.com/login","wait":"complete"}
+2026-10-05T18:11:01.110Z INFO webdriver: BIDI RESULT {"id":10,"result":{"navigation":"95f51d70-9b38-4651-8d82-c7dc376a54f5","url":"https://the-internet.herokuapp.com/login"},"type":"success"}
+2026-10-05T18:11:01.113Z INFO webdriver: BIDI COMMAND browsingContext.locateNodes {"locator":{"type":"css","value":"#username"},"context":"DC02C34153CB8E8212E31655636EAE17"}
+2026-10-05T18:11:01.220Z INFO webdriver: BIDI RESULT {"id":11,"result":{"nodes":[{"sharedId":"f.DC02C34153CB8E8212E31655636EAE17.d.55FE13E500B2AE30335B582F1CAF2981.e.2","type":"node","value":{"attributes":{"id":"username","name":"username","type":"text"},"childNodeCount":0,"localName":"input","namespaceURI":"http://www.w3.org/1999/xhtml","nodeType":1,"shadowRoot":{"sharedId":"f.DC02C34153CB8E8212E31655636EAE17.d.55FE13E500B2AE30335B582F1CAF2981.e.6","type":"node","value":{"childNodeCount":1,"mode":"closed","nodeType":11}}}}]},"type":"success"}
+2026-10-05T18:11:01.229Z INFO webdriver: COMMAND elementClear("f.DC02C34153CB8E8212E31655636EAE17.d.55FE13E500B2AE30335B582F1CAF2981.e.2")
+2026-10-05T18:11:01.230Z INFO webdriver: [POST] http://localhost:35145/session/5c19cc4ca41fd1eb5e3ce8afbc0df72c/element/f.DC02C34153CB8E8212E31655636EAE17.d.55FE13E500B2AE30335B582F1CAF2981.e.2/clear
+2026-10-05T18:11:01.257Z INFO webdriver: RESULT null
+2026-10-05T18:11:01.258Z INFO webdriver: COMMAND getWindowHandle()
+2026-10-05T18:11:01.259Z INFO webdriver: [GET] http://localhost:35145/session/5c19cc4ca41fd1eb5e3ce8afbc0df72c/window
+2026-10-05T18:11:01.260Z INFO webdriver: COMMAND elementSendKeys("f.DC02C34153CB8E8212E31655636EAE17.d.55FE13E500B2AE30335B582F1CAF2981.e.2", "<Screenshot[base64]>")
+2026-10-05T18:11:01.260Z INFO webdriver: [POST] http://localhost:35145/session/5c19cc4ca41fd1eb5e3ce8afbc0df72c/element/f.DC02C34153CB8E8212E31655636EAE17.d.55FE13E500B2AE30335B582F1CAF2981.e.2/value
+2026-10-05T18:11:01.260Z INFO webdriver: DATA { text: 'tomsmith' }
+2026-10-05T18:11:01.265Z INFO webdriver: RESULT DC02C34153CB8E8212E31655636EAE17
+2026-10-05T18:11:01.266Z INFO webdriver: BIDI COMMAND browsingContext.captureScreenshot {"context":"DC02C34153CB8E8212E31655636EAE17","origin":"viewport","format":{"type":"image/png"}}
+2026-10-05T18:11:01.390Z INFO webdriver: RESULT null
+2026-10-05T18:11:01.390Z INFO webdriver: COMMAND getWindowHandle()
+2026-10-05T18:11:01.391Z INFO webdriver: [GET] http://localhost:35145/session/5c19cc4ca41fd1eb5e3ce8afbc0df72c/window
+2026-10-05T18:11:01.392Z INFO webdriver: BIDI COMMAND browsingContext.locateNodes {"locator":{"type":"css","value":"#password"},"context":"DC02C34153CB8E8212E31655636EAE17"}
+2026-10-05T18:11:01.393Z INFO webdriver: RESULT DC02C34153CB8E8212E31655636EAE17
+2026-10-05T18:11:01.394Z INFO webdriver: BIDI COMMAND browsingContext.captureScreenshot {"context":"DC02C34153CB8E8212E31655636EAE17","origin":"viewport","format":{"type":"image/png"}}
+2026-10-05T18:11:01.403Z INFO webdriver: BIDI RESULT {"id":13,"result":{"nodes":[{"sharedId":"f.DC02C34153CB8E8212E31655636EAE17.d.55FE13E500B2AE30335B582F1CAF2981.e.3","type":"node","value":{"attributes":{"id":"password","name":"password","type":"password"},"childNodeCount":0,"localName":"input","namespaceURI":"http://www.w3.org/1999/xhtml","nodeType":1,"shadowRoot":{"sharedId":"f.DC02C34153CB8E8212E31655636EAE17.d.55FE13E500B2AE30335B582F1CAF2981.e.9","type":"node","value":{"childNodeCount":1,"mode":"closed","nodeType":11}}}}]},"type":"success"}
+2026-10-05T18:11:01.408Z INFO webdriver: COMMAND elementClear("f.DC02C34153CB8E8212E31655636EAE17.d.55FE13E500B2AE30335B582F1CAF2981.e.3")
+2026-10-05T18:11:01.408Z INFO webdriver: [POST] http://localhost:35145/session/5c19cc4ca41fd1eb5e3ce8afbc0df72c/element/f.DC02C34153CB8E8212E31655636EAE17.d.55FE13E500B2AE30335B582F1CAF2981.e.3/clear
+2026-10-05T18:11:01.426Z INFO webdriver: RESULT null
+2026-10-05T18:11:01.426Z INFO webdriver: COMMAND getWindowHandle()
+2026-10-05T18:11:01.426Z INFO webdriver: [GET] http://localhost:35145/session/5c19cc4ca41fd1eb5e3ce8afbc0df72c/window
+2026-10-05T18:11:01.427Z INFO webdriver: COMMAND elementSendKeys("f.DC02C34153CB8E8212E31655636EAE17.d.55FE13E500B2AE30335B582F1CAF2981.e.3", "SuperSecretPassword!")
+2026-10-05T18:11:01.427Z INFO webdriver: [POST] http://localhost:35145/session/5c19cc4ca41fd1eb5e3ce8afbc0df72c/element/f.DC02C34153CB8E8212E31655636EAE17.d.55FE13E500B2AE30335B582F1CAF2981.e.3/value
+2026-10-05T18:11:01.427Z INFO webdriver: DATA { text: 'SuperSecretPassword!' }
+2026-10-05T18:11:01.431Z INFO webdriver: RESULT DC02C34153CB8E8212E31655636EAE17
+2026-10-05T18:11:01.431Z INFO webdriver: BIDI COMMAND browsingContext.captureScreenshot {"context":"DC02C34153CB8E8212E31655636EAE17","origin":"viewport","format":{"type":"image/png"}}
+2026-10-05T18:11:01.469Z INFO webdriver: RESULT null
+2026-10-05T18:11:01.470Z INFO webdriver: COMMAND getWindowHandle()
+2026-10-05T18:11:01.470Z INFO webdriver: [GET] http://localhost:35145/session/5c19cc4ca41fd1eb5e3ce8afbc0df72c/window
+2026-10-05T18:11:01.471Z INFO webdriver: BIDI COMMAND browsingContext.locateNodes {"locator":{"type":"css","value":"button[type=\"submit\"]"},"context":"DC02C34153CB8E8212E31655636EAE17"}
+2026-10-05T18:11:01.473Z INFO webdriver: RESULT DC02C34153CB8E8212E31655636EAE17
+2026-10-05T18:11:01.473Z INFO webdriver: BIDI COMMAND browsingContext.captureScreenshot {"context":"DC02C34153CB8E8212E31655636EAE17","origin":"viewport","format":{"type":"image/png"}}
+2026-10-05T18:11:01.475Z INFO webdriver: BIDI RESULT {"id":16,"result":{"nodes":[{"sharedId":"f.DC02C34153CB8E8212E31655636EAE17.d.55FE13E500B2AE30335B582F1CAF2981.e.4","type":"node","value":{"attributes":{"class":"radius","type":"submit"},"childNodeCount":1,"localName":"button","namespaceURI":"http://www.w3.org/1999/xhtml","nodeType":1,"shadowRoot":null}}]},"type":"success"}
+2026-10-05T18:11:01.480Z INFO webdriver: COMMAND elementClick("f.DC02C34153CB8E8212E31655636EAE17.d.55FE13E500B2AE30335B582F1CAF2981.e.4")
+2026-10-05T18:11:01.480Z INFO webdriver: [POST] http://localhost:35145/session/5c19cc4ca41fd1eb5e3ce8afbc0df72c/element/f.DC02C34153CB8E8212E31655636EAE17.d.55FE13E500B2AE30335B582F1CAF2981.e.4/click
+2026-10-05T18:11:01.527Z INFO webdriver: BIDI RESULT {"data":"Base64 string [48012 chars]"}
+2026-10-05T18:11:01.530Z INFO webdriver: BIDI RESULT {"data":"Base64 string [48012 chars]"}
+2026-10-05T18:11:01.554Z INFO webdriver: BIDI RESULT {"data":"Base64 string [48032 chars]"}
+2026-10-05T18:11:01.557Z INFO webdriver: BIDI RESULT {"data":"Base64 string [48032 chars]"}
+2026-10-05T18:11:30.816Z INFO webdriver: COMMAND takeScreenshot()
+2026-10-05T18:11:30.816Z INFO webdriver: [GET] http://localhost:35145/session/5c19cc4ca41fd1eb5e3ce8afbc0df72c/screenshot
