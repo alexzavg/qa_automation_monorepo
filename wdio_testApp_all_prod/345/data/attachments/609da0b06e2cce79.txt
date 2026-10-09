@@ -1,0 +1,61 @@
+.........Console Logs.........
+
+2026-10-09T15:58:52.491Z INFO webdriver: BIDI COMMAND browsingContext.navigate {"context":"EDB182C5E51947C45849A1F1E8CFF59C","url":"https://the-internet.herokuapp.com/login","wait":"complete"}
+2026-10-09T15:59:22.621Z INFO webdriver: BIDI RESULT {"id":10,"result":{"navigation":"41c4b18b-41ef-4733-835c-56893de50cb2","url":"https://the-internet.herokuapp.com/login"},"type":"success"}
+2026-10-09T15:59:22.623Z INFO webdriver: BIDI COMMAND browsingContext.locateNodes {"locator":{"type":"css","value":"#username"},"context":"EDB182C5E51947C45849A1F1E8CFF59C"}
+2026-10-09T15:59:22.628Z INFO webdriver: BIDI RESULT {"id":11,"result":{"nodes":[{"sharedId":"f.EDB182C5E51947C45849A1F1E8CFF59C.d.51B22393756E624589F4E0EEE810E5FC.e.2","type":"node","value":{"attributes":{"id":"username","name":"username","type":"text"},"childNodeCount":0,"localName":"input","namespaceURI":"http://www.w3.org/1999/xhtml","nodeType":1,"shadowRoot":{"sharedId":"f.EDB182C5E51947C45849A1F1E8CFF59C.d.51B22393756E624589F4E0EEE810E5FC.e.6","type":"node","value":{"childNodeCount":1,"mode":"closed","nodeType":11}}}}]},"type":"success"}
+2026-10-09T15:59:22.638Z INFO webdriver: COMMAND elementClear("f.EDB182C5E51947C45849A1F1E8CFF59C.d.51B22393756E624589F4E0EEE810E5FC.e.2")
+2026-10-09T15:59:22.639Z INFO webdriver: [POST] http://localhost:42429/session/10fc287a7da3baa88bec952aedc4a10f/element/f.EDB182C5E51947C45849A1F1E8CFF59C.d.51B22393756E624589F4E0EEE810E5FC.e.2/clear
+2026-10-09T15:59:22.670Z INFO webdriver: RESULT null
+2026-10-09T15:59:22.672Z INFO webdriver: COMMAND getWindowHandle()
+2026-10-09T15:59:22.672Z INFO webdriver: [GET] http://localhost:42429/session/10fc287a7da3baa88bec952aedc4a10f/window
+2026-10-09T15:59:22.673Z INFO webdriver: COMMAND elementSendKeys("f.EDB182C5E51947C45849A1F1E8CFF59C.d.51B22393756E624589F4E0EEE810E5FC.e.2", "<Screenshot[base64]>")
+2026-10-09T15:59:22.673Z INFO webdriver: [POST] http://localhost:42429/session/10fc287a7da3baa88bec952aedc4a10f/element/f.EDB182C5E51947C45849A1F1E8CFF59C.d.51B22393756E624589F4E0EEE810E5FC.e.2/value
+2026-10-09T15:59:22.673Z INFO webdriver: DATA { text: 'tomsmith' }
+2026-10-09T15:59:22.678Z INFO webdriver: RESULT EDB182C5E51947C45849A1F1E8CFF59C
+2026-10-09T15:59:22.678Z INFO webdriver: BIDI COMMAND browsingContext.captureScreenshot {"context":"EDB182C5E51947C45849A1F1E8CFF59C","origin":"viewport","format":{"type":"image/png"}}
+2026-10-09T15:59:22.722Z INFO webdriver: RESULT null
+2026-10-09T15:59:22.723Z INFO webdriver: COMMAND getWindowHandle()
+2026-10-09T15:59:22.723Z INFO webdriver: [GET] http://localhost:42429/session/10fc287a7da3baa88bec952aedc4a10f/window
+2026-10-09T15:59:22.724Z INFO webdriver: BIDI COMMAND browsingContext.locateNodes {"locator":{"type":"css","value":"#password"},"context":"EDB182C5E51947C45849A1F1E8CFF59C"}
+2026-10-09T15:59:22.726Z INFO webdriver: RESULT EDB182C5E51947C45849A1F1E8CFF59C
+2026-10-09T15:59:22.726Z INFO webdriver: BIDI COMMAND browsingContext.captureScreenshot {"context":"EDB182C5E51947C45849A1F1E8CFF59C","origin":"viewport","format":{"type":"image/png"}}
+2026-10-09T15:59:22.730Z INFO webdriver: BIDI RESULT {"id":13,"result":{"nodes":[{"sharedId":"f.EDB182C5E51947C45849A1F1E8CFF59C.d.51B22393756E624589F4E0EEE810E5FC.e.3","type":"node","value":{"attributes":{"id":"password","name":"password","type":"password"},"childNodeCount":0,"localName":"input","namespaceURI":"http://www.w3.org/1999/xhtml","nodeType":1,"shadowRoot":{"sharedId":"f.EDB182C5E51947C45849A1F1E8CFF59C.d.51B22393756E624589F4E0EEE810E5FC.e.10","type":"node","value":{"childNodeCount":1,"mode":"closed","nodeType":11}}}}]},"type":"success"}
+2026-10-09T15:59:22.734Z INFO webdriver: COMMAND elementClear("f.EDB182C5E51947C45849A1F1E8CFF59C.d.51B22393756E624589F4E0EEE810E5FC.e.3")
+2026-10-09T15:59:22.735Z INFO webdriver: [POST] http://localhost:42429/session/10fc287a7da3baa88bec952aedc4a10f/element/f.EDB182C5E51947C45849A1F1E8CFF59C.d.51B22393756E624589F4E0EEE810E5FC.e.3/clear
+2026-10-09T15:59:22.753Z INFO webdriver: RESULT null
+2026-10-09T15:59:22.753Z INFO webdriver: COMMAND getWindowHandle()
+2026-10-09T15:59:22.753Z INFO webdriver: [GET] http://localhost:42429/session/10fc287a7da3baa88bec952aedc4a10f/window
+2026-10-09T15:59:22.754Z INFO webdriver: COMMAND elementSendKeys("f.EDB182C5E51947C45849A1F1E8CFF59C.d.51B22393756E624589F4E0EEE810E5FC.e.3", "SuperSecretPassword!")
+2026-10-09T15:59:22.754Z INFO webdriver: [POST] http://localhost:42429/session/10fc287a7da3baa88bec952aedc4a10f/element/f.EDB182C5E51947C45849A1F1E8CFF59C.d.51B22393756E624589F4E0EEE810E5FC.e.3/value
+2026-10-09T15:59:22.754Z INFO webdriver: DATA { text: 'SuperSecretPassword!' }
+2026-10-09T15:59:22.757Z INFO webdriver: RESULT EDB182C5E51947C45849A1F1E8CFF59C
+2026-10-09T15:59:22.757Z INFO webdriver: BIDI COMMAND browsingContext.captureScreenshot {"context":"EDB182C5E51947C45849A1F1E8CFF59C","origin":"viewport","format":{"type":"image/png"}}
+2026-10-09T15:59:22.805Z INFO webdriver: BIDI RESULT {"data":"Base64 string [46016 chars]"}
+2026-10-09T15:59:22.809Z INFO webdriver: BIDI RESULT {"data":"Base64 string [46016 chars]"}
+2026-10-09T15:59:22.828Z INFO webdriver: RESULT null
+2026-10-09T15:59:22.828Z INFO webdriver: COMMAND getWindowHandle()
+2026-10-09T15:59:22.828Z INFO webdriver: [GET] http://localhost:42429/session/10fc287a7da3baa88bec952aedc4a10f/window
+2026-10-09T15:59:22.829Z INFO webdriver: BIDI COMMAND browsingContext.locateNodes {"locator":{"type":"css","value":"button[type=\"submit\"]"},"context":"EDB182C5E51947C45849A1F1E8CFF59C"}
+2026-10-09T15:59:22.831Z INFO webdriver: RESULT EDB182C5E51947C45849A1F1E8CFF59C
+2026-10-09T15:59:22.832Z INFO webdriver: BIDI COMMAND browsingContext.captureScreenshot {"context":"EDB182C5E51947C45849A1F1E8CFF59C","origin":"viewport","format":{"type":"image/png"}}
+2026-10-09T15:59:22.833Z INFO webdriver: BIDI RESULT {"id":16,"result":{"nodes":[{"sharedId":"f.EDB182C5E51947C45849A1F1E8CFF59C.d.51B22393756E624589F4E0EEE810E5FC.e.4","type":"node","value":{"attributes":{"class":"radius","type":"submit"},"childNodeCount":1,"localName":"button","namespaceURI":"http://www.w3.org/1999/xhtml","nodeType":1,"shadowRoot":null}}]},"type":"success"}
+2026-10-09T15:59:22.838Z INFO webdriver: COMMAND elementClick("f.EDB182C5E51947C45849A1F1E8CFF59C.d.51B22393756E624589F4E0EEE810E5FC.e.4")
+2026-10-09T15:59:22.838Z INFO webdriver: [POST] http://localhost:42429/session/10fc287a7da3baa88bec952aedc4a10f/element/f.EDB182C5E51947C45849A1F1E8CFF59C.d.51B22393756E624589F4E0EEE810E5FC.e.4/click
+2026-10-09T15:59:22.902Z INFO webdriver: BIDI RESULT {"data":"Base64 string [46544 chars]"}
+2026-10-09T15:59:22.905Z INFO webdriver: BIDI RESULT {"data":"Base64 string [46544 chars]"}
+2026-10-09T15:59:22.908Z INFO webdriver: RESULT null
+2026-10-09T15:59:22.909Z INFO webdriver: COMMAND getWindowHandle()
+2026-10-09T15:59:22.909Z INFO webdriver: [GET] http://localhost:42429/session/10fc287a7da3baa88bec952aedc4a10f/window
+2026-10-09T15:59:22.912Z INFO webdriver: BIDI COMMAND browsingContext.locateNodes {"locator":{"type":"css","value":"#flash"},"context":"EDB182C5E51947C45849A1F1E8CFF59C"}
+2026-10-09T15:59:22.913Z INFO webdriver: RESULT EDB182C5E51947C45849A1F1E8CFF59C
+2026-10-09T15:59:22.913Z INFO webdriver: BIDI COMMAND browsingContext.captureScreenshot {"context":"EDB182C5E51947C45849A1F1E8CFF59C","origin":"viewport","format":{"type":"image/png"}}
+2026-10-09T15:59:22.915Z INFO webdriver: BIDI RESULT {"id":18,"result":{"nodes":[]},"type":"success"}
+2026-10-09T15:59:22.922Z INFO webdriver: BIDI COMMAND browsingContext.locateNodes {"locator":{"type":"css","value":"#flash"},"context":"EDB182C5E51947C45849A1F1E8CFF59C"}
+2026-10-09T15:59:22.981Z INFO webdriver: BIDI RESULT {"data":"Base64 string [45936 chars]"}
+2026-10-09T15:59:22.991Z INFO webdriver: BIDI RESULT {"error":"unknown error","id":20,"message":"Cannot find context with specified id","stacktrace":"Error\n    at new UnknownErrorException (\u003Canonymous>:65:5630)\n    at CommandProcessor.processCommand (\u003Canonymous>:485:14806)","type":"error"}
+2026-10-09T15:59:23.138Z INFO webdriver: COMMAND findElements("css selector", "#flash")
+2026-10-09T15:59:23.139Z INFO webdriver: [POST] http://localhost:42429/session/10fc287a7da3baa88bec952aedc4a10f/elements
+2026-10-09T15:59:23.139Z INFO webdriver: DATA { using: 'css selector', value: '#flash' }
+2026-10-09T15:59:52.488Z INFO webdriver: COMMAND takeScreenshot()
+2026-10-09T15:59:52.488Z INFO webdriver: [GET] http://localhost:42429/session/10fc287a7da3baa88bec952aedc4a10f/screenshot
