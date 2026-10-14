@@ -1,0 +1,12 @@
+1791987908100 [INFO] console-api 1129:238 "Launching Mapper instance with selfTargetId:" "DD120B07B314BBDC921BC2B3258D35E1"
+1791987938521 [SEVERE] https://the-internet.herokuapp.com/img/forkme_right_green_007200.png - Failed to load resource: the server responded with a status of 503 ()
+1791987938522 [SEVERE] https://the-internet.herokuapp.com/css/app.css - Failed to load resource: the server responded with a status of 503 ()
+1791987938531 [SEVERE] https://the-internet.herokuapp.com/js/foundation/foundation.alerts.js - Failed to load resource: the server responded with a status of 503 ()
+1791987938531 [SEVERE] https://the-internet.herokuapp.com/js/vendor/jquery-ui-1.11.4/jquery-ui.js - Failed to load resource: the server responded with a status of 503 ()
+1791987938543 [DEBUG] https://the-internet.herokuapp.com/login - [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o
+1791987938562 [SEVERE] https://298279967.log.optimizely.com/event?a=298279967&d=298279967&y=false&n=https%3A%2F%2Fthe-internet.herokuapp.com%2Flogin&u=oeu1791987938357r0.21928927758668415&wxhr=true&t=1791987938359&f=298349752,318188263 - Failed to load resource: net::ERR_NAME_NOT_RESOLVED
+1791987938692 [SEVERE] https://the-internet.herokuapp.com/favicon.ico - Failed to load resource: the server responded with a status of 404 ()
+1791987938859 [SEVERE] https://298279967.log.optimizely.com/event?a=298279967&d=298279967&y=false&n=engagement&g=298283957&u=oeu1791987938357r0.21928927758668415&wxhr=true&t=1791987938757&f=298349752,318188263 - Failed to load resource: net::ERR_NAME_NOT_RESOLVED
+1791987939005 [SEVERE] https://298279967.log.optimizely.com/event?a=298279967&d=298279967&y=false&n=https%3A%2F%2Fthe-internet.herokuapp.com%2Fsecure&u=oeu1791987938357r0.21928927758668415&wxhr=true&t=1791987938929&f=298349752,318188263 - Failed to load resource: net::ERR_NAME_NOT_RESOLVED
+1791987939005 [SEVERE] https://298279967.log.optimizely.com/event?a=298279967&d=298279967&y=false&n=https%3A%2F%2Fthe-internet.herokuapp.com%2Flogin&u=oeu1791987938357r0.21928927758668415&wxhr=true&t=1791987938359&f=298349752,318188263 - Failed to load resource: net::ERR_NAME_NOT_RESOLVED
+1791987939006 [SEVERE] https://298279967.log.optimizely.com/event?a=298279967&d=298279967&y=false&n=engagement&g=298283957&u=oeu1791987938357r0.21928927758668415&wxhr=true&t=1791987938757&f=298349752,318188263 - Failed to load resource: net::ERR_NAME_NOT_RESOLVED
