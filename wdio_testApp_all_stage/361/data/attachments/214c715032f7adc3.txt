@@ -1,0 +1,5 @@
+1793646085195 [INFO] console-api 1129:238 "Launching Mapper instance with selfTargetId:" "42555CC3C53A5A5F49437EFF279FCC9B"
+1793646085880 [SEVERE] https://298279967.log.optimizely.com/event?a=298279967&d=298279967&y=false&n=https%3A%2F%2Fthe-internet.herokuapp.com%2Flogin&u=oeu1793646085766r0.17970289186179633&wxhr=true&t=1793646085767&f=298349752,318188263 - Failed to load resource: net::ERR_NAME_NOT_RESOLVED
+1793646085893 [DEBUG] https://the-internet.herokuapp.com/login - [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o
+1793646086019 [SEVERE] https://the-internet.herokuapp.com/favicon.ico - Failed to load resource: the server responded with a status of 404 ()
+1793646086177 [SEVERE] https://298279967.log.optimizely.com/event?a=298279967&d=298279967&y=false&n=engagement&g=298283957&u=oeu1793646085766r0.17970289186179633&wxhr=true&t=1793646086095&f=298349752,318188263 - Failed to load resource: net::ERR_NAME_NOT_RESOLVED
